@@ -570,6 +570,10 @@ footer{margin-top:40px;text-align:center;font-size:10px;color:var(--faint);font-
 .hs-setup .hs-example{margin-top:10px;padding:10px 12px;border-radius:var(--r-sm);background:var(--surface);
   border:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);
   word-break:break-all;line-height:1.6;}
+.hs-action-btn{border-radius:var(--r-xs);border:1px solid var(--line2);background:linear-gradient(135deg,var(--card),rgba(35,43,66,.4));color:var(--text);font-weight:600;
+  padding:10px 14px;font-size:12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all .2s var(--spring);box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.hs-action-btn:active{transform:scale(.93);}
+.hs-action-btn:hover{border-color:var(--accent);box-shadow:0 4px 12px rgba(74,126,255,.1);}
 </style>
 </head>
 <body>
@@ -815,16 +819,23 @@ footer{margin-top:40px;text-align:center;font-size:10px;color:var(--faint);font-
   <div class="hs-setup">
     <h3>How it works</h3>
     <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px">An Apple Shortcut reads your HealthKit data and opens this app with the data as URL parameters. The app auto-fills your metrics and generates smart suggestions based on your real body data.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="hs-action-btn" onclick="testHealthData()" style="flex:1;min-width:120px">🧪 Test with sample data</button>
+      <button class="hs-action-btn" onclick="copyHealthURL()" style="flex:1;min-width:120px">📋 Copy URL template</button>
+      <button class="hs-action-btn" onclick="openShortcutsApp()" style="flex:1;min-width:120px">📲 Open Shortcuts app</button>
+    </div>
     <h3>Setup (5 minutes, one time)</h3>
     <ol>
-      <li>Open the <b>Shortcuts</b> app on iPhone</li>
+      <li>Tap <b>Open Shortcuts app</b> above, or open Shortcuts manually</li>
       <li>Create a new Shortcut named <code>BegaHealthSync</code></li>
       <li>Add a <b>Get Health Sample</b> action for each: Steps, Sleep, HRV, Weight, Resting HR, Active Energy, Mindful Minutes, Water</li>
       <li>Add a <b>Get Workouts</b> action and set it to total minutes today</li>
-      <li>Add an <b>Open URL</b> action with the URL pattern shown below, substituting your data variables</li>
+      <li>Add an <b>Open URL</b> action — tap <b>Copy URL template</b> above and paste it in, then replace each number with the matching variable from your Health steps</li>
       <li>Save and add the Shortcut to your home screen for daily one-tap sync</li>
+      <li>Optional: Set up a <b>Time of Day automation</b> in Shortcuts → Automation → Create → Time of Day → 8:00 AM → Run BegaHealthSync. This makes it fully automatic every morning.</li>
     </ol>
     <div class="hs-example" id="hsExample"></div>
+    <div id="hsCopyToast" style="display:none;font-size:12px;color:var(--green);margin-top:8px;font-family:'JetBrains Mono',monospace">✅ URL copied to clipboard — paste it into the Open URL action in your Shortcut</div>
   </div>
 
   <h2 class="sec"><span class="sec-icon">�</span>PWA</h2>
@@ -1286,6 +1297,36 @@ function openHealthShortcut(){
   // and opens this URL with data as parameters.
   // Instructions shown in Settings > Health Sync section.
   window.location.href='shortcuts://run-shortcut?name=BegaHealthSync';
+}
+function openShortcutsApp(){
+  window.location.href='shortcuts://create-shortcut';
+}
+function copyHealthURL(){
+  const base=window.location.origin+window.location.pathname;
+  const url=base+'?steps=8234&sleep=7.2&hrv=48&weight=89.5&restingHR=58&workoutMin=35&activeCal=520&mindfulMin=15&water=1800';
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>{
+      const t=document.getElementById('hsCopyToast');
+      if(t){t.style.display='block';setTimeout(()=>t.style.display='none',4000);}
+    }).catch(()=>fallbackCopy(url));
+  }else fallbackCopy(url);
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+  const t=document.getElementById('hsCopyToast');
+  if(t){t.style.display='block';setTimeout(()=>t.style.display='none',4000);}
+}
+function testHealthData(){
+  const sample={steps:8234,sleep:6.4,hrv:42,weight:89.5,restingHR:58,workoutMin:35,activeCal:520,mindfulMin:15,water:1800,lastSync:todayKey};
+  applyHealthData(sample);
+  renderAll();renderHealthSync();renderHealthSuggestions();renderMetrics();
+  switchTab('tab-today');
+  setTimeout(()=>{
+    const bar=document.getElementById('healthSyncBar');
+    if(bar){bar.scrollIntoView({behavior:'smooth',block:'center'});}
+  },300);
 }
 
 /* ===== RING ===== */
