@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bega-v2-v3';
+const CACHE_NAME = 'bega-v2-v4';
 const ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
