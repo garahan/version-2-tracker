@@ -185,8 +185,8 @@ h2.sec .sec-icon{font-size:13px;}
 .night label{font-size:10px;color:var(--faint);letter-spacing:.18em;text-transform:uppercase;display:block;margin-bottom:12px;font-weight:600;}
 .night label .opt{font-size:9px;color:var(--faint);opacity:.5;font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;}
 .moodrow{display:flex;gap:6px;margin-bottom:10px;}
-.mood{flex:1;text-align:center;padding:12px 2px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--card);
-  cursor:pointer;transition:all .25s var(--spring);font-size:22px;}
+.mood{flex:1;text-align:center;padding:12px 2px;border-radius:var(--r-sm);border:1px solid var(--line);background:linear-gradient(135deg,var(--card),rgba(35,43,66,.3));
+  cursor:pointer;transition:all .25s var(--spring);font-size:22px;box-shadow:0 2px 8px rgba(0,0,0,.1);}
 .mood:active{transform:scale(.88);}
 .mood.sel{border-color:var(--accent);background:rgba(74,126,255,.08);box-shadow:0 0 20px rgba(74,126,255,.1);transform:scale(1.05);}
 .mood small{display:block;font-size:8px;color:var(--faint);margin-top:4px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;}
@@ -365,8 +365,6 @@ h2.sec .sec-icon{font-size:13px;}
 .badge{background:linear-gradient(135deg,var(--card),rgba(35,43,66,.4));border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 6px;text-align:center;transition:all .3s var(--spring);box-shadow:0 2px 8px rgba(0,0,0,.15);}
 .badge:active{transform:scale(.92);}
 .badge .bi{font-size:22px;display:block;filter:grayscale(1);opacity:.2;}
-.badge.earned{border-color:rgba(251,191,36,.2);box-shadow:0 2px 12px rgba(251,191,36,.08);}
-.badge.earned .bi{filter:none;opacity:1;}
 .badge span{font-size:8.5px;color:var(--faint);display:block;margin-top:5px;line-height:1.3;font-family:'JetBrains Mono',monospace;letter-spacing:.02em;}
 .badge.won{border-color:rgba(251,191,36,.3);background:linear-gradient(135deg,var(--card),rgba(251,191,36,.06));box-shadow:0 4px 16px rgba(251,191,36,.06);}
 .badge.won .bi{filter:none;opacity:1;}
@@ -558,8 +556,8 @@ footer{margin-top:40px;text-align:center;font-size:10px;color:var(--faint);font-
 .hs-sugg{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:var(--r-sm);
   margin-bottom:6px;font-size:13px;line-height:1.5;animation:fadein .3s var(--spring);}
 .hs-sugg.high{background:linear-gradient(135deg,rgba(255,94,58,.08),rgba(255,176,32,.05));border:1px solid rgba(255,94,58,.15);}
-.hs-sugg.med{background:rgba(74,126,255,.04);border:1px solid rgba(74,126,255,.1);}
-.hs-sugg.low{background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.1);}
+.hs-sugg.med{background:linear-gradient(135deg,rgba(74,126,255,.06),rgba(20,184,166,.03));border:1px solid rgba(74,126,255,.12);}
+.hs-sugg.low{background:linear-gradient(135deg,rgba(34,197,94,.06),rgba(20,184,166,.03));border:1px solid rgba(34,197,94,.12);}
 .hs-sugg-icon{font-size:16px;flex-shrink:0;margin-top:1px;}
 .hs-setup{background:linear-gradient(135deg,var(--card),rgba(35,43,66,.3));border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:8px 0;box-shadow:0 2px 12px rgba(0,0,0,.15);}
 .hs-setup h3{font-size:13px;font-weight:600;margin-bottom:10px;}
@@ -1012,7 +1010,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(mem));}catch(e){}}
 function dkey(d){return d.toISOString().slice(0,10);}
 const todayKey=dkey(new Date());
 function day(k){if(!mem.days[k])mem.days[k]={move:0,fuel:0,build:0,wind:0,note:'',mood:0,nttd:{},priority:''};return mem.days[k];}
-function pts(d){if(!d)return 0;if(d.rest)return 1;return['move','fuel','build','wind'].reduce((s,h)=>s+(d[h]===2?1:d[h]===1?0.5:0),0);}
+function pts(d){if(!d)return 0;if(d.rest||d.shieldProtected)return 1;return['move','fuel','build','wind'].reduce((s,h)=>s+(d[h]===2?1:d[h]===1?0.5:0),0);}
 function totalPts(){return Object.values(mem.days).reduce((s,d)=>s+pts(d),0);}
 function habits(){return mem.habits||DEFAULT_HABITS;}
 
@@ -1086,7 +1084,7 @@ function checkShields(){
   for(let i=0;i<7;i++){
     const d=new Date(weekStart);d.setDate(d.getDate()+i);
     const k=dkey(d);const day=mem.days[k];
-    if(!day||(!day.rest&&!habits().every(h=>day[h.id]>0))){allPerfect=false;break;}
+    if(!day||(!day.rest&&!day.shieldProtected&&!habits().every(h=>day[h.id]>0))){allPerfect=false;break;}
   }
   if(allPerfect){
     mem.shields=(mem.shields||0)+1;
@@ -1099,7 +1097,7 @@ function compositeWeeklyScore(){
   let habitPts=0,maxHabit=0;
   days.forEach(k=>{
     const d=mem.days[k];
-    if(d.rest){habitPts+=1;maxHabit+=1;return;}
+    if(d.rest||d.shieldProtected){habitPts+=1;maxHabit+=1;return;}
     habitPts+=pts(d);maxHabit+=4;
   });
   const habitScore=maxHabit>0?Math.round(habitPts/maxHabit*100):0;
@@ -1430,16 +1428,16 @@ function streakInfo(){
   let best=s,cur=0,prev=null;
   Object.keys(mem.days).sort().forEach(kk=>{
     if(complete(kk)){cur=(prev&&Math.round((new Date(kk)-new Date(prev))/86400000)===1)?cur+1:1;best=Math.max(best,cur);prev=kk;}
-    else prev=complete(kk)?kk:prev;
+    else{cur=0;}
   });
   const y=new Date();y.setDate(y.getDate()-1);
   const keys=Object.keys(mem.days).sort();
   const yKey=dkey(y);
-  const missedYesterday=keys.length>0&&!complete(yKey)&&keys[0]<=yKey&&!mem.days[yKey]?.rest;
-  // comeback: missed yesterday but logged before that, and today not yet complete
+  const yDay=mem.days[yKey];
+  const missedYesterday=keys.length>0&&!complete(yKey)&&keys[0]<=yKey&&!yDay?.rest&&!yDay?.shieldProtected;
+  const shieldUsedYesterday=!!(yDay?.shieldProtected);
   const loggedBefore=keys.some(kk=>kk<yKey);
   const comeback=missedYesterday&&loggedBefore&&!isTodayComplete();
-  const shieldUsedYesterday=missedYesterday&&mem.days[yKey]?.shieldProtected;
   return{streak:s,best,missedYesterday,comeback,shieldUsedYesterday};
 }
 function isTodayComplete(){const d=mem.days[todayKey];return d&&(d.rest||d.shieldProtected||['move','fuel','build','wind'].every(h=>d[h]>0));}
@@ -1502,7 +1500,7 @@ function renderAll(){
   const restDays=Object.values(mem.days).filter(dd=>dd.rest).length;
   const comebacks=Object.keys(mem.days).sort().filter((k,i,arr)=>{
     if(i===0)return false;const prev=arr[i-1];const d=mem.days[k],pd=mem.days[prev];
-    return pd&&!pd.rest&&!['move','fuel','build','wind'].every(h=>pd[h]>0)&&d&&!d.rest&&['move','fuel','build','wind'].every(h=>d[h]>0);
+    return pd&&!pd.rest&&!pd.shieldProtected&&!['move','fuel','build','wind'].every(h=>pd[h]>0)&&d&&!d.rest&&['move','fuel','build','wind'].every(h=>d[h]>0);
   }).length;
   const nttdAvoided=Object.values(mem.days).reduce((s,d)=>s+(d.nttd?Object.values(d.nttd).filter(v=>v===1).length:0),0);
   renderBadges({perfect,best:si.best,pts:p,floorSaves:floorSaves(),swaps:(mem.swaps||[]).length,restDays,comebacks,nttdAvoided});
@@ -1510,12 +1508,11 @@ function renderAll(){
   renderMood();renderMoodChart();renderHabitStrength();renderNotTodo();renderNorthStar();renderIdentity();renderPriority();renderDomains();renderMomentum();renderCoupling();
   // comeback message
   const cb=document.getElementById('comeback');
-  if(si.comeback){
-    if(si.shieldUsedYesterday){
-      cb.innerHTML='🛡️ <b>Shield used!</b> Your streak was protected automatically. You earned it with a perfect week. <b>Don\'t waste the second chance</b> — pick up where you left off.';
-    }else{
-      cb.innerHTML='You broke the streak yesterday — that happens. <b>Today is Day 1 again.</b> Not Day 0. You already know the system. Run it.';
-    }
+  if(si.shieldUsedYesterday&&!isTodayComplete()){
+    cb.innerHTML='🛡️ <b>Shield used!</b> Your streak was protected automatically. You earned it with a perfect week. <b>Don\'t waste the second chance</b> — pick up where you left off.';
+    cb.classList.add('show');
+  }else if(si.comeback){
+    cb.innerHTML='You broke the streak yesterday — that happens. <b>Today is Day 1 again.</b> Not Day 0. You already know the system. Run it.';
     cb.classList.add('show');
   }else cb.classList.remove('show');
   // shield display
@@ -2137,7 +2134,7 @@ function renderAudit(){
   const wn=document.getElementById('weeknotes');wn.innerHTML='';
   const ws=document.getElementById('weeksum');
   let shown=0;
-  let weekPerfect=0,weekFloor=0,weekMiss=0,weekPts=0,weekRest=0;
+  let weekPerfect=0,weekFloor=0,weekMiss=0,weekPts=0,weekRest=0,weekShield=0;
   let weekNttdAvoided=0,weekNttdSlipped=0;
   for(let i=0;i<7;i++){
     const dt=new Date();dt.setDate(dt.getDate()-i);
@@ -2146,6 +2143,7 @@ function renderAudit(){
       const p=pts(d);
       weekPts+=p;
       if(d.rest)weekRest++;
+      else if(d.shieldProtected)weekShield++;
       else if(['move','fuel','build','wind'].every(h=>d[h]===2))weekPerfect++;
       else if(['move','fuel','build','wind'].every(h=>d[h]>0))weekFloor++;
       else weekMiss++;
@@ -2160,6 +2158,7 @@ function renderAudit(){
   ws.innerHTML=`
     <div class="ws"><b>${weekPerfect}</b><span>perfect</span></div>
     <div class="ws"><b>${weekFloor}</b><span>floor saves</span></div>
+    <div class="ws"><b>${weekShield}</b><span>shielded 🛡️</span></div>
     <div class="ws"><b>${weekMiss}</b><span>missed</span></div>
     <div class="ws"><b>${weekRest}</b><span>rest days</span></div>
     <div class="ws"><b>${weekNttdAvoided}</b><span>avoided 🚫</span></div>
