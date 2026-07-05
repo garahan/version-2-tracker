@@ -344,6 +344,7 @@ h2.sec .sec-icon{font-size:13px;}
 .cell.l3{background:var(--green);border-color:transparent;box-shadow:0 0 6px rgba(34,197,94,.35);}
 .cell.miss{background:var(--red-dim);border-color:transparent;}
 .cell.rest{background:rgba(74,126,255,.15);border-color:rgba(74,126,255,.3);}
+.cell.shield{background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.35);box-shadow:0 0 4px rgba(251,191,36,.2);}
 .cell.today{outline:2px solid var(--accent);outline-offset:1px;}
 .heat-labels{display:flex;align-items:center;gap:5px;margin-top:10px;font-size:10px;color:var(--faint);font-family:'JetBrains Mono',monospace;flex-wrap:wrap;letter-spacing:.04em;}
 .heat-labels .cell{width:10px;height:10px;cursor:default;}
@@ -654,9 +655,6 @@ footer{margin-top:40px;text-align:center;font-size:10px;color:var(--faint);font-
   <h2 class="sec" style="margin-top:8px"><span class="sec-icon">📊</span>Overview</h2>
   <div class="statgrid" id="statgrid"></div>
 
-  <h2 class="sec"><span class="sec-icon">🧮</span>Weekly composite score</h2>
-  <div id="weeklyScoreContainer"></div>
-
   <h2 class="sec"><span class="sec-icon">🚀</span>Momentum (14-day weighted)</h2>
   <div id="momentumContainer"></div>
 
@@ -668,6 +666,8 @@ footer{margin-top:40px;text-align:center;font-size:10px;color:var(--faint);font-
     <span class="cell miss"></span> missed
     <span style="margin-left:8px">·</span>
     <span class="cell rest"></span> rest
+    <span style="margin-left:8px">·</span>
+    <span class="cell shield"></span> shield
   </div>
 
   <h2 class="sec"><span class="sec-icon">😊</span>Mood trend</h2>
@@ -704,6 +704,7 @@ footer{margin-top:40px;text-align:center;font-size:10px;color:var(--faint);font-
     <div class="weeksum" id="weeksum"></div>
     <div id="weeknotes"></div>
   </div>
+  <div id="weeklyScoreContainer"></div>
   <div class="panel">
     <h3><span class="step">02</span>Swap, don't just delete</h3>
     <p>Name the trigger, replace the habit. A bad habit dies when a good one takes its slot.</p>
@@ -963,13 +964,13 @@ const DEFAULT_NTTD=[
 /* ===== STATE ===== */
 const KEY='bega-v2';
 const SCHEMA=2;
-let mem={days:{},metrics:{},swaps:[],lastRankIdx:0,habits:DEFAULT_HABITS,accent:'purple',goal:null,goalSet:null,nttd:DEFAULT_NTTD,northStar:{},identity:[],monthly:{},shields:0,coupling:[],weeklyScore:{},healthSync:{}};
+let mem={days:{},metrics:{},swaps:[],lastRankIdx:0,habits:DEFAULT_HABITS,accent:'blue',goal:null,goalSet:null,nttd:DEFAULT_NTTD,northStar:{},identity:[],monthly:{},shields:0,coupling:[],weeklyScore:{},healthSync:{}};
 function load(){
   try{
     const r=localStorage.getItem(KEY);
     if(r){
       const p=JSON.parse(r);
-      mem={days:{},metrics:{},swaps:[],lastRankIdx:0,habits:DEFAULT_HABITS,accent:'purple',goal:null,goalSet:null,nttd:DEFAULT_NTTD,northStar:{},identity:[],monthly:{},shields:0,coupling:[],weeklyScore:{},healthSync:{},...p};
+      mem={days:{},metrics:{},swaps:[],lastRankIdx:0,habits:DEFAULT_HABITS,accent:'blue',goal:null,goalSet:null,nttd:DEFAULT_NTTD,northStar:{},identity:[],monthly:{},shields:0,coupling:[],weeklyScore:{},healthSync:{},...p};
       if(!mem.habits||!mem.habits.length)mem.habits=DEFAULT_HABITS;
       if(!mem.nttd||!mem.nttd.length)mem.nttd=DEFAULT_NTTD;
       if(!mem.northStar)mem.northStar={};
@@ -1002,6 +1003,15 @@ function momentum(habitId){
     score+=(d&&d[habitId]>0?d[habitId]===2?1:0.5:0)*wgt;
   }
   return Math.round(score/7*100);
+}
+function momentumTrend(habitId){
+  const days=Object.keys(mem.days).sort();
+  if(days.length<4)return 0;
+  const recent=days.slice(-7),older=days.slice(-14,-7);
+  if(older.length===0)return 0;
+  const recentAvg=recent.reduce((s,k)=>{const d=mem.days[k];return s+(d&&d[habitId]>0?d[habitId]===2?1:0.5:0);},0)/recent.length;
+  const olderAvg=older.reduce((s,k)=>{const d=mem.days[k];return s+(d&&d[habitId]>0?d[habitId]===2?1:0.5:0);},0)/older.length;
+  return recentAvg-olderAvg;
 }
 function streakRisk(){
   const si=streakInfo();
@@ -1289,7 +1299,7 @@ function renderRing(){
   habits().forEach(h=>{
     const el=document.getElementById('seg-'+h.id);
     if(!el)return;
-    if(d[h.id]>0){el.style.stroke=cols[h.id]||'#B48EFF';el.style.color=cols[h.id]||'#B48EFF';el.classList.add('on');el.style.opacity=d[h.id]===1?.55:1;}
+    if(d[h.id]>0){el.style.stroke=cols[h.id]||'#4A7EFF';el.style.color=cols[h.id]||'#4A7EFF';el.classList.add('on');el.style.opacity=d[h.id]===1?.55:1;}
     else{el.style.stroke='var(--surface)';el.classList.remove('on');el.style.opacity=.85;}
   });
   // pulse ring when all complete
@@ -1358,7 +1368,7 @@ function toggle(id,val){
 
 /* ===== STREAK ===== */
 function streakInfo(){
-  const complete=k=>{const d=mem.days[k];return d&&(d.rest||['move','fuel','build','wind'].every(h=>d[h]>0));};
+  const complete=k=>{const d=mem.days[k];return d&&(d.rest||d.shieldProtected||['move','fuel','build','wind'].every(h=>d[h]>0));};
   let s=0,dt=new Date(),k=dkey(dt);
   if(complete(k))s++;
   for(let i=1;i<3650;i++){dt.setDate(dt.getDate()-1);k=dkey(dt);if(complete(k))s++;else break;}
@@ -1374,9 +1384,19 @@ function streakInfo(){
   // comeback: missed yesterday but logged before that, and today not yet complete
   const loggedBefore=keys.some(kk=>kk<yKey);
   const comeback=missedYesterday&&loggedBefore&&!isTodayComplete();
-  return{streak:s,best,missedYesterday,comeback};
+  const shieldUsedYesterday=missedYesterday&&mem.days[yKey]?.shieldProtected;
+  return{streak:s,best,missedYesterday,comeback,shieldUsedYesterday};
 }
-function isTodayComplete(){const d=mem.days[todayKey];return d&&(d.rest||['move','fuel','build','wind'].every(h=>d[h]>0));}
+function isTodayComplete(){const d=mem.days[todayKey];return d&&(d.rest||d.shieldProtected||['move','fuel','build','wind'].every(h=>d[h]>0));}
+function applyShieldProtection(){
+  const y=new Date();y.setDate(y.getDate()-1);
+  const yKey=dkey(y);
+  const yd=mem.days[yKey];
+  if(yd&&!yd.rest&&!yd.shieldProtected&&(mem.shields||0)>0){
+    const hasHabits=['move','fuel','build','wind'].some(h=>yd[h]>0);
+    if(!hasHabits){mem.shields=(mem.shields||0)-1;yd.shieldProtected=true;save();}
+  }
+}
 
 /* ===== RANKS ===== */
 function rankIdx(p){let i=0;RANKS.forEach((r,j)=>{if(p>=r.pts)i=j;});return i;}
@@ -1436,7 +1456,11 @@ function renderAll(){
   // comeback message
   const cb=document.getElementById('comeback');
   if(si.comeback){
-    cb.innerHTML='You broke the streak yesterday — that happens. <b>Today is Day 1 again.</b> Not Day 0. You already know the system. Run it.';
+    if(si.shieldUsedYesterday){
+      cb.innerHTML='🛡️ <b>Shield used!</b> Your streak was protected automatically. You earned it with a perfect week. <b>Don\'t waste the second chance</b> — pick up where you left off.';
+    }else{
+      cb.innerHTML='You broke the streak yesterday — that happens. <b>Today is Day 1 again.</b> Not Day 0. You already know the system. Run it.';
+    }
     cb.classList.add('show');
   }else cb.classList.remove('show');
   // shield display
@@ -1445,7 +1469,7 @@ function renderAll(){
     sdEl.style.display='flex';
     let shields='';
     for(let i=0;i<(mem.shields||0);i++)shields+='<span class="shield-icon">🛡️</span>';
-    sdEl.innerHTML=shields+'<span class="shield-count">'+(mem.shields||0)+'</span><span class="shield-info">Perfect-week shields earned. Streak protected.</span>';
+    sdEl.innerHTML=shields+'<span class="shield-count">'+(mem.shields||0)+'</span><span class="shield-info">Perfect-week shields. Auto-protects streak on missed days.</span>';
   }else if(sdEl){sdEl.style.display='none';}
   // rest day button state
   const rb=document.getElementById('restBtn');
@@ -1495,6 +1519,7 @@ function renderHeat(){
     let cls='cell';
     if(d){
       if(d.rest)cls+=' rest';
+      else if(d.shieldProtected)cls+=' shield';
       else if(p>=4)cls+=' l3';
       else if(p>=2)cls+=' l2';
       else if(p>0)cls+=' l1';
@@ -1502,7 +1527,7 @@ function renderHeat(){
     }
     if(k===todayKey)cls+=' today';
     c.className=cls;
-    c.title=k+' · '+(d?.rest?'rest day':p.toFixed(1)+' pts');
+    c.title=k+' · '+(d?.rest?'rest day':d?.shieldProtected?'🛡️ shield-protected':p.toFixed(1)+' pts');
     c.onclick=()=>showDayDetail(k);
     heat.appendChild(c);cur.setDate(cur.getDate()+1);
   }
@@ -1516,6 +1541,8 @@ function showDayDetail(k){
   const rows=document.getElementById('mdRows');rows.innerHTML='';
   if(d&&d.rest){
     rows.innerHTML='<div style="text-align:center;padding:20px 0;font-size:14px;color:var(--accent)">💤 Planned rest day</div>';
+  }else if(d&&d.shieldProtected){
+    rows.innerHTML='<div style="text-align:center;padding:20px 0;font-size:14px;color:var(--gold)">🛡️ Shield-protected day — streak preserved</div>';
   }else{
   const names={move:'Move',fuel:'Fuel',build:'Build',wind:'Wind down'};
   const icons={move:'🏋️',fuel:'🥩',build:'💻',wind:'🌙'};
@@ -1743,12 +1770,15 @@ function renderMomentum(){
   el.innerHTML='';
   habits().forEach(h=>{
     const m=momentum(h.id);
-    const flame=m>=70?'🔥':m>=40?'':m>=20?'':m>=10?'':m>=0?'':'';
+    const flame=m>=80?'🔥🔥':m>=60?'🔥':m>=40?'⚡':m>=20?'💧':m>=10?'🌱':'❄️';
+    const trend=momentumTrend(h.id);
+    const trendIcon=trend>0.1?' ↑':trend<-0.1?' ↓':' →';
+    const trendColor=trend>0.1?'var(--green)':trend<-0.1?'var(--move)':'var(--faint)';
     const div=document.createElement('div');
     div.className='momentum-row';
     div.innerHTML=`<div class="m-icon">${h.icon}</div><div class="m-name">${h.name}</div>
       <div class="m-bar"><div class="m-fill" style="width:${Math.min(m,100)}%;background:${cols[h.id]||'var(--accent)'}"></div></div>
-      <div class="m-val">${m}</div>`;
+      <div class="m-val">${m}<span style="font-size:9px;color:${trendColor}">${trendIcon}</span></div>`;
     el.appendChild(div);
   });
 }
@@ -2008,7 +2038,7 @@ function renderMetrics(){
   });
 }
 function spark(data,m){
-  if(data.length<2)return '<text x="100" y="28" fill="#6A6256" font-size="9" text-anchor="middle" font-family="monospace" letter-spacing="0.5">need 2+ logs for trend</text>';
+  if(data.length<2)return '<text x="100" y="28" fill="#586279" font-size="9" text-anchor="middle" font-family="monospace" letter-spacing="0.5">need 2+ logs for trend</text>';
   const vs=data.slice(-20).map(e=>e.v);
   const min=Math.min(...vs),max=Math.max(...vs),rng=(max-min)||1;
   const ptsArr=vs.map((v,i)=>{
@@ -2331,6 +2361,7 @@ const noteEl=document.getElementById('note');
 noteEl.addEventListener('input',()=>{day(todayKey).note=noteEl.value;save();});
 load();
 noteEl.value=day(todayKey).note||"";
+applyShieldProtection();
 // health URL bridge
 const healthData=parseHealthURL();
 if(healthData){

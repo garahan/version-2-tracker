@@ -71,12 +71,12 @@ Four daily habits ("the Big 4"), each with a full version and a **Floor** — a 
 
 ## Smart Analytics Engine
 
-- **Momentum scores** — 14-day weighted moving average per habit (recent days count more, 0.85 decay)
+- **Momentum scores** — 14-day weighted moving average per habit (recent days count more, 0.85 decay) with trend direction arrows (↑/↓/→) comparing recent vs older periods
 - **Streak risk prediction** — time-aware system that checks current hour + habits done. Three levels: high (9pm+ with nothing done), medium (afternoon with 0-1), low (on track)
 - **Habit-mood correlations** — for each habit, calculates whether your mood is better on days you do it vs skip it
 - **Skip pattern detection** — finds which day of the week you skip each habit most often
-- **Composite Weekly Score** — weighted formula: 50% habits + 20% mood + 15% anti-habits + 15% priority, with letter grade
-- **Streak Shields** — earn 1 shield per perfect week (all 7 days complete or rest day)
+- **Composite Weekly Score** — weighted formula: 50% habits + 20% mood + 15% anti-habits + 15% priority, with letter grade and visual breakdown bars. Displayed in the Audit tab.
+- **Streak Shields** — earn 1 shield per perfect week (all 7 days complete or rest day). Shields auto-protect your streak on missed days — when a day is missed and shields are available, one is consumed automatically and the streak continues. Shield-protected days appear gold on the heatmap and show a special comeback message.
 - **Smart Nudges** — contextual messages that combine streak risk, skip patterns, time of day, and health data
 
 ## Apple Health Integration
