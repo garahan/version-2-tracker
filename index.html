@@ -553,6 +553,39 @@ footer{margin-top:40px;text-align:center;font-size:10px;color:var(--faint);font-
 .smart-nudge .sn-icon{font-size:18px;flex-shrink:0;}
 .smart-nudge .sn-x{margin-left:auto;cursor:pointer;color:var(--faint);font-size:16px;padding:0 4px;}
 
+/* ===== STREAK MILESTONE CELEBRATION ===== */
+.milestone-celebrate{display:none;margin:0 0 14px;padding:16px 18px;border-radius:var(--r-sm);
+  background:linear-gradient(135deg,rgba(251,191,36,.12),rgba(255,176,32,.08),rgba(255,94,58,.06));
+  border:1px solid rgba(251,191,36,.3);align-items:center;gap:12px;animation:fadein .5s var(--spring);
+  box-shadow:0 4px 24px rgba(251,191,36,.1);}
+.milestone-celebrate.show{display:flex;}
+.milestone-celebrate .ms-icon{font-size:32px;flex-shrink:0;animation:bump .6s var(--spring);}
+.milestone-celebrate .ms-body{flex:1;}
+.milestone-celebrate .ms-title{font-size:16px;font-weight:700;color:var(--text);}
+.milestone-celebrate .ms-sub{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4;}
+.milestone-celebrate .ms-close{cursor:pointer;color:var(--faint);font-size:18px;padding:0 4px;}
+
+/* ===== PROCRASTINATION REDIRECT ===== */
+.procrast-redirect{display:none;margin:0 0 14px;padding:14px 18px;border-radius:var(--r-sm);
+  background:linear-gradient(135deg,rgba(255,94,58,.08),rgba(255,176,32,.06));
+  border:1px solid rgba(255,94,58,.2);align-items:flex-start;gap:12px;animation:fadein .4s var(--spring);}
+.procrast-redirect.show{display:flex;}
+.procrast-redirect .pr-icon{font-size:20px;flex-shrink:0;margin-top:2px;}
+.procrast-redirect .pr-body{flex:1;}
+.procrast-redirect .pr-text{font-size:13px;color:var(--text);line-height:1.5;}
+.procrast-redirect .pr-action{margin-top:8px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;
+  padding:8px 14px;border-radius:var(--r-xs);background:rgba(74,126,255,.08);display:inline-block;transition:background .2s;}
+.procrast-redirect .pr-action:active{background:rgba(74,126,255,.15);}
+
+/* ===== OVERALL MOMENTUM BAR ===== */
+.overall-momentum{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:var(--r-sm);
+  background:var(--card);border:1px solid var(--line);margin-bottom:14px;}
+.overall-momentum:empty{display:none;}
+.overall-momentum .om-icon{font-size:24px;flex-shrink:0;}
+.overall-momentum .om-body{flex:1;}
+.overall-momentum .om-title{font-size:15px;font-weight:700;color:var(--text);}
+.overall-momentum .om-detail{font-size:11px;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace;}
+
 /* ===== SHIELDS ===== */
 .shield-display{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
 .shield-icon{font-size:20px;filter:drop-shadow(0 0 6px rgba(215,186,125,.25));}
@@ -681,6 +714,8 @@ footer{margin-top:40px;text-align:center;font-size:10px;color:var(--faint);font-
     </div>
   </div>
   <div class="smart-nudge" id="smartNudge"><span class="sn-icon">🤖</span><span id="smartNudgeText"></span><span class="sn-x" onclick="document.getElementById('smartNudge').classList.remove('show')">×</span></div>
+  <div class="milestone-celebrate" id="milestoneCelebrate"></div>
+  <div class="procrast-redirect" id="procrastRedirect"></div>
   <div class="health-sync-bar" id="healthSyncBar"></div>
   <div class="health-suggestions" id="healthSuggestions"></div>
   <div class="quote" id="quote"></div>
@@ -783,6 +818,7 @@ footer{margin-top:40px;text-align:center;font-size:10px;color:var(--faint);font-
 <!-- ===== AUDIT ===== -->
 <div class="tab" id="tab-audit">
   <div class="nudge" id="weeklyNudge">🔔 You haven't reviewed this week yet. 10 minutes here beats 10 hours of guessing. <span class="nudge-x" onclick="document.getElementById('weeklyNudge').classList.remove('show')">×</span></div>
+  <div class="overall-momentum" id="overallMomentum"></div>
   <h2 class="sec" style="margin-top:8px"><span class="sec-icon">🔁</span>Weekly audit — 10 min, once a week</h2>
   <div class="panel">
     <h3><span class="step">01</span>Your week at a glance</h3>
@@ -1081,13 +1117,13 @@ const DEFAULT_NTTD=[
 /* ===== STATE ===== */
 const KEY='bega-v2';
 const SCHEMA=3;
-let mem={days:{},metrics:{},swaps:[],lastRankIdx:0,habits:DEFAULT_HABITS,accent:'blue',goal:null,goalSet:null,nttd:DEFAULT_NTTD,northStar:{},identity:[],monthly:{},shields:0,coupling:[],weeklyScore:{},healthSync:{},tasks:{}};
+let mem={days:{},metrics:{},swaps:[],lastRankIdx:0,habits:DEFAULT_HABITS,accent:'blue',goal:null,goalSet:null,nttd:DEFAULT_NTTD,northStar:{},identity:[],monthly:{},shields:0,coupling:[],weeklyScore:{},healthSync:{},tasks:{},lastStreakMilestone:0};
 function load(){
   try{
     const r=localStorage.getItem(KEY);
     if(r){
       const p=JSON.parse(r);
-      mem={days:{},metrics:{},swaps:[],lastRankIdx:0,habits:DEFAULT_HABITS,accent:'blue',goal:null,goalSet:null,nttd:DEFAULT_NTTD,northStar:{},identity:[],monthly:{},shields:0,coupling:[],weeklyScore:{},healthSync:{},tasks:{},...p};
+      mem={days:{},metrics:{},swaps:[],lastRankIdx:0,habits:DEFAULT_HABITS,accent:'blue',goal:null,goalSet:null,nttd:DEFAULT_NTTD,northStar:{},identity:[],monthly:{},shields:0,coupling:[],weeklyScore:{},healthSync:{},tasks:{},lastStreakMilestone:0,...p};
       if(!mem.habits||!mem.habits.length)mem.habits=DEFAULT_HABITS;
       if(!mem.nttd||!mem.nttd.length)mem.nttd=DEFAULT_NTTD;
       if(!mem.northStar)mem.northStar={};
@@ -1757,6 +1793,8 @@ function renderAll(){
   // weekly nudge
   checkWeeklyNudge();
   checkShields();
+  checkStreakMilestone();
+  renderProcrastinationRedirect();
   renderSmartNudge();
   renderHealthSync();
   renderHealthSuggestions();
@@ -1979,6 +2017,11 @@ function renderInsights(p,si,perfect){
   if(risk.level==='high'){
     el.innerHTML+=`<div class="insight" style="border-color:rgba(244,135,113,.2)"><div class="ii">⚠️</div><div class="it"><b>${risk.msg}</b> <span class="muted">Streaks die in the last 3 hours of the day.</span></div></div>`;
   }
+  // metric-to-outcome correlations
+  const metricInsights=computeMetricCorrelations();
+  metricInsights.forEach(ins=>{
+    el.innerHTML+=`<div class="insight" style="border-color:rgba(74,126,255,.15)"><div class="ii">${ins.ico}</div><div class="it">${ins.text} <span class="muted">${ins.sub}</span></div></div>`;
+  });
 }
 function renderDomains(){
   const el=document.getElementById('domainGrid');
@@ -2614,6 +2657,7 @@ function renderAudit(){
     <div class="ws"><b>${weekNttdSlipped}</b><span>slipped 🚫</span></div>
     <div class="ws full"><b>${weekPts.toFixed(1)}</b><span>total points this week</span></div>`;
   if(!shown)wn.innerHTML='<div class="insight" style="margin:0"><div class="ii">📝</div><div class="it" style="color:var(--faint)">No notes yet this week — write one tonight on the Today tab.</div></div>';
+  renderOverallMomentum();
   const sw=document.getElementById('swaps');sw.innerHTML='';
   (mem.swaps||[]).slice().reverse().forEach(s=>{
     const div=document.createElement('div');div.className='swapitem';
@@ -2856,6 +2900,142 @@ function switchTab(tabId){
 document.querySelectorAll('nav button').forEach(b=>{
   b.addEventListener('click',()=>switchTab(b.dataset.tab));
 });
+
+/* ===== STREAK MILESTONE CELEBRATIONS ===== */
+const STREAK_MILESTONES={
+  7:{ico:'🔥',title:'7-day streak!',sub:'One week. This is the first proof you\'re serious.'},
+  14:{ico:'🏆',title:'14-day streak!',sub:'Two weeks. The habit is forming.'},
+  30:{ico:'⭐',title:'30-day streak!',sub:'A month. This is becoming automatic.'},
+  60:{ico:'💎',title:'60-day streak!',sub:'Two months. This is installed.'},
+  90:{ico:'👑',title:'90-day streak!',sub:'Three months. This is identity now.'},
+  180:{ico:'🌟',title:'180-day streak!',sub:'Half a year. Extraordinary.'},
+  365:{ico:'🚀',title:'365-day streak!',sub:'A full year. This is who you are.'}
+};
+function checkStreakMilestone(){
+  const si=streakInfo();
+  const lastSeen=mem.lastStreakMilestone||0;
+  const milestones=Object.keys(STREAK_MILESTONES).map(Number).sort((a,b)=>a-b);
+  const hit=milestones.find(m=>si.streak>=m&&lastSeen<m);
+  if(hit){
+    mem.lastStreakMilestone=hit;
+    save();
+    const ms=STREAK_MILESTONES[hit];
+    const el=document.getElementById('milestoneCelebrate');
+    if(el){
+      el.innerHTML=`<div class="ms-icon">${ms.ico}</div><div class="ms-body"><div class="ms-title">${ms.title}</div><div class="ms-sub">${ms.sub}</div></div><div class="ms-close" onclick="document.getElementById('milestoneCelebrate').classList.remove('show')">×</div>`;
+      el.classList.add('show');
+    }
+    if(navigator.vibrate)navigator.vibrate([10,50,10,50,10,50,20]);
+    confetti(80);
+  }
+}
+
+/* ===== PROCRASTINATION REDIRECT ===== */
+function renderProcrastinationRedirect(){
+  const el=document.getElementById('procrastRedirect');
+  if(!el)return;
+  const d=day(todayKey);
+  if(d.rest||isTodayComplete()){el.classList.remove('show');return;}
+  const hour=new Date().getHours();
+  if(hour<14){el.classList.remove('show');return;} // only activate after 2pm
+  const done=habits().filter(h=>d[h.id]>0).length;
+  const total=habits().length;
+  const remaining=habits().filter(h=>d[h.id]===0);
+  if(remaining.length===0){el.classList.remove('show');return;}
+  // find most-skipped habit from history
+  const days=Object.keys(mem.days);
+  if(days.length<5){el.classList.remove('show');return;}
+  const skipCount={};
+  remaining.forEach(h=>skipCount[h.id]=0);
+  days.forEach(k=>{const dd=mem.days[k];if(dd&&!dd.rest)remaining.forEach(h=>{if(dd[h.id]===0)skipCount[h.id]++;});});
+  const worst=remaining.sort((a,b)=>skipCount[b.id]-skipCount[a.id])[0];
+  if(!worst){el.classList.remove('show');return;}
+  const urgency=hour>=20?'high':hour>=18?'medium':'low';
+  const msg=urgency==='high'?`It's ${hour}:00 and you haven't done ${worst.name}. <b>Do the floor now</b> — 1 set is enough.`:urgency==='medium'?`It's ${hour}:00. ${worst.name} is your most-skipped habit (${skipCount[worst.id]} misses). Don't leave it to the last hour.`:`${worst.name} is your most-skipped habit. Knock it out before the evening rush.`;
+  const floorTxt=(worst.sub.split('Floor:')[1]||worst.sub).trim();
+  el.innerHTML=`<div class="pr-icon">🔄</div><div class="pr-body"><div class="pr-text">${msg}</div><div class="pr-action" onclick="setFloor('${worst.id}')">Do the floor: ${floorTxt} →</div></div>`;
+  el.classList.add('show');
+}
+function setFloor(id){
+  const d=day(todayKey);
+  d[id]=1;
+  if(navigator.vibrate)navigator.vibrate([10,30,10]);
+  save();renderCards();renderAll();renderProcrastinationRedirect();
+}
+
+/* ===== METRIC-TO-OUTCOME CORRELATIONS ===== */
+function computeMetricCorrelations(){
+  const days=Object.keys(mem.days).sort();
+  if(days.length<10)return [];
+  const insights=[];
+  // Sleep vs habit completion
+  const sleepData=(mem.metrics.sleep||[]).map(e=>({d:e.d,v:e.v}));
+  if(sleepData.length>=5){
+    const lowSleep=sleepData.filter(e=>e.v<6);
+    const goodSleep=sleepData.filter(e=>e.v>=7);
+    if(lowSleep.length>=3&&goodSleep.length>=3){
+      const lowComplete=lowSleep.filter(e=>{const d=mem.days[e.d];return d&&['move','fuel','build','wind'].every(h=>d[h]>0);}).length;
+      const goodComplete=goodSleep.filter(e=>{const d=mem.days[e.d];return d&&['move','fuel','build','wind'].every(h=>d[h]>0);}).length;
+      const lowRate=Math.round(lowComplete/lowSleep.length*100);
+      const goodRate=Math.round(goodComplete/goodSleep.length*100);
+      if(goodRate>lowRate+15){
+        insights.push({ico:'😴',text:`On days you sleep <6h, you complete only ${lowRate}% of habits vs ${goodRate}% on 7h+ nights`,sub:'Sleep is your highest-leverage input. Protecting it protects everything.'});
+      }
+    }
+  }
+  // Screen time vs habit completion
+  const screenData=(mem.metrics.screen||[]).map(e=>({d:e.d,v:e.v}));
+  if(screenData.length>=5){
+    const highScreen=screenData.filter(e=>e.v>4);
+    const lowScreen=screenData.filter(e=>e.v>0&&e.v<2);
+    if(highScreen.length>=3&&lowScreen.length>=3){
+      const highPts=highScreen.reduce((s,e)=>{const d=mem.days[e.d];return s+(d?pts(d):0);},0)/highScreen.length;
+      const lowPts=lowScreen.reduce((s,e)=>{const d=mem.days[e.d];return s+(d?pts(d):0);},0)/lowScreen.length;
+      if(lowPts>highPts+0.5){
+        insights.push({ico:'📱',text:`On days with >4h screen time, you average ${highPts.toFixed(1)} pts vs ${lowPts.toFixed(1)} pts on low-screen days`,sub:'Screen time is eating your day. Your phone is the enemy of Move and Build.'});
+      }
+    }
+  }
+  // HRV vs mood
+  const hrvData=(mem.metrics.hrv||[]).map(e=>({d:e.d,v:e.v}));
+  if(hrvData.length>=5){
+    const withMood=hrvData.filter(e=>{const d=mem.days[e.d];return d&&d.mood>0;});
+    if(withMood.length>=5){
+      const sorted=[...withMood].sort((a,b)=>a.v-b.v);
+      const bottom=sorted.slice(0,Math.floor(sorted.length/3));
+      const top=sorted.slice(-Math.floor(sorted.length/3));
+      if(bottom.length>=2&&top.length>=2){
+        const lowMood=bottom.reduce((s,e)=>s+mem.days[e.d].mood,0)/bottom.length;
+        const highMood=top.reduce((s,e)=>s+mem.days[e.d].mood,0)/top.length;
+        if(highMood>lowMood+0.5){
+          insights.push({ico:'❤️',text:`Your mood is ${highMood.toFixed(1)}/5 on high-HRV days vs ${lowMood.toFixed(1)}/5 on low-HRV days`,sub:'HRV is your recovery signal. Low HRV days = protect energy, don\'t push.'});
+        }
+      }
+    }
+  }
+  return insights;
+}
+
+/* ===== OVERALL MOMENTUM TREND BAR ===== */
+function renderOverallMomentum(){
+  const el=document.getElementById('overallMomentum');
+  if(!el)return;
+  const days=Object.keys(mem.days).sort();
+  if(days.length<14){el.innerHTML='';return;}
+  const recent=days.slice(-30);
+  const previous=days.slice(-60,-30);
+  if(!previous.length){el.innerHTML='';return;}
+  const calcRate=arr=>{if(!arr.length)return 0;return arr.reduce((s,k)=>s+pts(mem.days[k]),0)/(arr.length*4);};
+  const recentRate=calcRate(recent);
+  const prevRate=calcRate(previous);
+  const delta=recentRate-prevRate;
+  const dir=delta>0.03?'up':delta<-0.03?'down':'flat';
+  const dirIcon=dir==='up'?'📈':dir==='down'?'📉':'➡️';
+  const dirText=dir==='up'?'getting better':dir==='down'?'slipping':'stable';
+  const dirColor=dir==='up'?'var(--green)':dir==='down'?'var(--move)':'var(--faint)';
+  const deltaPct=Math.round(delta*100);
+  el.innerHTML=`<div class="om-icon">${dirIcon}</div><div class="om-body"><div class="om-title">Momentum: <span style="color:${dirColor}">${dirText}</span></div><div class="om-detail">Last 30 days: ${Math.round(recentRate*100)}% · Previous 30: ${Math.round(prevRate*100)}% · ${deltaPct>0?'+':''}${deltaPct}% change</div></div>`;
+}
 
 /* ===== CONFETTI ===== */
 function confetti(n){
