@@ -67,6 +67,7 @@ export function boot() {
 
 // ---- Router ----
 export function go(tab) {
+  console.log('GO called with:', tab, 'currentTab:', currentTab, 'subroute:', currentSubroute);
   // Navigating to the same tab: clear any active subroute (acts as "back")
   if (tab === currentTab) {
     if (currentSubroute != null) {
