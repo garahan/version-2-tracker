@@ -106,7 +106,7 @@ export function confetti(count = 80) {
   host.classList.remove('hidden');
   clear(host);
   // Use the 5 semantic colors + accent
-  const colors = ['#5b9bd5', '#4caf85', '#ff9f43', '#e85d75', '#b266d4', '#ffd166'];
+  const colors = ['#3b82f6', '#10b981', '#f97316', '#ef4444', '#8b5cf6', '#06b6d4'];
   for (let i = 0; i < count; i++) {
     const piece = el('div', { class: 'confetti-piece', style: {
       left: `${Math.random() * 100}%`,

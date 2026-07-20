@@ -58,7 +58,7 @@ export function defaultState() {
     },
     shields: 0,
     settings: {
-      theme: 'midnight', accent: 'blue',
+      theme: 'midnight', accent: 'cyan',
       sync: 'none', gistId: '', gistToken: '',
       onboarded: false, haptics: true, sounds: false, notifications: false,
     },
