@@ -42,25 +42,30 @@ export function renderMore() {
 
   return el('div', { class: 'page' }, [
     el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title' }, ['More']),
-      el('div', { class: 'app-subtitle' }, ['Inbox · decisions · opportunities · lessons · risks · settings']),
+      el('div', { class: 'app-title', style: { fontSize: 'var(--fs-page)' } }, ['More']),
+      el('div', { class: 'app-subtitle' }, ['Inbox · decisions · risks · settings']),
     ]),
 
-    el('div', { class: 'list' }, ITEMS.map((item) =>
-      el('div', { class: 'list-item list-item--interactive', on: { click: () => setSubroute(item.id) } }, [
-        el('div', { class: 'list-item-icon', style: { fontSize: '20px' } }, [item.icon]),
-        el('div', { class: 'list-item-body' }, [
-          el('div', { class: 'list-item-title' }, [item.label]),
-          el('div', { class: 'list-item-sub' }, [item.desc]),
-        ]),
-        item.id === 'system-health'
-          ? el('span', { class: `chip ${health.status === 'critical' ? 'chip--accent' : ''}` }, [`${health.score}`])
-          : (counts[item.id] > 0 && el('span', { class: 'chip' }, [String(counts[item.id])])),
-        el('span', { class: 'list-item-action' }, ['›']),
-      ])
-    )),
+    // 2-column big tiles
+    el('div', { class: 'more-grid' }, ITEMS.map((item) => {
+      const count = item.id === 'system-health'
+        ? health.score
+        : counts[item.id] || 0;
+      const badgeClass = item.id === 'system-health'
+        ? (health.status === 'critical' ? 'more-tile-badge--critical' : health.status === 'warning' ? 'more-tile-badge--warning' : '')
+        : '';
+      return el('div', {
+        class: 'more-tile',
+        on: { click: () => setSubroute(item.id) }
+      }, [
+        count > 0 && el('span', { class: `more-tile-badge ${badgeClass}` }, [String(count)]),
+        el('div', { class: 'more-tile-icon' }, [item.icon]),
+        el('div', { class: 'more-tile-label' }, [item.label]),
+        el('div', { class: 'more-tile-desc' }, [item.desc]),
+      ]);
+    })),
 
-    el('div', { class: 'text-center text-mute mt-6', style: { fontSize: 'var(--fs-xs)' } }, [
+    el('div', { class: 'text-center text-mute mt-6', style: { fontSize: 'var(--fs-meta)' } }, [
       'Life OS v2 · ', `v${s.version.toFixed(2)}`,
     ]),
   ]);

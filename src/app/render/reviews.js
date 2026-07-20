@@ -1,17 +1,18 @@
 // ============================================================
-// Life OS v2 — Reviews (weekly / monthly / quarterly / annual)
-// Templated questions, persisted answers, history.
+// Life OS v2 — Reviews (Wizard flow, not forms)
+// Step-by-step questions. Green when due. Confetti on completion.
 // ============================================================
 
 import { el } from '../dom.js';
 import { getState, setState } from '../state.js';
-import { toast } from '../ui.js';
-import { todayKey, fmtDateLong, startOfWeek, startOfMonth, startOfQuarter } from '../util.js';
+import { toast, openModal, closeModal, confetti } from '../ui.js';
+import { todayKey, fmtDateLong, startOfWeek, startOfMonth, startOfQuarter, addDays, daysBetween } from '../util.js';
 
 const TEMPLATES = {
   weekly: {
     label: 'Weekly Review',
     duration: '30–60 min',
+    icon: '🗓️',
     questions: [
       'What did I ship this week?',
       'What did I learn?',
@@ -24,6 +25,7 @@ const TEMPLATES = {
   monthly: {
     label: 'Monthly Review',
     duration: '1–2 hours',
+    icon: '📆',
     questions: [
       'KPIs: how did each domain perform this month?',
       'Savings rate? Net worth change?',
@@ -37,6 +39,7 @@ const TEMPLATES = {
   quarterly: {
     label: 'Quarterly Strategy Review',
     duration: '3–4 hours',
+    icon: '📊',
     questions: [
       'Am I playing the right game?',
       'What one bet would change the next 5 years?',
@@ -52,6 +55,7 @@ const TEMPLATES = {
   semiannual: {
     label: 'Semi-annual Audit',
     duration: '4–6 hours',
+    icon: '🔍',
     questions: [
       'Deep skill audit: which skills are growing, which decaying?',
       'Language progress?',
@@ -64,6 +68,7 @@ const TEMPLATES = {
   annual: {
     label: 'Annual Life Review',
     duration: '6–8 hours',
+    icon: '🎯',
     questions: [
       'Values — have they changed?',
       'Mission — do I still want this?',
@@ -76,91 +81,151 @@ const TEMPLATES = {
   },
 };
 
+const INTERVALS = { weekly: 7, monthly: 31, quarterly: 92, semiannual: 183, annual: 365 };
+
 export function renderReviews() {
   const s = getState();
   const types = ['weekly', 'monthly', 'quarterly', 'semiannual', 'annual'];
 
   return el('div', { class: 'page' }, [
     el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title' }, ['Reviews']),
+      el('div', { class: 'app-title', style: { fontSize: 'var(--fs-page)' } }, ['Review']),
       el('div', { class: 'app-subtitle' }, ['Weekly · monthly · quarterly · annual']),
     ]),
 
-    el('div', { class: 'list mb-6' }, types.map((type) => reviewTypeRow(type, s))),
+    // Big review type buttons
+    el('div', { class: 'list mb-6' }, types.map((type) => reviewTypeBtn(type, s))),
 
-    el('div', { class: 'section-head' }, [el('div', { class: 'section-title' }, ['History'])]),
+    // History
+    el('div', { class: 'section-head' }, [
+      el('div', { class: 'section-title', style: { fontSize: 'var(--fs-section)' } }, ['History']),
+    ]),
     reviewHistory(s),
   ]);
 }
 
-function reviewTypeRow(type, s) {
+function reviewTypeBtn(type, s) {
   const tmpl = TEMPLATES[type];
   const items = s.reviews[type] || [];
   const last = items[items.length - 1];
-  return el('div', { class: 'card card--interactive', on: { click: () => startReview(type) } }, [
-    el('div', { class: 'flex items-center justify-between' }, [
-      el('div', {}, [
-        el('div', { class: 'card-title' }, [tmpl.label]),
-        el('div', { class: 'card-subtitle' }, [`${tmpl.duration} · ${items.length} done`]),
-      ]),
-      el('div', { class: 'text-right' }, [
-        el('div', { class: 'text-xs text-mute' }, ['Last']),
-        el('div', { class: 'text-sm font-semibold' }, [last ? fmtDateLong(last.date).split(',')[0] : '—']),
-      ]),
+  const isDue = isReviewDue(type, s);
+  return el('button', {
+    class: `review-type-btn ${isDue ? 'review-type-btn--due' : ''}`,
+    on: { click: () => startReviewWizard(type) }
+  }, [
+    el('span', { class: 'review-type-btn-icon' }, [tmpl.icon]),
+    el('div', { class: 'review-type-btn-body' }, [
+      el('div', { class: 'review-type-btn-title' }, [tmpl.label]),
+      el('div', { class: 'review-type-btn-sub' }, [`${tmpl.duration} · ${items.length} done · last: ${last ? fmtDateLong(last.date).split(',')[0] : '—'}`]),
     ]),
+    isDue && el('span', { class: 'review-type-btn-badge' }, ['Due']),
   ]);
 }
 
-function startReview(type) {
+function isReviewDue(type, s) {
+  const items = s.reviews[type] || [];
+  const last = items[items.length - 1];
+  const interval = INTERVALS[type];
+  if (!last) return true;
+  return daysBetween(last.date, todayKey()) > interval;
+}
+
+// ---- Wizard flow (step-by-step, not form) ----
+function startReviewWizard(type) {
   const tmpl = TEMPLATES[type];
   const answers = tmpl.questions.map(() => '');
+  let step = 0;
 
-  const body = el('div', {}, [
-    el('h3', { class: 'text-lg font-bold mb-2' }, [tmpl.label]),
-    el('p', { class: 'text-xs text-mute mb-4' }, [`${tmpl.duration} · ${fmtDateLong(todayKey())}`]),
-    ...tmpl.questions.map((q, i) => el('div', { class: 'field' }, [
-      el('div', { class: 'field-label' }, [q]),
+  const modalBody = el('div', { class: 'wizard', style: { minHeight: '400px' } }, []);
+  renderStep();
+  openModal(modalBody, { title: `${tmpl.icon} ${tmpl.label}` });
+
+  function renderStep() {
+    const isLast = step === tmpl.questions.length - 1;
+    const isFirst = step === 0;
+    el; // keep reference
+    const content = el('div', { class: 'wizard' }, [
+      // Progress dots
+      el('div', { class: 'wizard-progress' }, tmpl.questions.map((_, i) =>
+        el('div', { class: `wizard-dot ${i === step ? 'wizard-dot--active' : i < step ? 'wizard-dot--done' : ''}` })
+      )),
+
+      // Step number
+      el('div', { class: 'wizard-step-num' }, [`Question ${step + 1} of ${tmpl.questions.length}`]),
+
+      // Question
+      el('div', { class: 'wizard-question' }, [tmpl.questions[step]]),
+
+      // Answer textarea
       el('textarea', {
-        class: 'field-textarea',
-        on: { input: (e) => { answers[i] = e.target.value; } }
-      }),
-    ])),
-    el('div', { class: 'flex gap-2 justify-end' }, [
-      el('button', { class: 'btn btn--ghost', on: { click: () => import('../ui.js').then(ui => ui.closeModal()) } }, ['Cancel']),
-      el('button', { class: 'btn btn--primary', on: { click: () => {
-        const answered = answers.filter(Boolean).length;
-        if (answered === 0) { toast('Answer at least one question'); return; }
-        const qa = {};
-        tmpl.questions.forEach((q, i) => { if (answers[i]) qa[q] = answers[i]; });
-        setState((s) => {
-          s.reviews[type].push({ id: `rev_${Date.now()}`, date: todayKey(), answers: qa, type });
-        });
-        toast(`${tmpl.label} saved`);
-        import('../ui.js').then(ui => ui.closeModal());
-        rerender();
-      } } }, ['Save review']),
-    ]),
-  ]);
-  import('../ui.js').then(ui => ui.openModal(body));
+        class: 'wizard-textarea',
+        placeholder: 'Type your answer…',
+        on: { input: (e) => { answers[step] = e.target.value; } }
+      }, [answers[step] || '']),
+
+      // Navigation
+      el('div', { class: 'wizard-nav' }, [
+        !isFirst && el('button', {
+          class: 'wizard-btn wizard-btn--secondary',
+          on: { click: () => { step--; renderStep(); } }
+        }, ['← Back']),
+        isLast
+          ? el('button', {
+              class: 'wizard-btn wizard-btn--primary',
+              on: { click: finishWizard }
+            }, ['Finish ✓'])
+          : el('button', {
+              class: 'wizard-btn wizard-btn--primary',
+              on: { click: () => { step++; renderStep(); } }
+            }, ['Next →']),
+      ]),
+    ]);
+
+    // Replace modal content
+    const modal = document.getElementById('modal');
+    if (modal) {
+      // Find the modal content and replace
+      const existing = modal.querySelector('.wizard');
+      if (existing) {
+        existing.replaceWith(content);
+      } else {
+        modal.appendChild(content);
+      }
+    }
+  }
+
+  function finishWizard() {
+    const answered = answers.filter(Boolean).length;
+    if (answered === 0) { toast('Answer at least one question'); return; }
+    const qa = {};
+    tmpl.questions.forEach((q, i) => { if (answers[i]) qa[q] = answers[i]; });
+    setState((s) => {
+      s.reviews[type].push({ id: `rev_${Date.now()}`, date: todayKey(), answers: qa, type });
+    });
+    closeModal();
+    confetti();
+    toast(`${tmpl.label} complete! System updated.`, { icon: '✅' });
+    rerender();
+  }
 }
 
 function reviewHistory(s) {
   const all = [];
-  for (const type of ['weekly', 'monthly', 'quarterly', 'semiannual', 'annual']) {
-    for (const r of (s.reviews[type] || [])) all.push({ ...r, type });
+  for (const [type, items] of Object.entries(s.reviews || {})) {
+    for (const item of items) all.push({ ...item, typeLabel: TEMPLATES[type]?.label || type });
   }
   all.sort((a, b) => b.date.localeCompare(a.date));
   if (all.length === 0) {
     return el('div', { class: 'empty' }, [
       el('div', { class: 'empty-icon' }, ['📅']),
       el('div', { class: 'empty-title' }, ['No reviews yet']),
-      el('div', { class: 'empty-body' }, ['Start your first weekly review above.']),
+      el('div', { class: 'empty-body' }, ['Run your first Weekly Review on Sunday.']),
     ]);
   }
-  return el('div', { class: 'list' }, all.map((r) =>
-    el('div', { class: 'list-item', on: { click: () => viewReview(r) } }, [
+  return el('div', { class: 'list' }, all.slice(0, 20).map((r) =>
+    el('div', { class: 'list-item' }, [
       el('div', { class: 'list-item-body' }, [
-        el('div', { class: 'list-item-title' }, [TEMPLATES[r.type].label]),
+        el('div', { class: 'list-item-title' }, [r.typeLabel]),
         el('div', { class: 'list-item-sub' }, [fmtDateLong(r.date)]),
       ]),
       el('span', { class: 'chip' }, [`${Object.keys(r.answers || {}).length} answers`]),
@@ -168,21 +233,6 @@ function reviewHistory(s) {
   ));
 }
 
-function viewReview(r) {
-  const body = el('div', {}, [
-    el('h3', { class: 'text-lg font-bold mb-2' }, [TEMPLATES[r.type].label]),
-    el('p', { class: 'text-xs text-mute mb-4' }, [fmtDateLong(r.date)]),
-    ...Object.entries(r.answers || {}).map(([q, a]) =>
-      el('div', { class: 'card card--pad-sm card--flat mb-2' }, [
-        el('div', { class: 'field-label mb-2' }, [q]),
-        el('p', { class: 'text-sm' }, [a]),
-      ])
-    ),
-    el('div', { class: 'flex justify-end mt-4' }, [
-      el('button', { class: 'btn btn--ghost', on: { click: () => import('../ui.js').then(ui => ui.closeModal()) } }, ['Close']),
-    ]),
-  ]);
-  import('../ui.js').then(ui => ui.openModal(body));
+function rerender() {
+  window.__lifeosRerender?.();
 }
-
-function rerender() { window.__lifeosRerender?.(); }

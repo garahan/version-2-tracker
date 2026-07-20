@@ -43,6 +43,13 @@
   --c-danger:  #e85d75;
   --c-success: #4caf85;
 
+  /* Semantic — cognitive interface colors (meaning, not beauty) */
+  --c-info:      #5b9bd5;  /* Blue — information */
+  --c-healthy:   #4caf85;  /* Green — healthy / on track */
+  --c-attention: #ff9f43;  /* Orange — needs attention */
+  --c-danger2:   #e85d75;  /* Red — danger / critical */
+  --c-strategy:  #c262d4;  /* Purple — strategic / meta */
+
   /* Heatmap ramp (low → high) */
   --c-heat-0: rgba(255,255,255,0.04);
   --c-heat-1: rgba(0, 122, 204, 0.20);
@@ -50,12 +57,22 @@
   --c-heat-3: rgba(0, 122, 204, 0.65);
   --c-heat-4: rgba(0, 122, 204, 0.90);
 
-  /* ---- Typography ----
+  /* ---- Typography (Apple HIG scale) ----
+     34 = page title, 22 = section, 17 = body, 15 = secondary, 13 = metadata
      System font stack for native feel on every platform.
      Numeric font feature for tabular alignment in metrics. */
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
 
+  --fs-meta:    13px;   /* metadata, captions */
+  --fs-sec:     15px;   /* secondary text */
+  --fs-body:    17px;   /* body text (Apple body) */
+  --fs-section: 22px;   /* section headers (Apple title2) */
+  --fs-page:    34px;   /* page titles (Apple large title) */
+  --fs-display: 48px;   /* hero numbers (ring, score) */
+  --fs-mega:    72px;   /* focus mode timer */
+
+  /* Legacy aliases (backward compat) */
   --fs-2xs: 10px;
   --fs-xs:  11px;
   --fs-sm:  13px;
@@ -82,18 +99,19 @@
   --ls-wide:   0.04em;
   --ls-xwide:  0.12em;
 
-  /* ---- Spacing scale (4px base) ---- */
-  --sp-1:  4px;
-  --sp-2:  8px;
-  --sp-3:  12px;
-  --sp-4:  16px;
-  --sp-5:  20px;
-  --sp-6:  24px;
-  --sp-8:  32px;
-  --sp-10: 40px;
-  --sp-12: 48px;
-  --sp-16: 64px;
-  --sp-20: 80px;
+  /* ---- Spacing scale (8-point grid) ----
+     All spacing is multiples of 8. 4px is the only exception (hairline). */
+  --sp-1:  4px;   /* hairline — borders, tight gaps */
+  --sp-2:  8px;   /* base unit */
+  --sp-3:  12px;  /* 1.5 units — small gaps */
+  --sp-4:  16px;  /* 2 units — card padding */
+  --sp-6:  24px;  /* 3 units — section gaps */
+  --sp-8:  32px;  /* 4 units — large gaps */
+  --sp-10: 40px;  /* 5 units */
+  --sp-12: 48px;  /* 6 units — page padding */
+  --sp-16: 64px;  /* 8 units — hero spacing */
+  --sp-20: 80px;  /* 10 units — max spacing */
+  --sp-24: 96px;  /* 12 units — focus mode */
 
   /* ---- Radii ---- */
   --r-xs: 4px;

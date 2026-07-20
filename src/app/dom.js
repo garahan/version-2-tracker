@@ -103,3 +103,30 @@ export function svgEl(name, props) {
 /** Query within a node. */
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+/**
+ * Apple-style toggle switch.
+ * @param {{state: 'full'|'floor'|'rest'|null, onFull: Function, onFloor: Function, onRest: Function}} opts
+ * @returns {HTMLElement}
+ */
+export function toggle({ state, onFull, onFloor, onRest }) {
+  const cls = state === 'full' ? 'toggle--on'
+    : state === 'floor' ? 'toggle--floor'
+    : state === 'rest' ? 'toggle--rest'
+    : '';
+  const btn = el('button', {
+    class: `toggle ${cls}`,
+    role: 'switch',
+    'aria-checked': state !== null ? 'true' : 'false',
+    on: {
+      click: (e) => {
+        e.stopPropagation();
+        if (state === null || state === undefined) { onFull?.(); }
+        else if (state === 'full') { onFloor?.(); }
+        else if (state === 'floor') { onRest?.(); }
+        else { onFull?.(); }
+      },
+    },
+  });
+  return btn;
+}

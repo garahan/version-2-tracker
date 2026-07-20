@@ -137,9 +137,54 @@ The Today tab only shows what's due **today**. Weekly/monthly items appear on th
 
 ---
 
-## The 4 Tabs
+## Cognitive Interface Design
 
-The app has 4 main tabs in the bottom navigation:
+The UI is designed around **three levels of attention**, not pages:
+
+### 1. Glance (≈3 seconds)
+Open the app → instantly see answers to three questions:
+- **What state is the system in?** → Large progress ring with version number
+- **What's most important now?** → 6-metric command panel (Sleep, HRV, Deep Work, Runway, Steps, Mood)
+- **Is anything critical?** → Streak/shield badges, System Health score in More hub
+
+No details. No scrolling. No thinking.
+
+### 2. Operate (≈30 seconds)
+Mark actions, start Focus Mode, log a decision — all in 1-2 taps.
+- **Apple-style toggles** — tap to cycle: empty → full → floor → rest
+- **Focus Mode** — strips interface to just: next action + 45:00 timer. No KPIs, no tabs, no cards.
+- **Auto-save** — no Save/Cancel buttons. Changes persist instantly.
+
+### 3. Reflect (≈30-60 minutes)
+Review mode: graphs, wizard questions, decision history, analytics.
+- **Review Wizard** — step-by-step questions (not a form). Progress dots. Next/Back. Confetti on completion.
+- **Management Card** — collapsible sections in bottom sheet (Apple Maps style)
+
+## Design System
+
+### Typography (Apple HIG)
+| Size | Usage |
+|------|-------|
+| 34px | Page titles (large title) |
+| 22px | Section headers |
+| 17px | Body text |
+| 15px | Secondary text |
+| 13px | Metadata, captions |
+
+### Spacing (8-point grid)
+4 · 8 · 12 · 16 · 24 · 32 · 40 · 48 · 64 · 80 · 96
+
+### Semantic Colors (meaning, not beauty)
+| Color | Meaning |
+|-------|---------|
+| Blue | Information |
+| Green | Healthy / on track |
+| Orange | Needs attention |
+| Red | Danger / critical |
+| Purple | Strategic / meta |
+
+### Navigation
+4 tabs only: Today · Domains · Review · More
 
 ### 1. Today ✅
 The daily command center. Shows only what's due today.
@@ -537,6 +582,7 @@ version-2-tracker/
 │       ├── temptation-bundling.js # Bundle logic (add, log, adherence)
 │       ├── commitments.js      # Commitment contracts (create, resolve, stats)
 │       ├── system-health.js    # OS health checks + entropy monitor
+│       ├── focus-mode.js       # Focus Mode: next action + timer only
 │       │
 │       ├── data/
 │       │   └── domains.js      # Default Management Cards for all 15 domains + SOPs
