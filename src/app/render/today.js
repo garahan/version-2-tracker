@@ -89,7 +89,7 @@ function topBar(s, t, streak) {
 // ---- Hero ring: large, centered, version + completion inside ----
 function heroRing(s, prog) {
   const pct = prog.pct;
-  const size = 180, stroke = 12, r = (size - stroke) / 2;
+  const size = 140, stroke = 10, r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - Math.min(1, Math.max(0, pct)));
   return el('div', { class: 'ring-hero' }, [

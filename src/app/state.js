@@ -154,8 +154,8 @@ export function applySettings() {
   root.dataset.accent = s.settings.accent;
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    const colors = { midnight: '#08090d', light: '#f7f8fa', oled: '#000000' };
-    meta.content = colors[s.settings.theme] || '#08090d';
+    const colors = { midnight: '#0a0b0f', light: '#f4f5f8', oled: '#000000' };
+    meta.content = colors[s.settings.theme] || '#0a0b0f';
   }
 }
 
