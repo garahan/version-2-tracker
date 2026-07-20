@@ -1,40 +1,37 @@
 // ============================================================
-// Life OS v2 — Main entry
+// Life OS v3 — Main entry
 // Boots the app, wires router, renders shell + current tab.
+// 4 tabs max (v3 §24): Today / North Star / Domains / More.
 // ============================================================
 
 import { el, clear, mount, $ } from './dom.js';
 import { getState, applySettings, subscribe } from './state.js';
-import { renderOnboarding } from './onboarding.js';
-import { ingestHealthFromURL } from './health.js';
 import { todayKey } from './util.js';
+import { toast } from './ui.js';
 
 const TABS = [
-  { id: 'today',   label: 'Today',   icon: '✅', render: () => import('./render/today.js').then(m => m.renderToday()) },
-  { id: 'domains', label: 'Domains', icon: '🧩', render: () => import('./render/domains.js').then(m => m.renderDomains()) },
-  { id: 'reviews', label: 'Reviews', icon: '📅', render: () => import('./render/reviews.js').then(m => m.renderReviews()) },
-  { id: 'more',    label: 'More',    icon: '⋯',  render: () => import('./render/more.js').then(m => m.renderMore()) },
+  { id: 'today',     label: 'Today',     icon: '✅', render: () => import('./render/today.js').then(m => m.renderToday()) },
+  { id: 'northstar', label: 'North Star', icon: '🌟', render: () => import('./render/northstar.js').then(m => m.renderNorthStar()) },
+  { id: 'domains',   label: 'Domains',   icon: '🧩', render: () => import('./render/domains.js').then(m => m.renderDomains()) },
+  { id: 'more',      label: 'More',      icon: '⋯',  render: () => import('./render/more.js').then(m => m.renderMore()) },
 ];
 
 let currentTab = 'today';
 let currentSubroute = null;
 
 // ---- Boot ----
-
 export function boot() {
   applySettings();
-  ingestHealthFromURL();
-  // Resolve past-due commitments on boot (Thaler commitment devices)
-  import('./commitments.js').then(m => m.resolveCommitments()).catch(() => {});
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./service-worker.js').catch(() => {});
   }
-  // Online/offline indicator
   window.addEventListener('online', () => toast('Back online'));
   window.addEventListener('offline', () => toast('Offline mode', { icon: '⚠️' }));
 
   const s = getState();
-  if (!s.settings.onboarded) renderOnboarding();
+  if (!s.settings.onboarded) {
+    import('./onboarding.js').then(m => m.renderOnboarding());
+  }
   render();
 
   let raf = null;
@@ -44,20 +41,19 @@ export function boot() {
   });
   window.__lifeosRerender = () => render();
 
-  // Midnight rollover: re-render when day changes (app kept open past midnight)
+  // Midnight rollover
   let lastTodayKey = todayKey();
   setInterval(() => {
-    const current = todayKey();
-    if (current !== lastTodayKey) {
-      lastTodayKey = current;
+    const cur = todayKey();
+    if (cur !== lastTodayKey) {
+      lastTodayKey = cur;
       render();
-      import('./ui.js').then(ui => ui.toast('New day — fresh start 🌅'));
+      toast('New day — fresh start 🌅');
     }
   }, 60000);
 }
 
 // ---- Router ----
-
 export function go(tab) {
   if (tab === currentTab) return;
   currentTab = tab;
@@ -72,9 +68,11 @@ export function setSubroute(id) {
   window.scrollTo({ top: 0 });
 }
 
-// ---- Render shell ----
+export function currentTabId() { return currentTab; }
+export function currentSub() { return currentSubroute; }
 
-let _renderToken = 0; // race condition guard
+// ---- Render shell ----
+let _renderToken = 0;
 
 function render() {
   const app = $('#app');
@@ -82,7 +80,7 @@ function render() {
   const token = ++_renderToken;
   clear(app);
 
-  const tab = TABS.find((t) => t.id === currentTab) || TABS[0];
+  const tab = TABS.find(t => t.id === currentTab) || TABS[0];
   const contentHost = el('div', { id: 'content-host' });
   mount(app, [contentHost, renderNav()]);
 
@@ -92,13 +90,13 @@ function render() {
     ? import('./render/more.js').then(m => m.renderSubroute(currentSubroute))
     : tab.render();
 
-  renderPromise.then((node) => {
-    if (token !== _renderToken) return; // a newer render superseded us
+  renderPromise.then(node => {
+    if (token !== _renderToken) return;
     if (!node) { currentSubroute = null; render(); return; }
     clear(contentHost);
     mount(contentHost, [node]);
     updateNavActive();
-  }).catch((err) => {
+  }).catch(err => {
     if (token !== _renderToken) return;
     clear(contentHost);
     mount(contentHost, [el('div', { class: 'empty' }, [
@@ -112,7 +110,7 @@ function render() {
 
 function renderNav() {
   return el('nav', { class: 'nav', id: 'main-nav' },
-    TABS.map((t) =>
+    TABS.map(t =>
       el('button', {
         class: `nav-btn ${t.id === currentTab ? 'nav-btn--active' : ''}`,
         dataset: { tab: t.id },
@@ -131,11 +129,6 @@ function updateNavActive() {
   for (const btn of nav.querySelectorAll('.nav-btn')) {
     btn.classList.toggle('nav-btn--active', btn.dataset.tab === currentTab);
   }
-}
-
-// Lazy toast import to avoid circular dep
-function toast(msg, opts) {
-  import('./ui.js').then(ui => ui.toast(msg, opts));
 }
 
 if (document.readyState === 'loading') {

@@ -1,161 +1,95 @@
 // ============================================================
-// Life OS v2 — Commitments view
-// Stake points on actions. Fail = lose points. Complete = bonus.
-// Scientific basis: Thaler (1981), Ashraf et al. (2006)
+// Life OS v3 — Commitments (v3 §5 commitment devices)
+// Stake points on actions. Fail = burned. Complete = +10%.
 // ============================================================
 
 import { el } from '../dom.js';
-import { getState } from '../state.js';
-import { toast, openModal, closeModal, confirmDialog } from '../ui.js';
-import { createCommitment, cancelCommitment, activeCommitments, commitmentStats, resolveCommitments } from '../commitments.js';
-import { DOMAIN_LIST } from '../data/domains.js';
-import { todayKey, fmtDate } from '../util.js';
+import { getState, update } from '../state.js';
+import { todayKey, uid, fmtDate, addDays } from '../util.js';
+import { toast, prompt, confirm } from '../ui.js';
+import { go } from '../main.js';
 
 export function renderCommitments() {
-  // Resolve any past-due commitments
-  resolveCommitments();
-
   const s = getState();
-  const active = activeCommitments();
-  const stats = commitmentStats();
-  const all = s.commitments || [];
+  const commitments = s.commitments || [];
+  const active = commitments.filter(c => c.status === 'active');
+  const completed = commitments.filter(c => c.status === 'completed');
+  const failed = commitments.filter(c => c.status === 'failed');
+  const totalStaked = commitments.reduce((sum, c) => sum + (c.stake || 0), 0);
+  const totalBurned = commitments.filter(c => c.status === 'failed').reduce((sum, c) => sum + (c.stake || 0), 0);
+  const successRate = commitments.length ? Math.round((completed.length / commitments.length) * 100) : 0;
 
   return el('div', { class: 'page' }, [
-    el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title' }, ['Commitments']),
-      el('div', { class: 'app-subtitle' }, ['Stake points on actions · 30-50% behavior increase (Ashraf 2006)']),
+    el('div', { class: 'flex items-center gap-2' }, [
+      el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => go('more') } }, ['‹ Back']),
     ]),
+    el('div', { class: 'app-title', style: { marginTop: 'var(--sp-2)' } }, ['Commitments']),
+    el('div', { class: 'app-subtitle' }, ['Stake points on actions']),
 
     // Stats
-    el('div', { class: 'card' }, [
-      el('div', { class: 'card-head' }, [
-        el('div', { class: 'card-icon' }, ['📊']),
-        el('div', { class: 'card-title' }, ['Overview']),
-      ]),
-      el('div', { class: 'bento' }, [
-        kpi('🔒', 'Active', String(stats.active)),
-        kpi('✅', 'Completed', String(stats.completed)),
-        kpi('❌', 'Failed', String(stats.failed)),
-        kpi('🔥', 'Burned', String(stats.totalBurned)),
-        kpi('💰', 'Staked', String(stats.totalStaked)),
-        kpi('📈', 'Success', stats.successRate > 0 ? `${Math.round(stats.successRate * 100)}%` : '—'),
-      ]),
+    el('div', { class: 'bento', style: { marginTop: 'var(--sp-4)' } }, [
+      el('div', { class: 'card card--pad-sm' }, [el('div', { class: 'stat-label' }, ['Active']), el('div', { class: 'stat-value' }, [String(active.length)])]),
+      el('div', { class: 'card card--pad-sm' }, [el('div', { class: 'stat-label' }, ['Completed']), el('div', { class: 'stat-value', style: { color: 'var(--c-healthy)' } }, [String(completed.length)])]),
+      el('div', { class: 'card card--pad-sm' }, [el('div', { class: 'stat-label' }, ['Failed']), el('div', { class: 'stat-value', style: { color: 'var(--c-danger)' } }, [String(failed.length)])]),
+      el('div', { class: 'card card--pad-sm' }, [el('div', { class: 'stat-label' }, ['Success rate']), el('div', { class: 'stat-value' }, [successRate + '%'])]),
+      el('div', { class: 'card card--pad-sm' }, [el('div', { class: 'stat-label' }, ['Total staked']), el('div', { class: 'stat-value' }, [String(totalStaked)])]),
+      el('div', { class: 'card card--pad-sm' }, [el('div', { class: 'stat-label' }, ['Total burned']), el('div', { class: 'stat-value', style: { color: 'var(--c-danger)' } }, [String(totalBurned)])]),
     ]),
 
-    // Active commitments
-    el('div', { class: 'section-head' }, [
-      el('div', { class: 'section-title' }, [`Active · ${active.length}`]),
-      el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => createModal() } }, ['+ New commitment']),
-    ]),
+    el('button', { class: 'btn btn--primary btn--block', style: { marginTop: 'var(--sp-4)' }, on: { click: addCommitment } }, ['+ New commitment']),
 
-    active.length === 0
-      ? el('div', { class: 'card' }, [
-          el('div', { class: 'empty' }, [
-            el('div', { class: 'empty-icon' }, ['🔒']),
-            el('div', { class: 'empty-title' }, ['No active commitments']),
-            el('div', { class: 'empty-body' }, ['Stake points on an action. If you fail, you lose the points. If you succeed, you get them back + 10% bonus.']),
-            el('button', { class: 'btn btn--primary', on: { click: () => createModal() } }, ['+ Make a commitment']),
+    // Active
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
+      el('div', { class: 'section-title' }, [`Active (${active.length})`]),
+    ]),
+    el('div', { class: 'card' }, active.length === 0
+      ? [el('div', { class: 'empty' }, [el('div', { class: 'empty-icon' }, ['🔒']), el('div', { class: 'empty-title' }, ['No active commitments'])])]
+      : active.map(c => el('div', { class: 'list-item' }, [
+          el('div', { class: 'list-item-body' }, [
+            el('div', { class: 'list-item-title' }, [c.action || c.name]),
+            el('div', { class: 'list-item-sub' }, [`Stake: ${c.stake} pts · deadline ${fmtDate(c.deadline)}`]),
           ]),
-        ])
-      : el('div', { class: 'list' }, active.map((c) => activeRow(c))),
-
-    // History
-    all.filter((c) => c.status !== 'active').length > 0 && el('div', { class: 'section-head' }, [
-      el('div', { class: 'section-title' }, ['History']),
-    ]),
-    all.filter((c) => c.status !== 'active').length > 0 && el('div', { class: 'list' },
-      all.filter((c) => c.status !== 'active').slice(-10).reverse().map((c) => historyRow(c))
+          el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => cancel(c.id) } }, ['Cancel']),
+        ]))
     ),
   ]);
 }
 
-function activeRow(c) {
-  const daysLeft = Math.ceil((new Date(c.deadline) - new Date(todayKey())) / 86400000);
-  const urgent = daysLeft <= 0;
-  return el('div', { class: 'list-item' }, [
-    el('div', { class: 'list-item-icon', style: { fontSize: '20px' } }, ['🔒']),
-    el('div', { class: 'list-item-body' }, [
-      el('div', { class: 'list-item-title' }, [c.actionName]),
-      el('div', { class: 'list-item-sub' }, [
-        `Stake: ${c.stake} pts · `,
-        urgent ? 'Deadline: TODAY' : `Deadline: ${fmtDate(c.deadline)} (${daysLeft}d left)`,
-      ]),
-    ]),
-    el('button', { class: 'btn btn--ghost btn--sm', on: { click: async () => {
-      if (await confirmDialog({ title: 'Cancel commitment?', message: `You will lose ${c.stake} points. Continue?`, confirmText: 'Cancel & lose points' })) {
-        cancelCommitment(c.id);
-        toast('Commitment cancelled — points burned 🔥');
-        window.__lifeosRerender?.();
+async function addCommitment() {
+  const action = await prompt({ title: 'Action', label: 'What action are you committing to?', placeholder: 'e.g. Deep Work block' });
+  if (!action) return;
+  const stake = parseInt(await prompt({ title: 'Stake', label: 'Points to stake', initial: '10' }) || '10', 10);
+  const days = parseInt(await prompt({ title: 'Deadline', label: 'Days from now', initial: '7' }) || '7', 10);
+  update(st => {
+    st.commitments.push({
+      id: uid('com'), action, stake: stake || 10,
+      deadline: addDays(todayKey(), days || 7),
+      status: 'active', created: todayKey(),
+    });
+    st.totalPoints = Math.max(0, (st.totalPoints || 0) - (stake || 10));
+  });
+  toast('Commitment created — points staked');
+}
+
+async function cancel(id) {
+  const ok = await confirm({ title: 'Cancel commitment?', message: 'Staked points will be burned.', danger: true });
+  if (!ok) return;
+  update(st => {
+    const c = st.commitments.find(x => x.id === id);
+    if (!c) return;
+    c.status = 'failed';
+  });
+  toast('Commitment cancelled — points burned', { icon: '🔥' });
+}
+
+// Auto-resolve past-due commitments (called on boot)
+export function resolveCommitments() {
+  const today = todayKey();
+  update(st => {
+    for (const c of (st.commitments || [])) {
+      if (c.status === 'active' && c.deadline < today) {
+        c.status = 'failed';
       }
-    } } }, ['Cancel']),
-  ]);
-}
-
-function historyRow(c) {
-  const icon = c.status === 'completed' ? '✅' : c.status === 'failed' ? '❌' : '🚫';
-  const label = c.status === 'completed' ? `Completed +${c.stake * 0.1} bonus` : c.status === 'failed' ? `Failed — ${c.stake} pts burned` : 'Cancelled';
-  return el('div', { class: 'list-item' }, [
-    el('div', { class: 'list-item-icon', style: { fontSize: '20px' } }, [icon]),
-    el('div', { class: 'list-item-body' }, [
-      el('div', { class: 'list-item-title' }, [c.actionName]),
-      el('div', { class: 'list-item-sub' }, [label, ' · ', fmtDate(c.resolvedAt || c.createdAt)]),
-    ]),
-  ]);
-}
-
-function kpi(icon, label, value) {
-  return el('div', { class: 'card card--pad-sm bento-cell' }, [
-    el('div', { class: 'flex items-center gap-2 mb-2' }, [
-      el('span', { style: { fontSize: '14px' } }, [icon]),
-      el('span', { class: 'text-xs text-mute uppercase' }, [label]),
-    ]),
-    el('div', { class: 'stat-value', style: { fontSize: 'var(--fs-xl)' } }, [value]),
-  ]);
-}
-
-function createModal() {
-  let actionId = '', actionName = '', stake = 10, deadlineDays = 1;
-  const dailyActions = [];
-  for (const dom of DOMAIN_LIST) {
-    for (const a of (dom.actions || [])) {
-      if (a.cadence === 'daily') dailyActions.push({ id: a.id, label: `${dom.icon} ${a.name}` });
     }
-  }
-  const content = el('div', { style: { minWidth: '320px' } }, [
-    el('div', { class: 'field' }, [
-      el('label', { class: 'field-label' }, ['Action to commit to']),
-      el('select', { class: 'field-input', on: { change: (e) => {
-        actionId = e.target.value;
-        actionName = e.target.selectedOptions[0]?.textContent || '';
-      } } }, [
-        el('option', { value: '' }, ['— Select action —']),
-        ...dailyActions.map((a) => el('option', { value: a.id }, [a.label])),
-      ]),
-    ]),
-    el('div', { class: 'field' }, [
-      el('label', { class: 'field-label' }, [`Stake (points) — current: ${getState().totalPoints.toFixed(1)}`]),
-      el('input', { type: 'number', class: 'field-input', value: '10', min: '1', max: '100', on: { input: (e) => { stake = Number(e.target.value) || 0; } } }),
-    ]),
-    el('div', { class: 'field' }, [
-      el('label', { class: 'field-label' }, ['Deadline (days from now)']),
-      el('input', { type: 'number', class: 'field-input', value: '1', min: '1', max: '30', on: { input: (e) => { deadlineDays = Number(e.target.value) || 1; } } }),
-    ]),
-    el('div', { class: 'field-help' }, [
-      'If you complete the action by the deadline, you get your points back + 10% bonus. ',
-      'If you fail, the points are burned. This creates real cost to procrastination.',
-    ]),
-    el('div', { class: 'flex gap-2 justify-end' }, [
-      el('button', { class: 'btn btn--ghost', on: { click: () => closeModal() } }, ['Cancel']),
-      el('button', { class: 'btn btn--primary', on: { click: () => {
-        if (!actionId) { toast('Select an action'); return; }
-        if (stake < 1) { toast('Stake must be at least 1'); return; }
-        if (stake > getState().totalPoints) { toast('Not enough points to stake'); return; }
-        createCommitment({ actionId, actionName, stake, deadlineDays });
-        closeModal();
-        toast(`Committed! ${stake} pts staked on ${actionName} 🔒`);
-        window.__lifeosRerender?.();
-      } } }, ['Commit']),
-    ]),
-  ]);
-  openModal(content, { title: 'New Commitment' });
+  });
 }

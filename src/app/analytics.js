@@ -1,123 +1,172 @@
 // ============================================================
-// Life OS v2 — Analytics engine
-// Momentum (EWMA), forecast, maturity progression,
-// correlations, streak risk, insights.
+// Life OS v3 — Analytics Engine (v3 §17)
+// Momentum, trend, forecast, consistency, domain scores,
+// most skipped, best day, system health, entropy.
 // ============================================================
 
-import { getState, dayScore, currentStreak } from './state.js';
-import { lastNDays, ewma, slope, round, todayKey, addDays, hour, parseKey, dow } from './util.js';
-import { dueToday, dueOn, todayProgress } from './cadence.js';
-export { todayProgress } from './cadence.js';
+import { getState, dayScore } from './state.js';
+import { allDomains } from './data/domains.js';
+import { todayKey, dateFromKey, addDays } from './util.js';
 
-// ---- Momentum per action (14-day EWMA) ----
-
-export function actionMomentum(actionId, days = 14) {
+// ---- Momentum (last 7 days score vs prior 7) ----
+export function momentum() {
   const s = getState();
-  const keys = lastNDays(days);
-  const values = keys.map((k) => {
-    const day = s.days[k];
-    if (!day || !day.habits) return 0;
-    const v = day.habits[actionId];
-    if (v === 'full' || v === 'rest') return 1;
-    if (v === 'floor') return 0.5;
-    return 0;
-  });
-  const current = ewma(values, 0.15);
-  const older = ewma(values.slice(0, Math.floor(days / 2)), 0.15);
-  const trend = current > older + 0.05 ? 'up' : current < older - 0.05 ? 'down' : 'flat';
-  return { current: round(current, 2), trend, older: round(older, 2) };
+  const today = todayKey();
+  let recent = 0, prior = 0;
+  for (let i = 0; i < 7; i++) {
+    const k = addDays(today, -i);
+    recent += dayScore(s.days[k]);
+  }
+  for (let i = 7; i < 14; i++) {
+    const k = addDays(today, -i);
+    prior += dayScore(s.days[k]);
+  }
+  if (prior === 0) return recent > 0 ? 1 : 0;
+  return (recent - prior) / prior;
 }
 
-// ---- Momentum per domain (avg of its daily actions) ----
-
-export function domainMomentum(domainId, days = 14) {
+// ---- Trend over N days (daily scores) ----
+export function trend(n = 30) {
   const s = getState();
-  const dom = s.domains[domainId];
-  if (!dom) return { current: 0, trend: 'flat' };
-  const dailyActions = (dom.actions || []).filter((a) => a.cadence === 'daily');
-  if (!dailyActions.length) return { current: 0, trend: 'flat' };
-  const ms = dailyActions.map((a) => actionMomentum(a.id, days).current);
-  const current = ms.reduce((x, y) => x + y, 0) / ms.length;
-  const olderMs = dailyActions.map((a) => actionMomentum(a.id, days).older);
-  const older = olderMs.reduce((x, y) => x + y, 0) / olderMs.length;
-  const trend = current > older + 0.05 ? 'up' : current < older - 0.05 ? 'down' : 'flat';
-  return { current: round(current, 2), trend, older: round(older, 2) };
-}
-
-// ---- Forecast: when will v2.00 be reached? ----
-
-export function forecast() {
-  const s = getState();
-  const remaining = Math.max(0, 400 - s.totalPoints);
-  if (remaining <= 0) return { date: null, days: 0, remaining: 0, pace: 0 };
-  const keys = lastNDays(14);
-  const pts = keys.map((k) => dayScore(k));
-  const validDays = pts.filter((p) => p > 0).length;
-  if (validDays < 7) return { date: null, days: null, remaining, pace: null, insufficient: true };
-  const avg = pts.reduce((x, y) => x + y, 0) / 14;
-  if (avg <= 0) return { date: null, days: Infinity, remaining, pace: 0 };
-  const days = Math.ceil(remaining / avg);
-  const date = addDays(todayKey(), days);
-  return { date, days, remaining: round(remaining, 1), pace: round(avg, 2) };
-}
-
-// ---- Streak risk (time-aware) ----
-
-export function streakRisk() {
-  const h = hour();
-  const progress = todayProgress();
-  const done = progress.done + progress.floor;
-  const streak = currentStreak();
-  // Loss aversion framing (Kahneman & Tversky, 1992):
-  // Losses loom ~2x larger than gains. Frame as potential loss, not potential gain.
-  const streakLoss = streak >= 3 ? ` You're about to lose your ${streak}-day streak.` : '';
-  if (h >= 21 && done === 0) return { level: 'high', message: `Don't lose this day. Do the Floor now — it takes 2 minutes.${streakLoss}` };
-  if (h >= 18 && done <= 1) return { level: 'high', message: `The day is slipping. Pick one protocol or lose momentum.${streakLoss}` };
-  if (h >= 14 && done === 0) return { level: 'medium', message: `Half the day is gone with nothing done. Don't waste it.${streakLoss}` };
-  if (h >= 12 && done < progress.due / 2) return { level: 'medium', message: `Behind pace. Your future self is counting on you.` };
-  return { level: 'low', message: 'On track. Protect your streak.' };
-}
-
-// ---- Insights ----
-
-export function insights() {
-  const s = getState();
+  const today = todayKey();
   const out = [];
-  // Most-skipped action (last 30 days)
-  const skipCounts = {};
-  for (const k of lastNDays(30)) {
-    const due = dueOn(k);
-    const day = s.days[k] || { habits: {} };
-    for (const { action } of due) {
-      if (action.cadence !== 'daily') continue;
-      if (!day.habits[action.id]) skipCounts[action.id] = (skipCounts[action.id] || 0) + 1;
+  for (let i = n - 1; i >= 0; i--) {
+    const k = addDays(today, -i);
+    out.push({ date: k, score: dayScore(s.days[k]) });
+  }
+  return out;
+}
+
+// ---- Consistency (% of last N days with score > 0) ----
+export function consistency(n = 30) {
+  const s = getState();
+  const today = todayKey();
+  let hit = 0;
+  for (let i = 0; i < n; i++) {
+    const k = addDays(today, -i);
+    if (dayScore(s.days[k]) > 0) hit++;
+  }
+  return hit / n;
+}
+
+// ---- Domain score (0-100, last 30 days completion) ----
+export function domainScores() {
+  const s = getState();
+  const today = todayKey();
+  const out = {};
+  for (const domain of allDomains()) {
+    const actionIds = domain.actions.map(a => a.id);
+    let due = 0, done = 0;
+    for (let i = 0; i < 30; i++) {
+      const k = addDays(today, -i);
+      const day = s.days[k];
+      if (!day) continue;
+      for (const id of actionIds) {
+        // Approximation: count any completion in last 30 days
+        const st = day.actions[id];
+        if (st) {
+          due++;
+          if (st === 'full' || st === 'rest') done++;
+          else if (st === 'floor') done += 0.5;
+        }
+      }
+    }
+    out[domain.id] = due > 0 ? Math.round((done / due) * 100) : 0;
+  }
+  return out;
+}
+
+// ---- Most skipped actions (last 30 days) ----
+export function mostSkipped(limit = 5) {
+  const s = getState();
+  const today = todayKey();
+  const counts = {};
+  for (const domain of allDomains()) {
+    for (const action of domain.actions) {
+      counts[action.id] = { action, domain, skips: 0, due: 0 };
     }
   }
-  let worst = null, worstCount = 0;
-  for (const [id, c] of Object.entries(skipCounts)) {
-    if (c > worstCount) { worst = id; worstCount = c; }
+  for (let i = 0; i < 30; i++) {
+    const k = addDays(today, -i);
+    const day = s.days[k];
+    if (!day) continue;
+    for (const id of Object.keys(counts)) {
+      const st = day.actions[id];
+      if (st === undefined || st === null) {
+        // Not done — but only count if it was due (approximation: count all)
+        counts[id].skips++;
+      }
+    }
   }
-  if (worst) {
-    const dom = Object.values(s.domains).find((d) => d.actions?.some((a) => a.id === worst));
-    const act = dom?.actions.find((a) => a.id === worst);
-    if (act) out.push({ type: 'skip', icon: '⚠️', text: `Most-skipped protocol (30d): ${act.name} — ${worstCount} misses` });
+  return Object.values(counts)
+    .sort((a, b) => b.skips - a.skips)
+    .slice(0, limit);
+}
+
+// ---- Best day (highest score in last 30) ----
+export function bestDay() {
+  const s = getState();
+  const today = todayKey();
+  let best = null, bestScore = 0;
+  for (let i = 0; i < 30; i++) {
+    const k = addDays(today, -i);
+    const score = dayScore(s.days[k]);
+    if (score > bestScore) { bestScore = score; best = k; }
   }
-  // Best day of week
-  const dayScores = {};
-  for (const k of Object.keys(s.days)) {
-    const wd = dow(k);
-    dayScores[wd] = dayScores[wd] || [];
-    dayScores[wd].push(dayScore(k));
+  return best ? { date: best, score: bestScore } : null;
+}
+
+// ---- Forecast (simple linear projection of version) ----
+export function forecast() {
+  const s = getState();
+  const m = momentum();
+  // Project version 30 days out
+  const projected = s.version + (s.version * m * 0.1);
+  return { currentVersion: s.version, projected, momentum: m };
+}
+
+// ---- Entropy (v3 §22) ----
+export function entropy() {
+  const s = getState();
+  const today = todayKey();
+  let score = 100;
+  // Overdue actions
+  let overdue = 0;
+  for (let i = 1; i <= 7; i++) {
+    const k = addDays(today, -i);
+    const day = s.days[k];
+    if (day) {
+      const states = Object.values(day.actions);
+      if (states.length === 0) overdue++;
+    }
   }
-  let bestDay = 0, bestAvg = 0;
-  for (const [wd, arr] of Object.entries(dayScores)) {
-    const avg = arr.reduce((x, y) => x + y, 0) / arr.length;
-    if (avg > bestAvg) { bestAvg = avg; bestDay = Number(wd); }
-  }
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  if (bestAvg > 0) out.push({ type: 'bestday', icon: '🏆', text: `Best day: ${dayNames[bestDay]} (avg ${bestAvg.toFixed(1)} pts)` });
-  // Forecast
-  const f = forecast();
-  if (f.date) out.push({ type: 'forecast', icon: '📅', text: `At current pace, v2.00 on ${f.date} (${f.days}d)` });
-  return out;
+  score -= overdue * 5;
+  // Unreviewed decisions
+  const unreviewedDecisions = s.decisions.filter(d => !d.outcome && d.reviewDate && d.reviewDate < today).length;
+  score -= unreviewedDecisions * 4;
+  // Old inbox
+  const oldInbox = s.inbox.filter(i => i.status === 'raw' && i.created < addDays(today, -7)).length;
+  score -= oldInbox * 3;
+  // Stuck opportunities (>90d open)
+  const stuckOpps = s.opportunities.filter(o => o.status === 'open' && o.created < addDays(today, -90)).length;
+  score -= stuckOpps * 4;
+  // Incomplete reviews
+  const overdueReviews = ['weekly', 'monthly', 'quarterly', 'annual'].filter(c => isReviewOverdue(c, s)).length;
+  score -= overdueReviews * 6;
+  return Math.max(0, Math.min(100, score));
+}
+
+function isReviewOverdue(cadence, s) {
+  const reviews = s.reviews[cadence] || [];
+  if (!reviews.length) return false;
+  const last = reviews[reviews.length - 1];
+  const days = (Date.now() - dateFromKey(last.date).getTime()) / 86400000;
+  const limits = { weekly: 9, monthly: 38, quarterly: 95, semiannual: 190, annual: 380 };
+  return days > (limits[cadence] || 30);
+}
+
+// ---- System health (v3 §21) — delegated to system-health.js ----
+export function systemHealthScore() {
+  // Lazy import to avoid circular dep
+  return import('./system-health.js').then(m => m.systemHealth().score);
 }

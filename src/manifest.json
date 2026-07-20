@@ -1,9 +1,8 @@
 {
-  "name": "Life OS — v2",
+  "name": "Life OS v3",
   "short_name": "Life OS",
-  "description": "Operating System for Human Optimization. Levels, capitals, cadences, feedback loops.",
+  "description": "Operating system for human optimization. Compounds every form of capital through better decisions, feedback loops, and leverage.",
   "start_url": "./",
-  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0b0d12",

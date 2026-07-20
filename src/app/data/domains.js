@@ -1,136 +1,192 @@
 // ============================================================
-// Life OS v2 — Default Management Cards for all 15 domains
-// Each domain follows the universal schema:
-//   id, level, name, icon, color, objective, principles,
-//   leadingIndicators, laggingIndicators, actions (cadenced),
-//   trigger, checklist, automation, riskRegister, killCriteria,
-//   reviewQuestions, sop, maturity (1-5), history
+// Life OS v3 — Domain Architecture
+// 22 domains across 5 levels / 3 layers.
+// Every domain uses the SAME 17-field universal management card
+// (v3 §6): Objective, Principles, Leading Indicators, Lagging
+// Indicators, Actions, Cadence, Trigger, Checklist, SOP,
+// Automation, Risk Register, Kill Criteria, Experiments,
+// Review Questions, Dependencies, Resources, Maturity.
 // ============================================================
 
-export const LEVELS = {
-  1: { id: 1, name: 'Foundation',     color: 'l1', icon: '🌱' },
-  2: { id: 2, name: 'Executive',      color: 'l2', icon: '🧠' },
-  3: { id: 3, name: 'Capital',        color: 'l3', icon: '💎' },
-  4: { id: 4, name: 'Strategy',       color: 'l4', icon: '🎯' },
-  5: { id: 5, name: 'Legacy',         color: 'l5', icon: '🏛️' },
-};
-
-// ============================================================
-// Three-Layer Architecture
-// Strategy manages the Operating System.
-// Legacy defines why the system exists.
-// Operating is the daily work (Foundation + Executive + Capital).
-// ============================================================
-
+// ---- 3-Layer Architecture (v3 §4) ----
+// Operating = Foundation + Executive + Capital (daily work)
+// Strategic = Strategy (controls Operations)
+// Legacy    = Legacy (gives meaning to Strategy)
 export const LAYERS = {
-  operating:  { id: 'operating',  name: 'Operating',  icon: '⚙️', desc: 'Foundation + Executive + Capital — daily work', levels: [1, 2, 3] },
-  strategic:  { id: 'strategic',  name: 'Strategic',  icon: '🎯', desc: 'Direction, resource allocation, game selection',  levels: [4] },
-  legacy:     { id: 'legacy',     name: 'Legacy',     icon: '🏛️', desc: 'Principles, long-term impact, what outlives you',  levels: [5] },
+  operating: { id: 'operating', name: 'Operating', icon: '⚙️', desc: 'Foundation + Executive + Capital — daily work', levels: [1, 2, 3] },
+  strategic: { id: 'strategic', name: 'Strategic', icon: '🎯', desc: 'Direction, resource allocation, game selection', levels: [4] },
+  legacy:    { id: 'legacy',    name: 'Legacy',    icon: '🏛️', desc: 'Principles, long-term impact, what outlives you', levels: [5] },
 };
-
 export const LAYER_ORDER = ['operating', 'strategic', 'legacy'];
 
-export const CADENCE = {
-  daily:    'Daily',
-  weekly:   'Weekly',
-  monthly:  'Monthly',
-  quarterly:'Quarterly',
-  semiannual: 'Semi-annual',
-  annual:   'Annual',
-  event:    'Event-driven',
+// ---- 5 Levels ----
+export const LEVELS = {
+  1: { id: 1, name: 'Foundation', icon: '🌱' },
+  2: { id: 2, name: 'Executive',  icon: '🧠' },
+  3: { id: 3, name: 'Capital',    icon: '💎' },
+  4: { id: 4, name: 'Strategy',   icon: '🎯' },
+  5: { id: 5, name: 'Legacy',     icon: '🏛️' },
 };
 
-const card = (data) => ({
+// ---- Cadences (v3 §7) ----
+export const CADENCE = {
+  daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly',
+  quarterly: 'Quarterly', semiannual: 'Semi-annual',
+  annual: 'Annual', event: 'Event-driven',
+};
+export const CADENCE_ORDER = ['daily', 'weekly', 'monthly', 'quarterly', 'semiannual', 'annual', 'event'];
+
+// ---- Universal card factory ----
+const card = (d) => ({
   maturity: 1,
-  history: [],
   principles: [],
   leadingIndicators: [],
   laggingIndicators: [],
   actions: [],
   trigger: '',
   checklist: [],
+  sop: '',
   automation: [],
   riskRegister: [],
   killCriteria: [],
+  experiments: [],
   reviewQuestions: [],
-  sop: null,
-  ...data,
+  dependencies: [],
+  resources: [],
+  ...d,
 });
 
+// ---- Action factory ----
+const act = (d) => ({
+  floor: '', full: '', cue: '', response: '', implementationIntention: '',
+  estMins: 5, compoundScore: 5, ...d,
+});
+
+// ============================================================
+// LEVEL 1 — FOUNDATION (6 domains)
+// ============================================================
 export const DEFAULT_DOMAINS = {
-  // ============ LEVEL 1 — FOUNDATION ============
+
+  // ---- Body (training + performance + recovery) ----
   body: card({
-    id: 'body', level: 1, name: 'Body', icon: '🏋️', color: 'l1',
+    id: 'body', level: 1, name: 'Body', icon: '🏋️',
     objective: 'Maximum organism performance into deep old age.',
     principles: [
-      'Sleep > Nutrition > Exercise > Supplements (never in reverse).',
+      'Sleep > Nutrition > Exercise > Supplements.',
       'Never miss twice. On bad days, do the Floor.',
       'Progressive overload or maintenance — never atrophy.',
     ],
     leadingIndicators: [
-      { name: 'Sleep hours',      target: 7.5, unit: 'h',     cadence: 'daily' },
-      { name: 'Protein',          target: 168, unit: 'g',     cadence: 'daily' },
-      { name: 'Steps',            target: 8000, unit: 'steps',cadence: 'daily' },
-      { name: 'Workouts',         target: 4,   unit: 'wk',    cadence: 'weekly' },
-      { name: 'Zone 2 cardio',    target: 180, unit: 'min',   cadence: 'weekly' },
-      { name: 'Mobility',         target: 5,   unit: 'min',   cadence: 'daily' },
+      { name: 'Sleep hours', target: 7.5, unit: 'h', cadence: 'daily' },
+      { name: 'Steps', target: 8000, unit: 'steps', cadence: 'daily' },
+      { name: 'Workouts', target: 4, unit: '/wk', cadence: 'weekly' },
+      { name: 'Zone 2', target: 180, unit: 'min', cadence: 'weekly' },
     ],
     laggingIndicators: [
-      { name: 'VO₂max',     unit: 'mL/kg/min', source: 'health' },
-      { name: 'HRV',        unit: 'ms',        source: 'health' },
-      { name: 'Body fat',   unit: '%',         source: 'manual' },
-      { name: 'Grip strength', unit: 'kg',     source: 'manual' },
-      { name: 'Resting HR', unit: 'bpm',       source: 'health' },
-      { name: 'DEXA',       unit: 'score',     source: 'annual' },
+      { name: 'VO₂max', unit: 'mL/kg/min', source: 'health' },
+      { name: 'HRV', unit: 'ms', source: 'health' },
+      { name: 'Body fat', unit: '%', source: 'manual' },
+      { name: 'Resting HR', unit: 'bpm', source: 'health' },
     ],
     actions: [
-      { id: 'body_move',  name: 'Move (Big4)',     cadence: 'daily',  floor: '1 set pushups + squats', full: 'Gym Day A/B, progressive overload', icon: '🏋️',
-        cue: 'After morning coffee', response: 'Do 1 set of pushups + squats (floor) or gym session (full)',
-        implementationIntention: 'If I finish my morning coffee, then I will do my movement practice' },
-      { id: 'body_fuel',  name: 'Fuel (Big4)',     cadence: 'daily',  floor: '1 protein meal',         full: '~168g protein + small surplus',     icon: '🥩',
-        cue: 'Before each meal', response: 'Ensure 30g+ protein per meal',
-        implementationIntention: 'If I sit down to eat, then I will check protein content first' },
-      { id: 'body_wind',  name: 'Wind Down (Big4)',cadence: 'daily',  floor: 'Phone out of bedroom',   full: 'No late scroll + phone rule',       icon: '🌙',
-        cue: 'At 9:30 PM', response: 'Phone out of bedroom, lights dim',
-        implementationIntention: 'If the clock hits 9:30 PM, then I will take my phone out of the bedroom' },
-      { id: 'body_water', name: 'Water',           cadence: 'daily',  floor: '2 L',                    full: '3 L',                               icon: '💧',
-        cue: 'After bathroom break', response: 'Drink a glass of water',
-        implementationIntention: 'If I return from the bathroom, then I will drink one glass of water' },
-      { id: 'body_sun',   name: 'Sunlight',        cadence: 'daily',  floor: '5 min',                  full: '15 min morning sun',                icon: '☀️',
-        cue: 'Right after waking', response: 'Step outside for sunlight',
-        implementationIntention: 'If I wake up, then I will step outside for sunlight within 30 min' },
-      { id: 'body_mobility', name: 'Mobility',     cadence: 'daily',  floor: '5 min',                  full: '10 min full routine',               icon: '🤸',
-        cue: 'After shower', response: '5 min mobility routine',
-        implementationIntention: 'If I finish my shower, then I will do 5 min of mobility work' },
-      { id: 'body_skincare', name: 'Skincare',     cadence: 'daily',  floor: 'AM',                     full: 'AM + PM',                           icon: '🧴',
-        cue: 'After brushing teeth', response: 'Apply skincare',
-        implementationIntention: 'If I finish brushing teeth, then I will apply skincare' },
-      { id: 'body_zone2', name: 'Zone 2 cardio',   cadence: 'weekly', floor: '60 min',                 full: '180 min',                           icon: '🚴' },
-      { id: 'body_strength', name: 'Strength session', cadence: 'weekly', floor: '1',                  full: '2',                                  icon: '💪' },
-      { id: 'body_weight', name: 'Weigh-in',       cadence: 'weekly', icon: '⚖️' },
-      { id: 'body_photo',  name: 'Progress photo', cadence: 'monthly', icon: '📸' },
-      { id: 'body_measure', name: 'Measurements',  cadence: 'monthly', icon: '📏' },
-      { id: 'body_bloods', name: 'Blood panel',    cadence: 'quarterly', icon: '🩸' },
-      { id: 'body_dexa',   name: 'DEXA / Ningen Dock', cadence: 'annual', icon: '🏥' },
-      { id: 'body_dental', name: 'Dental check',   cadence: 'annual', icon: '🦷' },
-      { id: 'body_derma',  name: 'Dermatology',    cadence: 'annual', icon: '🩺' },
+      act({ id: 'body_move', name: 'Move', cadence: 'daily', icon: '🏋️', floor: '1 set pushups + squats', full: 'Gym Day A/B', cue: 'After morning coffee', response: 'Movement practice', implementationIntention: 'If I finish morning coffee, then I will move', estMins: 20, compoundScore: 9 }),
+      act({ id: 'body_wind', name: 'Wind Down', cadence: 'daily', icon: '🌙', floor: 'Phone out of bedroom', full: 'No late scroll + lights dim', cue: 'At 21:30', response: 'Phone out, lights dim', implementationIntention: 'If it is 21:30, then I will remove my phone from the bedroom', estMins: 5, compoundScore: 9 }),
+      act({ id: 'body_sun', name: 'Sunlight', cadence: 'daily', icon: '☀️', floor: '5 min', full: '15 min morning sun', cue: 'After waking', response: 'Step outside', implementationIntention: 'If I wake up, then I will get sunlight within 30 min', estMins: 10, compoundScore: 7 }),
+      act({ id: 'body_mobility', name: 'Mobility', cadence: 'daily', icon: '🤸', floor: '5 min', full: '10 min routine', cue: 'After shower', response: 'Mobility work', implementationIntention: 'If I finish my shower, then I will do mobility', estMins: 5, compoundScore: 6 }),
+      act({ id: 'body_zone2', name: 'Zone 2 cardio', cadence: 'weekly', icon: '🚴', floor: '60 min', full: '180 min', estMins: 60, compoundScore: 8 }),
+      act({ id: 'body_strength', name: 'Strength session', cadence: 'weekly', icon: '💪', floor: '1', full: '2', estMins: 60, compoundScore: 9 }),
+      act({ id: 'body_weight', name: 'Weigh-in', cadence: 'weekly', icon: '⚖️', estMins: 1, compoundScore: 3 }),
     ],
     trigger: 'Morning, post-work, evening',
-    automation: ['Apple Watch', 'Health app', 'Withings', 'Cronometer'],
+    checklist: ['Lay out clothes night before', 'Phone in kitchen overnight', 'Water bottle filled'],
+    sop: 'Mon/Wed/Fri: Gym Day A (squat, bench, row). Tue/Sat: Zone 2. Thu: mobility + rest.',
+    automation: ['Apple Watch', 'Health app'],
     riskRegister: [
       { risk: 'Sleep deprivation', mitigation: 'Hard wind-down at 21:30' },
-      { risk: 'Overtraining / injury', mitigation: 'Deload every 4th week' },
-      { risk: 'Burnout', mitigation: 'Rest day weekly, Floor on bad days' },
+      { risk: 'Overtraining', mitigation: 'Deload every 4th week' },
+      { risk: 'Injury', mitigation: 'Form > weight; warm up always' },
     ],
-    killCriteria: ['No progress on any lagging indicator for 2 consecutive quarters → reprogram'],
+    killCriteria: ['No progress on any lagging indicator for 2 quarters → reprogram'],
+    experiments: [{ name: 'Cold exposure 2 min post-shower', status: 'active' }],
     reviewQuestions: ['What most degraded my energy this week?', 'Which training block is stale?'],
+    dependencies: ['psyche', 'nutrition'],
+    resources: ['Attia "Outlive"', 'Huberman podcast'],
   }),
 
+  // ---- Nutrition ----
+  nutrition: card({
+    id: 'nutrition', level: 1, name: 'Nutrition', icon: '🥩',
+    objective: 'Fuel that supports performance, longevity, and body composition.',
+    principles: [
+      'Protein first, every meal.',
+      'Whole foods > supplements.',
+      'Caloric discipline when cutting; surplus when building.',
+    ],
+    leadingIndicators: [
+      { name: 'Protein', target: 168, unit: 'g', cadence: 'daily' },
+      { name: 'Water', target: 3, unit: 'L', cadence: 'daily' },
+      { name: 'Meals logged', target: 3, unit: '/day', cadence: 'daily' },
+    ],
+    laggingIndicators: [
+      { name: 'Body fat', unit: '%', source: 'manual' },
+      { name: 'Weight', unit: 'kg', source: 'manual' },
+      { name: 'Fasting glucose', unit: 'mg/dL', source: 'bloods' },
+    ],
+    actions: [
+      act({ id: 'nutr_protein', name: 'Protein meal', cadence: 'daily', icon: '🥩', floor: '1 protein meal', full: '30g+ per meal', cue: 'Before each meal', response: 'Check protein first', implementationIntention: 'If I sit down to eat, then I will check protein first', estMins: 1, compoundScore: 8 }),
+      act({ id: 'nutr_water', name: 'Water', cadence: 'daily', icon: '💧', floor: '2 L', full: '3 L', cue: 'After bathroom', response: 'Drink a glass', implementationIntention: 'If I return from the bathroom, then I will drink water', estMins: 1, compoundScore: 5 }),
+      act({ id: 'nutr_log', name: 'Log meals', cadence: 'daily', icon: '📝', floor: '1 meal', full: 'All meals', cue: 'After eating', response: 'Log in Cronometer', implementationIntention: 'If I finish eating, then I will log the meal', estMins: 3, compoundScore: 6 }),
+    ],
+    trigger: 'Each meal',
+    checklist: ['30g protein per meal', 'Vegetables or fruit with lunch/dinner', 'No liquid calories'],
+    sop: 'Breakfast: eggs + oats. Lunch: chicken + rice + veg. Dinner: fish + veg. Snack: greek yogurt.',
+    automation: ['Cronometer', 'Apple Health'],
+    riskRegister: [{ risk: 'Under-eating during cuts', mitigation: 'Never cut below 80% maintenance' }],
+    killCriteria: ['Sustained energy crashes for 2 weeks → reprogram macros'],
+    experiments: [{ name: 'Time-restricted eating 14:10', status: 'planned' }],
+    reviewQuestions: ['Did I hit protein every day?', 'Where did I drift?'],
+    dependencies: ['body'],
+    resources: ['Cronometer', 'Attia "Outlive" ch. 10'],
+  }),
+
+  // ---- Medical (longevity checks, bloods, screenings) ----
+  medical: card({
+    id: 'medical', level: 1, name: 'Medical', icon: '🩸',
+    objective: 'Medicine 3.0: detect and reverse disease before symptoms.',
+    principles: ['Measure before managing.', 'Prevention > treatment.', 'Annual deep panel; quarterly basics.'],
+    leadingIndicators: [
+      { name: 'Checkups done', target: 1, unit: '/yr', cadence: 'annual' },
+      { name: 'Bloods done', target: 4, unit: '/yr', cadence: 'quarterly' },
+    ],
+    laggingIndicators: [
+      { name: 'ApoB', unit: 'mg/dL', source: 'bloods' },
+      { name: 'HbA1c', unit: '%', source: 'bloods' },
+      { name: 'Fasting insulin', unit: 'mIU/L', source: 'bloods' },
+    ],
+    actions: [
+      act({ id: 'med_bloods', name: 'Blood panel', cadence: 'quarterly', icon: '🩸', estMins: 30, compoundScore: 7 }),
+      act({ id: 'med_dexa', name: 'DEXA / Ningen Dock', cadence: 'annual', icon: '🏥', estMins: 120, compoundScore: 8 }),
+      act({ id: 'med_dental', name: 'Dental check', cadence: 'annual', icon: '🦷', estMins: 60, compoundScore: 5 }),
+      act({ id: 'med_derma', name: 'Dermatology', cadence: 'annual', icon: '🩺', estMins: 30, compoundScore: 5 }),
+    ],
+    trigger: 'Quarterly / annual calendar',
+    checklist: ['Book appointment', 'Fast 12h before bloods', 'Bring prior results'],
+    sop: 'Q1: full panel + ApoB. Q2: DEXA. Q3: follow-up + dental. Q4: derma + annual physical.',
+    automation: ['Calendar reminders'],
+    riskRegister: [{ risk: 'Silent metabolic dysfunction', mitigation: 'Quarterly glucose + insulin' }],
+    killCriteria: ['All markers optimal for 2 years → reduce to semi-annual'],
+    experiments: [],
+    reviewQuestions: ['Any marker trending wrong?', 'What follow-up is overdue?'],
+    dependencies: ['body', 'nutrition'],
+    resources: ['Attia "Outlive"', 'Peter Attia podcast'],
+  }),
+
+  // ---- Psyche (stress, emotions, mental flexibility, recovery) ----
   psyche: card({
-    id: 'psyche', level: 1, name: 'Psyche', icon: '🧘', color: 'l1',
+    id: 'psyche', level: 1, name: 'Psyche', icon: '🧘',
     objective: 'Emotional resilience and cognitive flexibility under stress.',
     principles: [
-      'Name the emotion before reacting to it.',
+      'Name the emotion before reacting.',
       'Stoic dichotomy: control what you can, accept what you cannot.',
       'Reflection turns experience into wisdom.',
     ],
@@ -144,498 +200,600 @@ export const DEFAULT_DOMAINS = {
       { name: 'Stress events', unit: 'count' },
     ],
     actions: [
-      { id: 'psy_mood', name: 'Mood check-in', cadence: 'daily', icon: '😊',
-        cue: 'After lunch', response: 'Rate mood 1-5 and name the dominant emotion',
-        implementationIntention: 'If I finish lunch, then I will check in with my mood and name the emotion' },
-      { id: 'psy_note', name: 'Evening reflection', cadence: 'daily', icon: '📝',
-        cue: 'Before bed', response: 'One win, one thing to improve',
-        implementationIntention: 'If I am getting into bed, then I will write one win and one improvement' },
-      { id: 'psy_mindful', name: 'Mindful minutes', cadence: 'daily', floor: '5 min', full: '10+ min', icon: '🌬️',
-        cue: 'After waking', response: '5-10 min breath meditation',
-        implementationIntention: 'If I wake up, then I will sit for 5 min of mindful breathing before checking phone' },
-      { id: 'psy_journal', name: 'Long-form journal', cadence: 'weekly', icon: '📖' },
+      act({ id: 'psy_mood', name: 'Mood check-in', cadence: 'daily', icon: '😊', cue: 'After lunch', response: 'Rate 1-5 + name emotion', implementationIntention: 'If I finish lunch, then I will check my mood', estMins: 1, compoundScore: 6 }),
+      act({ id: 'psy_note', name: 'Evening reflection', cadence: 'daily', icon: '📝', cue: 'Before bed', response: 'One win, one lesson', implementationIntention: 'If I get into bed, then I will write one win and one lesson', estMins: 3, compoundScore: 8 }),
+      act({ id: 'psy_mindful', name: 'Mindful minutes', cadence: 'daily', icon: '🧘', floor: '3 min', full: '10 min', cue: 'After waking', response: 'Breathe / meditate', implementationIntention: 'If I wake up, then I will sit for mindful minutes', estMins: 10, compoundScore: 7 }),
+      act({ id: 'psy_journal', name: 'Journal', cadence: 'weekly', icon: '📖', estMins: 15, compoundScore: 7 }),
     ],
-    trigger: 'Morning + evening',
-    reviewQuestions: ['What pattern in my emotional reactions showed up this week?', 'What trigger do I keep avoiding?'],
+    trigger: 'Morning, midday, evening',
+    checklist: ['Name the emotion', 'Locate it in the body', 'Choose response, not reaction'],
+    sop: 'Morning: 10 min breath. Midday: mood check. Evening: 1 win + 1 lesson.',
+    automation: [],
+    riskRegister: [{ risk: 'Chronic stress', mitigation: 'Daily reflection + weekly journal' }],
+    killCriteria: ['Avg mood < 2.5 for 2 weeks → seek support'],
+    experiments: [{ name: 'Box breathing 4-4-4-4 before sleep', status: 'active' }],
+    reviewQuestions: ['What triggered the strongest emotion this week?', 'What pattern keeps recurring?'],
+    dependencies: ['body', 'identity'],
+    resources: ['Stoicism', 'Huberman emotion episodes'],
   }),
 
+  // ---- Identity ----
+  identity: card({
+    id: 'identity', level: 1, name: 'Identity', icon: '🪞',
+    objective: 'A deliberate identity that makes the right actions the default.',
+    principles: [
+      'Every action is a vote for who you become.',
+      'Identity statements > goals.',
+      'Re-audit semi-annually.',
+    ],
+    leadingIndicators: [
+      { name: 'Identity reviews', target: 2, unit: '/yr', cadence: 'semiannual' },
+      { name: 'Statements written', target: 5, unit: 'count', cadence: 'semiannual' },
+    ],
+    laggingIndicators: [
+      { name: 'Identity coherence', unit: '1-5' },
+      { name: 'Value-behavior alignment', unit: '1-5' },
+    ],
+    actions: [
+      act({ id: 'id_audit', name: 'Identity audit', cadence: 'semiannual', icon: '🪞', estMins: 60, compoundScore: 8 }),
+      act({ id: 'id_statements', name: 'Refine identity statements', cadence: 'semiannual', icon: '✍️', estMins: 30, compoundScore: 7 }),
+    ],
+    trigger: 'First Sunday of Jan / Jul',
+    checklist: ['List current identity statements', 'Check each against behavior', 'Rewrite outdated ones'],
+    sop: 'Write 5-7 "I am the kind of person who..." statements. Score each 1-5 for alignment with last 6 months of behavior. Rewrite.',
+    automation: [],
+    riskRegister: [{ risk: 'Identity drift', mitigation: 'Semi-annual audit' }],
+    killCriteria: ['Statements unchanged for 2 years → force rewrite'],
+    experiments: [],
+    reviewQuestions: ['Who have I become in the last 6 months?', 'Which statement no longer fits?'],
+    dependencies: ['psyche', 'strategy_vision'],
+    resources: ['Clear "Atomic Habits"', 'Clear "3 Signs of a Miserable Job"'],
+  }),
+
+  // ---- Environment (physical + digital + home + workspace) ----
   environment: card({
-    id: 'environment', level: 1, name: 'Environment', icon: '🪴', color: 'l1',
+    id: 'environment', level: 1, name: 'Environment', icon: '🪴',
     objective: 'A physical and digital environment that makes the right action the default.',
     principles: [
-      'Default design > willpower. Make good easy, bad hard.',
-      'Digital minimalism: every app earns its slot.',
-      'Zero visual noise in work and sleep spaces.',
+      'Clean space, clean mind.',
+      'Default environment drives default behavior.',
+      'Reduce friction for good actions; add friction for bad.',
     ],
     leadingIndicators: [
+      { name: 'Workspace resets', target: 1, unit: '/wk', cadence: 'weekly' },
       { name: 'Inbox Zero', target: 1, unit: '/wk', cadence: 'weekly' },
-      { name: 'Notification audit', target: 1, unit: '/mo', cadence: 'monthly' },
-      { name: 'Screen time', target: 120, unit: 'min', cadence: 'daily' },
     ],
     laggingIndicators: [
-      { name: 'Avg screen time', unit: 'min' },
-      { name: 'Apps installed', unit: 'count' },
+      { name: 'Screen time', unit: 'h/day', source: 'health' },
+      { name: 'Notifications', unit: 'count', source: 'manual' },
     ],
     actions: [
-      { id: 'env_inbox', name: 'Inbox Zero', cadence: 'weekly', icon: '📭' },
-      { id: 'env_notif', name: 'Notification audit', cadence: 'monthly', icon: '🔕' },
-      { id: 'env_clean', name: 'Workspace reset', cadence: 'weekly', icon: '🧹' },
-      { id: 'env_unsub', name: 'Unsubscribe purge', cadence: 'quarterly', icon: '✂️' },
+      act({ id: 'env_ws', name: 'Workspace reset', cadence: 'weekly', icon: '🧹', estMins: 15, compoundScore: 5 }),
+      act({ id: 'env_inbox', name: 'Inbox Zero', cadence: 'weekly', icon: '📭', estMins: 20, compoundScore: 5 }),
+      act({ id: 'env_notif', name: 'Notification audit', cadence: 'monthly', icon: '🔕', estMins: 15, compoundScore: 6 }),
+      act({ id: 'env_unsub', name: 'Unsubscribe purge', cadence: 'quarterly', icon: '🗑️', estMins: 20, compoundScore: 4 }),
     ],
-    trigger: 'Sunday review',
-    riskRegister: [
-      { risk: 'Notification creep', mitigation: 'Monthly audit + Do Not Disturb defaults' },
-      { risk: 'Phone in bedroom', mitigation: 'Charger outside bedroom' },
-    ],
-    reviewQuestions: ['Which environment friction caused the most friction this week?'],
+    trigger: 'Sunday morning',
+    checklist: ['Clear desk', 'Close unused tabs', 'Mute non-essential notifications'],
+    sop: 'Sunday: 15 min workspace reset + 20 min inbox zero. Monthly: notification audit. Quarterly: unsubscribe purge.',
+    automation: ['Focus mode schedule', 'Notification summaries'],
+    riskRegister: [{ risk: 'Digital overload', mitigation: 'Notification audit monthly' }],
+    killCriteria: ['Screen time > 6h/day for 2 weeks → hard reset'],
+    experiments: [{ name: 'Grayscale phone display', status: 'planned' }],
+    reviewQuestions: ['What environment change would make the biggest difference?'],
+    dependencies: ['psyche'],
+    resources: ['Newport "Digital Minimalism"'],
   }),
 
-  // ============ LEVEL 2 — EXECUTIVE ============
-  executive: card({
-    id: 'executive', level: 2, name: 'Executive Function', icon: '⚡', color: 'l2',
-    objective: 'Reliable self-control, working memory, planning, and task switching.',
-    principles: [
-      'Decide once, execute many. Reduce daily decisions.',
-      'Single-task. Context-switching is a tax.',
-      'Plan the day before the day starts.',
-    ],
-    leadingIndicators: [
-      { name: 'Deep Work blocks', target: 2, unit: '/day', cadence: 'daily' },
-      { name: 'Plan-of-day done', target: 1, unit: '/day', cadence: 'daily' },
-      { name: 'Evening review', target: 1, unit: '/day', cadence: 'daily' },
-    ],
-    laggingIndicators: [
-      { name: 'Deep Work hours / wk', unit: 'h' },
-      { name: 'Tasks completed / wk', unit: 'count' },
-    ],
-    actions: [
-      { id: 'exec_build', name: 'Build (Big4)', cadence: 'daily', floor: '10 min / 1 commit', full: 'Deep-work block on product', icon: '💻',
-        cue: 'After morning planning', response: 'Open IDE and make 1 commit (floor) or do a deep-work block (full)',
-        implementationIntention: 'If I finish planning my day, then I will open my IDE and start building' },
-      { id: 'exec_plan', name: 'Plan the day', cadence: 'daily', icon: '🗺️',
-        cue: 'After first coffee', response: 'Pick top 3 tasks, block calendar',
-        implementationIntention: 'If I finish my first coffee, then I will plan my top 3 tasks for the day' },
-      { id: 'exec_review', name: 'Evening review', cadence: 'daily', icon: '🌙',
-        cue: 'Before closing laptop', response: 'Review what happened, log wins',
-        implementationIntention: 'If I am about to close my laptop for the day, then I will do a 5-min evening review' },
-      { id: 'exec_top3', name: 'Top 3 tasks', cadence: 'daily', icon: '⭐',
-        cue: 'During morning planning', response: 'Identify the 3 tasks that matter most',
-        implementationIntention: 'If I am planning my day, then I will identify the 3 tasks that matter most' },
-    ],
-    trigger: 'Morning (plan), Evening (review)',
-    reviewQuestions: ['Which task did I avoid most this week — and why?'],
-  }),
+  // ============================================================
+  // LEVEL 2 — EXECUTIVE (3 domains)
+  // ============================================================
 
+  // ---- Attention ----
   attention: card({
-    id: 'attention', level: 2, name: 'Attention Management', icon: '🎯', color: 'l2',
+    id: 'attention', level: 2, name: 'Attention', icon: '🎯',
     objective: 'Protect and direct attention as the scarcest resource.',
     principles: [
-      'Deep Work > shallow work. Always.',
-      'Single-tasking. No exceptions during blocks.',
-      'Distraction audit weekly — what stole attention?',
+      'Single-screen, single-task.',
+      'Deep work blocks are non-negotiable.',
+      'Distraction audits reveal the truth.',
     ],
     leadingIndicators: [
-      { name: 'Deep Work mins', target: 120, unit: 'min', cadence: 'daily' },
-      { name: 'Distraction-free sessions', target: 4, unit: '/wk', cadence: 'weekly' },
+      { name: 'Deep work hours', target: 3, unit: 'h/day', cadence: 'daily' },
+      { name: 'Distraction audits', target: 1, unit: '/wk', cadence: 'weekly' },
     ],
     laggingIndicators: [
-      { name: 'Shallow work hrs', unit: 'h' },
-      { name: 'Focus quality (self-rated)', unit: '1-5' },
+      { name: 'Shipped work', unit: 'count' },
+      { name: 'Screen time', unit: 'h/day', source: 'health' },
     ],
     actions: [
-      { id: 'att_deep', name: 'Deep Work block', cadence: 'daily', floor: '25 min', full: '90 min', icon: '🧠',
-        cue: 'After lunch (1 PM)', response: 'Phone in drawer, single tab, timer on',
-        implementationIntention: 'If I finish lunch, then I will start a Deep Work block with phone in drawer' },
-      { id: 'att_audit', name: 'Distraction audit', cadence: 'weekly', icon: '🔍' },
-      { id: 'att_singlescreen', name: 'Single-screen session', cadence: 'daily', icon: '🖥️',
-        cue: 'Before any focused work', response: 'Close all tabs except the one needed',
-        implementationIntention: 'If I am about to start focused work, then I will close all tabs except one' },
+      act({ id: 'att_deep', name: 'Deep Work block', cadence: 'daily', icon: '🎧', floor: '25 min', full: '90 min', cue: 'After morning planning', response: 'Single-task deep work', implementationIntention: 'If I finish planning, then I will start a deep work block', estMins: 90, compoundScore: 10 }),
+      act({ id: 'att_single', name: 'Single-screen session', cadence: 'daily', icon: '🖥️', floor: '1 session', full: '3 sessions', cue: 'When opening laptop', response: 'One window, one task', implementationIntention: 'If I open my laptop, then I will work in one window', estMins: 60, compoundScore: 7 }),
+      act({ id: 'att_audit', name: 'Distraction audit', cadence: 'weekly', icon: '🔍', estMins: 15, compoundScore: 6 }),
     ],
-    trigger: 'Pre-defined blocks',
-    reviewQuestions: ['What broke my focus most often this week?'],
+    trigger: 'Morning, after planning',
+    checklist: ['Phone in another room', 'Notifications off', 'One window open', 'Timer running'],
+    sop: 'Block 1: 90 min after planning. Block 2: 90 min after lunch. Block 3: 60 min afternoon.',
+    automation: ['Focus mode', 'Website blockers'],
+    riskRegister: [{ risk: 'Attention fragmentation', mitigation: 'Single-screen sessions + audits' }],
+    killCriteria: ['Deep work < 1h/day for 2 weeks → restructure day'],
+    experiments: [{ name: 'Pomodoro 50/10 vs 90/20', status: 'active' }],
+    reviewQuestions: ['What stole my attention this week?', 'Which block was hardest to protect?'],
+    dependencies: ['environment', 'psyche'],
+    resources: ['Newport "Deep Work"'],
   }),
 
+  // ---- Decision System ----
   decisions: card({
-    id: 'decisions', level: 2, name: 'Decision System', icon: '⚖️', color: 'l2',
+    id: 'decisions', level: 2, name: 'Decision System', icon: '⚖️',
     objective: 'Maximize decision quality through structured thinking and review.',
     principles: [
-      'Log the decision and the expected outcome before acting.',
-      'Second-order: "and then what?"',
-      'Inversion: what would guarantee failure?',
-      'Pre-mortem before big bets; post-mortem after.',
-      'Bayesian updating: revise with new evidence.',
+      'Journal every major decision.',
+      'Pre-mortem before, post-mortem after.',
+      'Bayesian update on every outcome.',
     ],
     leadingIndicators: [
-      { name: 'Decisions logged', target: 1, unit: '/wk', cadence: 'weekly' },
-      { name: 'Pre-mortems done', target: 1, unit: '/mo', cadence: 'monthly' },
+      { name: 'Decisions journaled', target: 1, unit: '/wk', cadence: 'weekly' },
+      { name: 'Pre-mortems', target: 1, unit: '/wk', cadence: 'weekly' },
     ],
     laggingIndicators: [
-      { name: 'Decision accuracy (1y review)', unit: '%' },
-      { name: 'Regret count', unit: 'count' },
+      { name: 'Decision quality', unit: '1-5' },
+      { name: 'Outcome vs expected', unit: '%' },
     ],
     actions: [
-      { id: 'dec_log', name: 'Log a decision', cadence: 'event', icon: '📝' },
-      { id: 'dec_premortem', name: 'Pre-mortem', cadence: 'event', icon: '🔮' },
-      { id: 'dec_postmortem', name: 'Post-mortem', cadence: 'event', icon: '⚰️' },
-      { id: 'dec_review', name: 'Review 1y-old decisions', cadence: 'monthly', icon: '📅' },
+      act({ id: 'dec_log', name: 'Log decision', cadence: 'event', icon: '⚖️', estMins: 10, compoundScore: 8 }),
+      act({ id: 'dec_pre', name: 'Pre-mortem', cadence: 'event', icon: '🔮', estMins: 15, compoundScore: 7 }),
+      act({ id: 'dec_post', name: 'Post-mortem', cadence: 'event', icon: '📋', estMins: 20, compoundScore: 8 }),
+      act({ id: 'dec_review', name: 'Review 1y decisions', cadence: 'monthly', icon: '🔄', estMins: 30, compoundScore: 7 }),
     ],
-    trigger: 'Any decision with > 1 month of consequences',
-    reviewQuestions: ['Which decision would I reverse if I could? Why?', 'What evidence am I ignoring?'],
+    trigger: 'Before any decision with >1 week of consequences',
+    checklist: ['Context', 'Assumptions', 'Alternatives', 'Expected result', 'Probability', 'Review date'],
+    sop: 'For each major decision: write context, alternatives, expected outcome, confidence %, review date. On review date: log actual outcome, update.',
+    automation: [],
+    riskRegister: [{ risk: 'Outcome bias', mitigation: 'Judge decision quality, not just outcome' }],
+    killCriteria: ['No decisions journaled for 1 month → force one'],
+    experiments: [],
+    reviewQuestions: ['Which decision had the biggest gap between expected and actual?', 'What assumption was most wrong?'],
+    dependencies: ['attention'],
+    resources: ['Kahneman "Thinking Fast and Slow"'],
   }),
 
-  // ============ LEVEL 3 — CAPITAL ============
-  bioCapital: card({
-    id: 'bioCapital', level: 3, name: 'Biological Capital', icon: '❤️', color: 'l3',
-    objective: 'Compounding health, energy, strength, and longevity.',
+  // ---- Knowledge System ----
+  knowledge: card({
+    id: 'knowledge', level: 2, name: 'Knowledge System', icon: '📚',
+    objective: 'Capture, organize, and compound knowledge through deliberate practice + spaced repetition.',
     principles: [
-      'Health is the meta-capital — without it, all others decay.',
-      'Measure leading indicators daily; lagging quarterly.',
-      'Train for the 80-year horizon, not the 8-week one.',
+      'Capture everything; review regularly.',
+      'Spaced repetition beats cramming.',
+      'Deliberate practice > passive reading.',
     ],
     leadingIndicators: [
-      { name: 'Sleep', target: 7.5, unit: 'h', cadence: 'daily' },
-      { name: 'HRV', target: 50, unit: 'ms', cadence: 'daily' },
-      { name: 'Workouts', target: 4, unit: '/wk', cadence: 'weekly' },
+      { name: 'Cards reviewed', target: 10, unit: '/day', cadence: 'daily' },
+      { name: 'Reading', target: 30, unit: 'min', cadence: 'daily' },
+      { name: 'Skill practice', target: 60, unit: 'min', cadence: 'weekly' },
     ],
     laggingIndicators: [
-      { name: 'VO₂max', unit: 'mL/kg/min' },
-      { name: 'Resting HR', unit: 'bpm' },
-      { name: 'Body fat', unit: '%' },
+      { name: 'Retention rate', unit: '%' },
+      { name: 'Skills acquired', unit: 'count' },
     ],
     actions: [
-      { id: 'biocap_track', name: 'Sync Apple Health', cadence: 'daily', icon: '⌚' },
-      { id: 'biocap_qcheck', name: 'Quarterly health check', cadence: 'quarterly', icon: '🩺' },
+      act({ id: 'know_read', name: 'Read', cadence: 'daily', icon: '📖', floor: '10 min', full: '30 min', cue: 'After dinner', response: 'Read + capture', implementationIntention: 'If I finish dinner, then I will read for 30 min', estMins: 30, compoundScore: 8 }),
+      act({ id: 'know_capture', name: 'Capture notes', cadence: 'daily', icon: '✍️', floor: '1 note', full: '3 notes', cue: 'After reading', response: 'Write to inbox', implementationIntention: 'If I finish reading, then I will capture key ideas', estMins: 5, compoundScore: 7 }),
+      act({ id: 'know_review', name: 'Review cards (SM-2)', cadence: 'daily', icon: '🧠', floor: '5 cards', full: '10+ cards', cue: 'After morning coffee', response: 'Review due cards', implementationIntention: 'If I finish morning coffee, then I will review due cards', estMins: 15, compoundScore: 9 }),
+      act({ id: 'know_practice', name: 'Skill practice', cadence: 'weekly', icon: '🎯', estMins: 60, compoundScore: 8 }),
+      act({ id: 'know_audit', name: 'Skill audit', cadence: 'semiannual', icon: '🔍', estMins: 60, compoundScore: 7 }),
     ],
-    trigger: 'Daily + quarterly',
-    reviewQuestions: ['Which biological metric is trending wrong?'],
+    trigger: 'Morning (review), evening (read), weekly (practice)',
+    checklist: ['Capture to inbox', 'Clarify within 24h', 'Convert to SR card if durable'],
+    sop: 'Daily: review due cards + read 30 min + capture. Weekly: 60 min deliberate practice. Semi-annual: skill audit.',
+    automation: ['SM-2 scheduler'],
+    riskRegister: [{ risk: 'Capture without review', mitigation: 'Daily review block' }],
+    killCriteria: ['Retention < 70% for 2 weeks → reduce new cards'],
+    experiments: [{ name: 'Cloze deletion vs Q&A cards', status: 'active' }],
+    reviewQuestions: ['What did I learn this week worth keeping?', 'Which skill is stagnating?'],
+    dependencies: ['attention', 'intelCapital'],
+    resources: ['Cepeda 2008', 'Wozniak "SuperMemo"'],
+  }),
+
+  // ============================================================
+  // LEVEL 3 — CAPITAL (7 domains)
+  // ============================================================
+
+  bioCapital: card({
+    id: 'bioCapital', level: 3, name: 'Biological Capital', icon: '❤️',
+    objective: 'Compounding health, energy, strength, and longevity as capital.',
+    principles: ['Health is the base layer of all capital.', 'Measure quarterly, act daily.'],
+    leadingIndicators: [
+      { name: 'Health syncs', target: 7, unit: '/wk', cadence: 'weekly' },
+    ],
+    laggingIndicators: [
+      { name: 'VO₂max', unit: 'mL/kg/min', source: 'health' },
+      { name: 'HRV', unit: 'ms', source: 'health' },
+      { name: 'Grip strength', unit: 'kg', source: 'manual' },
+    ],
+    actions: [
+      act({ id: 'bio_sync', name: 'Sync Apple Health', cadence: 'daily', icon: '⌚', estMins: 1, compoundScore: 4 }),
+      act({ id: 'bio_qcheck', name: 'Quarterly health check', cadence: 'quarterly', icon: '🩺', estMins: 60, compoundScore: 8 }),
+    ],
+    trigger: 'Daily sync, quarterly review',
+    checklist: ['Sync watch', 'Review trends', 'Flag any decline'],
+    sop: 'Daily: Apple Health sync. Quarterly: review all lagging indicators, flag any decline > 10%.',
+    automation: ['Apple Health'],
+    riskRegister: [{ risk: 'Silent decline', mitigation: 'Quarterly checks' }],
+    killCriteria: ['Any lagging indicator declining for 2 quarters → escalate'],
+    experiments: [],
+    reviewQuestions: ['Which metric is trending wrong?'],
+    dependencies: ['body', 'nutrition', 'medical'],
+    resources: ['Attia "Outlive"'],
   }),
 
   intelCapital: card({
-    id: 'intelCapital', level: 3, name: 'Intellectual Capital', icon: '📚', color: 'l3',
+    id: 'intelCapital', level: 3, name: 'Intellectual Capital', icon: '📚',
     objective: 'Compounding skills, mental models, and expertise.',
-    principles: [
-      'Deliberate practice > reps.',
-      'Read less, retain more — build a second brain.',
-      'Teach to learn.',
-    ],
+    principles: ['Deliberate practice > volume.', 'Teach to consolidate.', 'Spaced repetition for retention.'],
     leadingIndicators: [
-      { name: 'Deep learning mins', target: 30, unit: 'min', cadence: 'daily' },
-      { name: 'Notes captured', target: 5, unit: '/wk', cadence: 'weekly' },
+      { name: 'Deep practice hours', target: 5, unit: 'h/wk', cadence: 'weekly' },
+      { name: 'Cards created', target: 5, unit: '/wk', cadence: 'weekly' },
     ],
     laggingIndicators: [
-      { name: 'Skills at L4+', unit: 'count' },
-      { name: 'Books finished', unit: '/yr' },
+      { name: 'Skills at mastery', unit: 'count' },
+      { name: 'Retention rate', unit: '%' },
     ],
     actions: [
-      { id: 'intcap_read', name: 'Read / learn', cadence: 'daily', floor: '10 min', full: '45 min', icon: '📖' },
-      { id: 'intcap_note', name: 'Capture to second brain', cadence: 'daily', icon: '🗂️' },
-      { id: 'intcap_skill', name: 'Skill deep-practice', cadence: 'weekly', icon: '🎯' },
-      { id: 'intcap_review', name: 'Skill audit', cadence: 'semiannual', icon: '🔍' },
+      act({ id: 'intel_practice', name: 'Skill practice', cadence: 'weekly', icon: '🎯', estMins: 60, compoundScore: 9 }),
+      act({ id: 'intel_teach', name: 'Teach / write', cadence: 'monthly', icon: '✍️', estMins: 60, compoundScore: 8 }),
+      act({ id: 'intel_audit', name: 'Skill audit', cadence: 'semiannual', icon: '🔍', estMins: 90, compoundScore: 7 }),
     ],
-    trigger: 'Daily blocks',
-    reviewQuestions: ['Which skill is decaying from disuse?'],
+    trigger: 'Weekly practice, monthly teach, semi-annual audit',
+    checklist: ['Pick one skill', 'Set practice goal', 'Log session'],
+    sop: 'Weekly: 60 min deliberate practice on current focus skill. Monthly: write or teach what I learned.',
+    automation: ['SM-2'],
+    riskRegister: [{ risk: 'Skill stagnation', mitigation: 'Semi-annual audit' }],
+    killCriteria: ['No practice for 4 weeks → drop or recommit'],
+    experiments: [],
+    reviewQuestions: ['Which skill is compounding fastest?', 'Which is stagnating?'],
+    dependencies: ['knowledge'],
+    resources: ['Ericsson "Peak"'],
   }),
 
   finCapital: card({
-    id: 'finCapital', level: 3, name: 'Financial Capital', icon: '💰', color: 'l3',
+    id: 'finCapital', level: 3, name: 'Financial Capital', icon: '💰',
     objective: 'Maximize long-term capital via savings rate, diversification, and patience.',
-    principles: [
-      'Savings rate > income.',
-      'Auto-invest. Never rely on willpower to invest.',
-      'Time in market > timing the market.',
-      'Margin of safety: always 6+ months runway.',
-    ],
+    principles: ['Savings rate > income.', 'Time in market > timing.', 'Diversify; rebalance quarterly.'],
     leadingIndicators: [
       { name: 'Savings rate', target: 30, unit: '%', cadence: 'monthly' },
-      { name: 'Auto-invest set', target: 1, unit: 'bool', cadence: 'monthly' },
+      { name: 'Budget reviews', target: 1, unit: '/mo', cadence: 'monthly' },
     ],
     laggingIndicators: [
-      { name: 'Net worth', unit: 'currency' },
-      { name: 'Financial runway', unit: 'months' },
-      { name: 'Portfolio CAGR', unit: '%' },
+      { name: 'Net worth', unit: 'currency', source: 'manual' },
+      { name: 'Runway', unit: 'months', source: 'manual' },
     ],
     actions: [
-      { id: 'fincap_review', name: 'Portfolio review', cadence: 'weekly', icon: '📊' },
-      { id: 'fincap_budget', name: 'Budget review', cadence: 'monthly', icon: '🧾' },
-      { id: 'fincap_nisa', name: 'NISA contribution', cadence: 'monthly', icon: '🇯🇵' },
-      { id: 'fincap_ideco', name: 'iDeCo contribution', cadence: 'monthly', icon: '🏦' },
-      { id: 'fincap_networth', name: 'Net worth update', cadence: 'monthly', icon: '📈' },
-      { id: 'fincap_rebal', name: 'Rebalancing', cadence: 'quarterly', icon: '⚖️' },
-      { id: 'fincap_tax', name: 'Tax planning', cadence: 'quarterly', icon: '🧾' },
-      { id: 'fincap_alloc', name: 'Asset allocation review', cadence: 'annual', icon: '🗺️' },
-      { id: 'fincap_estate', name: 'Estate planning', cadence: 'annual', icon: '📜' },
+      act({ id: 'fin_budget', name: 'Budget review', cadence: 'monthly', icon: '📊', estMins: 30, compoundScore: 7 }),
+      act({ id: 'fin_nw', name: 'Net worth update', cadence: 'monthly', icon: '💰', estMins: 15, compoundScore: 6 }),
+      act({ id: 'fin_rebal', name: 'Rebalancing', cadence: 'quarterly', icon: '⚖️', estMins: 60, compoundScore: 8 }),
+      act({ id: 'fin_tax', name: 'Tax planning', cadence: 'quarterly', icon: '🧾', estMins: 30, compoundScore: 6 }),
+      act({ id: 'fin_alloc', name: 'Asset allocation review', cadence: 'annual', icon: '🗺️', estMins: 90, compoundScore: 8 }),
+      act({ id: 'fin_estate', name: 'Estate planning', cadence: 'annual', icon: '📜', estMins: 60, compoundScore: 7 }),
     ],
-    trigger: 'Sunday (weekly), 1st Sun (monthly), quarter start, year-end',
-    automation: ['Auto-purchase ETF', 'Auto-pay bills', 'Auto-transfer savings'],
+    trigger: 'Monthly / quarterly / annual',
+    checklist: ['Update accounts', 'Check savings rate', 'Rebalance if >5% drift'],
+    sop: 'Monthly: budget + net worth. Quarterly: rebalance + tax. Annual: allocation + estate.',
+    automation: ['NISA / iDeCo auto-transfers'],
     riskRegister: [
-      { risk: 'Too much cash drag', mitigation: 'Cap cash at 6 months runway' },
-      { risk: 'Concentration in single stock', mitigation: 'Rebalance quarterly, no single > 10%' },
-      { risk: 'Panic selling', mitigation: 'Pre-commit: no sells during > 10% drawdown without 48h cooldown' },
+      { risk: 'Inflation', mitigation: 'Equity + real assets allocation' },
+      { risk: 'Concentration', mitigation: 'Diversify; no single position > 10%' },
     ],
-    killCriteria: ['Strategy underperforms benchmark by > 5% over 3 years → revise'],
-    reviewQuestions: ['Where is capital working least efficiently?', 'Am I holding cash beyond margin of safety?'],
-    sop: {
-      title: 'Portfolio Review',
-      when: 'Every Sunday',
-      duration: '15 min',
-      steps: [
-        'Check total balance',
-        'Check cash position',
-        'Check allocation vs target',
-        'Review major news affecting holdings',
-        'Do NOT make emotional changes',
-        'Update Net Worth',
-      ],
-    },
+    killCriteria: ['Savings rate < 15% for 3 months → restructure'],
+    experiments: [{ name: 'Increase iDeCo to max', status: 'active' }],
+    reviewQuestions: ['Is my savings rate on track?', 'Any position too concentrated?'],
+    dependencies: ['bioCapital'],
+    resources: ['Bogleheads wiki', 'Bernstein "If You Can"'],
   }),
 
   socCapital: card({
-    id: 'socCapital', level: 3, name: 'Social Capital', icon: '🤝', color: 'l3',
+    id: 'socCapital', level: 3, name: 'Social Capital', icon: '🤝',
     objective: 'Build reputation, trust, mentors, and a strong network.',
-    principles: [
-      'Give before asking.',
-      'Maintain via systems, not memory.',
-      'Quality > quantity. 50 strong ties beat 500 weak ones.',
-    ],
+    principles: ['Give before asking.', 'Weak ties carry opportunity.', 'Audit contacts quarterly.'],
     leadingIndicators: [
-      { name: 'Reach-outs', target: 2, unit: '/wk', cadence: 'weekly' },
-      { name: 'New useful contacts', target: 1, unit: '/mo', cadence: 'monthly' },
+      { name: 'Reach-outs', target: 3, unit: '/wk', cadence: 'weekly' },
+      { name: 'New contacts', target: 1, unit: '/mo', cadence: 'monthly' },
     ],
     laggingIndicators: [
       { name: 'Strong contacts', unit: 'count' },
       { name: 'Mentors', unit: 'count' },
     ],
     actions: [
-      { id: 'soccap_reach', name: 'Reach out to old contact', cadence: 'weekly', icon: '✉️' },
-      { id: 'soccap_new', name: 'Make 1 new useful contact', cadence: 'monthly', icon: '🤝' },
-      { id: 'soccap_audit', name: 'Audit contact list', cadence: 'quarterly', icon: '📋' },
+      act({ id: 'soc_reach', name: 'Reach out', cadence: 'weekly', icon: '📨', estMins: 15, compoundScore: 7 }),
+      act({ id: 'soc_new', name: 'New contact', cadence: 'monthly', icon: '🤝', estMins: 30, compoundScore: 6 }),
+      act({ id: 'soc_audit', name: 'Audit contact list', cadence: 'quarterly', icon: '📇', estMins: 30, compoundScore: 5 }),
     ],
-    trigger: 'Weekly + monthly',
-    reviewQuestions: ['Which relationship is decaying from neglect?'],
+    trigger: 'Weekly',
+    checklist: ['Pick 3 people', 'Send genuine message', 'Log response'],
+    sop: 'Weekly: reach out to 3 people (1 strong, 1 weak, 1 new). Monthly: 1 new contact. Quarterly: audit list.',
+    automation: [],
+    riskRegister: [{ risk: 'Network decay', mitigation: 'Quarterly audit' }],
+    killCriteria: ['No reach-outs for 4 weeks → recommit'],
+    experiments: [],
+    reviewQuestions: ['Who did I help this week?', 'Which relationship is decaying?'],
+    dependencies: ['repCapital'],
+    resources: ['Reid Hoffman "The Start-up of You"'],
   }),
 
   familyCapital: card({
-    id: 'familyCapital', level: 3, name: 'Family Capital', icon: '👨‍👩‍👦', color: 'l3',
+    id: 'familyCapital', level: 3, name: 'Family Capital', icon: '👨‍👩‍👦',
     objective: 'Strong relationships, family traditions, and a multi-generational archive.',
-    principles: [
-      'Presence > presents.',
-      'Traditions compound. Create them young.',
-      'Archive memories — photos, videos, letters.',
-    ],
+    principles: ['Presence > presents.', 'Traditions compound.', 'Archive family history.'],
     leadingIndicators: [
-      { name: 'Quality conversation', target: 1, unit: '/day', cadence: 'daily' },
-      { name: 'Time with child', target: 60, unit: 'min', cadence: 'daily' },
-      { name: 'Family day', target: 1, unit: '/mo', cadence: 'monthly' },
+      { name: 'Quality conversations', target: 1, unit: '/day', cadence: 'daily' },
+      { name: 'Family days', target: 1, unit: '/mo', cadence: 'monthly' },
     ],
     laggingIndicators: [
-      { name: 'Family satisfaction', unit: '1-5' },
-      { name: 'Archive entries', unit: 'count' },
+      { name: 'Relationship score', unit: '1-5' },
     ],
     actions: [
-      { id: 'famcap_talk', name: 'Quality conversation', cadence: 'daily', icon: '💬' },
-      { id: 'famcap_child', name: 'Time with child', cadence: 'daily', icon: '🧒' },
-      { id: 'famcap_day', name: 'Family day', cadence: 'monthly', icon: '🏡' },
-      { id: 'famcap_archive', name: 'Photo / video archive', cadence: 'quarterly', icon: '🎞️' },
-      { id: 'famcap_edu', name: 'Review child education', cadence: 'quarterly', icon: '🎓' },
+      act({ id: 'fam_conv', name: 'Quality conversation', cadence: 'daily', icon: '💬', floor: '10 min', full: '30 min', cue: 'After dinner', response: 'Phone away, talk', implementationIntention: 'If I finish dinner, then I will have a phone-free conversation', estMins: 20, compoundScore: 9 }),
+      act({ id: 'fam_day', name: 'Family day', cadence: 'monthly', icon: '🎉', estMins: 240, compoundScore: 8 }),
+      act({ id: 'fam_edu', name: 'Education review', cadence: 'quarterly', icon: '🎓', estMins: 30, compoundScore: 7 }),
+      act({ id: 'fam_archive', name: 'Archive family history', cadence: 'quarterly', icon: '🗂️', estMins: 60, compoundScore: 6 }),
     ],
-    trigger: 'Daily + monthly',
-    reviewQuestions: ['What family tradition do I want to install this year?'],
+    trigger: 'Daily, monthly, quarterly',
+    checklist: ['Phone away', 'Listen first', 'No problem-solving unless asked'],
+    sop: 'Daily: 1 quality conversation. Monthly: 1 family day. Quarterly: education review + archive.',
+    automation: [],
+    riskRegister: [{ risk: 'Drift from absence', mitigation: 'Daily presence + monthly family day' }],
+    killCriteria: ['Relationship score < 3 for 2 weeks → intervene'],
+    experiments: [],
+    reviewQuestions: ['Did I show up fully this week?', 'Which tradition needs reviving?'],
+    dependencies: ['psyche'],
+    resources: ['Gottman research'],
   }),
 
   prodCapital: card({
-    id: 'prodCapital', level: 3, name: 'Product Capital', icon: '🛠️', color: 'l3',
+    id: 'prodCapital', level: 3, name: 'Product Capital', icon: '🛠️',
     objective: 'Build durable assets: code, projects, content, services, automations.',
-    principles: [
-      'Ship > polish. Iterate in public.',
-      'Leverage: code and media work while you sleep.',
-      'Every project has kill criteria from day 1.',
-    ],
+    principles: ['Ship > polish.', 'Kill criteria prevent sunk cost.', 'Leverage compounds.'],
     leadingIndicators: [
       { name: 'Commits', target: 5, unit: '/wk', cadence: 'weekly' },
-      { name: 'Ship events', target: 1, unit: '/mo', cadence: 'monthly' },
+      { name: 'Project reviews', target: 1, unit: '/wk', cadence: 'weekly' },
     ],
     laggingIndicators: [
-      { name: 'Active projects', unit: 'count' },
-      { name: 'Revenue / users', unit: 'mixed' },
+      { name: 'Shipped projects', unit: 'count' },
+      { name: 'Leverage index', unit: '0-25' },
     ],
     actions: [
-      { id: 'prodcap_commit', name: 'Commit to product', cadence: 'daily', icon: '⌨️' },
-      { id: 'prodcap_review', name: 'Project review', cadence: 'weekly', icon: '📋' },
-      { id: 'prodcap_kill', name: 'Kill criteria audit', cadence: 'quarterly', icon: '✂️' },
+      act({ id: 'prod_commit', name: 'Commit code', cadence: 'daily', icon: '💻', floor: '1 commit', full: '5+ commits', cue: 'During deep work block', response: 'Ship code', implementationIntention: 'If I start a deep work block, then I will commit code', estMins: 60, compoundScore: 9 }),
+      act({ id: 'prod_review', name: 'Project review', cadence: 'weekly', icon: '🔍', estMins: 30, compoundScore: 7 }),
+      act({ id: 'prod_kill', name: 'Kill criteria audit', cadence: 'quarterly', icon: '☠️', estMins: 30, compoundScore: 8 }),
     ],
-    trigger: 'Daily + weekly',
-    reviewQuestions: ['Which project should be killed?', 'Which should be scaled?'],
+    trigger: 'Daily deep work block',
+    checklist: ['Pick one project', 'Define done for session', 'Commit before stopping'],
+    sop: 'Daily: commit during deep work. Weekly: review all projects. Quarterly: kill criteria audit.',
+    automation: ['Git', 'CI'],
+    riskRegister: [{ risk: 'Abandoned projects', mitigation: 'Quarterly kill audit' }],
+    killCriteria: ['No commits for 30 days → kill or recommit'],
+    experiments: [{ name: 'Open-source one internal tool', status: 'planned' }],
+    reviewQuestions: ['Which project is closest to shipping?', 'Which is stale?'],
+    dependencies: ['attention', 'intelCapital'],
+    resources: ['Paul Graham essays'],
   }),
 
   repCapital: card({
-    id: 'repCapital', level: 3, name: 'Reputational Capital', icon: '🌐', color: 'l3',
+    id: 'repCapital', level: 3, name: 'Reputational Capital', icon: '🌐',
     objective: 'Public reputation as a durable, compounding asset.',
-    principles: [
-      'Public work compounds. Private work doesn\'t.',
-      'Consistency > virality.',
-      'Reputation is built slowly, lost quickly.',
-    ],
+    principles: ['Public work compounds.', 'STAR stories make value legible.', 'Consistency > virality.'],
     leadingIndicators: [
-      { name: 'Public posts', target: 2, unit: '/mo', cadence: 'monthly' },
+      { name: 'Public posts', target: 1, unit: '/mo', cadence: 'monthly' },
       { name: 'Talks / podcasts', target: 1, unit: '/qtr', cadence: 'quarterly' },
     ],
     laggingIndicators: [
-      { name: 'Followers (quality)', unit: 'count' },
+      { name: 'Followers', unit: 'count' },
       { name: 'Inbound opportunities', unit: 'count' },
     ],
     actions: [
-      { id: 'repcap_post', name: 'Public post', cadence: 'monthly', icon: '✍️' },
-      { id: 'repcap_talk', name: 'Talk / podcast / demo', cadence: 'quarterly', icon: '🎤' },
-      { id: 'repcap_portfolio', name: 'Update portfolio', cadence: 'quarterly', icon: '📁' },
+      act({ id: 'rep_post', name: 'Public post', cadence: 'monthly', icon: '✍️', estMins: 90, compoundScore: 7 }),
+      act({ id: 'rep_talk', name: 'Talk / podcast', cadence: 'quarterly', icon: '🎤', estMins: 120, compoundScore: 8 }),
+      act({ id: 'rep_portfolio', name: 'Portfolio update', cadence: 'quarterly', icon: '📂', estMins: 60, compoundScore: 6 }),
     ],
-    trigger: 'Monthly + quarterly',
-    reviewQuestions: ['What did I ship in public this quarter?'],
+    trigger: 'Monthly / quarterly',
+    checklist: ['Pick one idea', 'Write draft', 'Edit once', 'Publish'],
+    sop: 'Monthly: 1 public post. Quarterly: 1 talk or podcast + portfolio update.',
+    automation: [],
+    riskRegister: [{ risk: 'Invisibility', mitigation: 'Monthly publishing cadence' }],
+    killCriteria: ['No public work for 3 months → force one post'],
+    experiments: [],
+    reviewQuestions: ['What did I publish this month?', 'What inbound came from it?'],
+    dependencies: ['prodCapital', 'socCapital'],
+    resources: ['Show Your Work — Austin Kleon'],
   }),
 
-  // ============ LEVEL 4 — STRATEGY ============
-  strategy: card({
-    id: 'strategy', level: 4, name: 'Strategy', icon: '🎯', color: 'l4',
-    objective: 'Play the right game. Make the one bet that changes the next 5 years.',
-    principles: [
-      'Strategy is what you say NO to.',
-      'Bet on scarce competencies that AI amplifies.',
-      'Kill projects without regret when kill criteria hit.',
-    ],
+  // ============================================================
+  // LEVEL 4 — STRATEGY (4 domains)
+  // ============================================================
+
+  strategy_vision: card({
+    id: 'strategy_vision', level: 4, name: 'Vision', icon: '🔭',
+    objective: 'Long-term direction: 3 / 5 / 10-year horizon.',
+    principles: ['Vision before goals.', 'Re-validate annually.', 'Bet on one big change per year.'],
     leadingIndicators: [
-      { name: 'Strategy review done', target: 1, unit: '/qtr', cadence: 'quarterly' },
+      { name: 'Vision reviews', target: 1, unit: '/yr', cadence: 'annual' },
     ],
     laggingIndicators: [
-      { name: '5-year bet progress', unit: '%' },
-      { name: 'Killed projects', unit: 'count' },
+      { name: 'Vision clarity', unit: '1-5' },
+      { name: 'Year-on-year progress', unit: '1-5' },
     ],
     actions: [
-      { id: 'strat_review', name: 'Quarterly strategy review', cadence: 'quarterly', icon: '🎯' },
-      { id: 'strat_kill', name: 'Kill / scale decisions', cadence: 'quarterly', icon: '✂️' },
-      { id: 'strat_compet', name: 'Scarce competencies audit', cadence: 'quarterly', icon: '💎' },
-      { id: 'strat_ai', name: 'AI opportunity review', cadence: 'quarterly', icon: '🤖' },
+      act({ id: 'vis_annual', name: 'Annual vision review', cadence: 'annual', icon: '🔭', estMins: 240, compoundScore: 10 }),
+      act({ id: 'vis_quarterly', name: 'Quarterly vision check', cadence: 'quarterly', icon: '🧭', estMins: 60, compoundScore: 8 }),
     ],
-    trigger: 'Quarter start (Jan/Apr/Jul/Oct)',
-    reviewQuestions: [
-      'Am I playing the right game?',
-      'What one bet would change the next 5 years?',
-      'Which competencies will be most valuable?',
-      'What is becoming obsolete?',
-      'What should I kill? Scale?',
-    ],
+    trigger: 'Annual review window + quarterly',
+    checklist: ['Re-read 10-year vision', 'Score progress', 'Adjust 3-year horizon'],
+    sop: 'Annual: rewrite 3/5/10-year vision. Quarterly: check progress, adjust 3-year.',
+    automation: [],
+    riskRegister: [{ risk: 'Vision drift', mitigation: 'Annual review' }],
+    killCriteria: ['Vision unchanged for 3 years → force rewrite'],
+    experiments: [],
+    reviewQuestions: ['Is the 10-year vision still right?', 'What changed this year?'],
+    dependencies: ['identity', 'strategy_goals'],
+    resources: ['Christensen "How Will You Measure Your Life"'],
   }),
 
-  // ============ LEVEL 5 — LEGACY ============
-  legacy: card({
-    id: 'legacy', level: 5, name: 'Legacy', icon: '🏛️', color: 'l5',
-    objective: 'What outlives you: children, work, capital, archive, open source, fund.',
-    principles: [
-      'Plan for the 100-year horizon.',
-      'Plant trees you\'ll never sit under.',
-      'Archive everything. Future-you and future-them will thank you.',
-    ],
+  strategy_goals: card({
+    id: 'strategy_goals', level: 4, name: 'Goals', icon: '🎯',
+    objective: 'Annual goals derived from vision; reviewed quarterly.',
+    principles: ['3-5 goals max.', 'Each goal has leading + lagging indicators.', 'Quarterly kill or scale.'],
     leadingIndicators: [
-      { name: 'Legacy contributions', target: 1, unit: '/qtr', cadence: 'quarterly' },
+      { name: 'Goal reviews', target: 4, unit: '/yr', cadence: 'quarterly' },
+    ],
+    laggingIndicators: [
+      { name: 'Goals on track', unit: 'count' },
+      { name: 'Goals achieved', unit: 'count' },
+    ],
+    actions: [
+      act({ id: 'goal_set', name: 'Set annual goals', cadence: 'annual', icon: '🎯', estMins: 120, compoundScore: 9 }),
+      act({ id: 'goal_review', name: 'Quarterly goal review', cadence: 'quarterly', icon: '📊', estMins: 90, compoundScore: 8 }),
+    ],
+    trigger: 'Annual + quarterly',
+    checklist: ['3-5 goals max', 'Each has metric', 'Each has owner action'],
+    sop: 'Annual: set 3-5 goals from vision. Quarterly: review each, kill or scale.',
+    automation: [],
+    riskRegister: [{ risk: 'Too many goals', mitigation: 'Hard cap at 5' }],
+    killCriteria: ['Goal with no progress for 2 quarters → kill'],
+    experiments: [],
+    reviewQuestions: ['Which goal is behind?', 'Which should be killed?'],
+    dependencies: ['strategy_vision', 'strategy_projects'],
+    resources: ['Doerr "Measure What Matters"'],
+  }),
+
+  strategy_projects: card({
+    id: 'strategy_projects', level: 4, name: 'Projects', icon: '📦',
+    objective: 'Active projects that move goals; killed when no longer serve.',
+    principles: ['One bet that changes 5 years.', 'Kill criteria prevent sunk cost.', 'Leverage score per project.'],
+    leadingIndicators: [
+      { name: 'Project reviews', target: 1, unit: '/wk', cadence: 'weekly' },
+    ],
+    laggingIndicators: [
+      { name: 'Projects shipped', unit: 'count' },
+      { name: 'Avg leverage index', unit: '0-25' },
+    ],
+    actions: [
+      act({ id: 'proj_review', name: 'Project review', cadence: 'weekly', icon: '🔍', estMins: 30, compoundScore: 7 }),
+      act({ id: 'proj_kill', name: 'Kill / scale audit', cadence: 'quarterly', icon: '⚖️', estMins: 60, compoundScore: 8 }),
+    ],
+    trigger: 'Weekly + quarterly',
+    checklist: ['List active projects', 'Score leverage', 'Flag stale ones'],
+    sop: 'Weekly: review each project. Quarterly: kill or scale based on leverage + progress.',
+    automation: [],
+    riskRegister: [{ risk: 'Project sprawl', mitigation: 'Quarterly kill audit' }],
+    killCriteria: ['No progress for 30 days → kill or recommit'],
+    experiments: [],
+    reviewQuestions: ['Which project has highest leverage?', 'Which is draining?'],
+    dependencies: ['strategy_goals', 'prodCapital'],
+    resources: ['Allen "Getting Things Done"'],
+  }),
+
+  strategy_resources: card({
+    id: 'strategy_resources', level: 4, name: 'Resource Allocation', icon: '📊',
+    objective: 'Allocate time, money, and attention deliberately across goals.',
+    principles: ['Budget = values made visible.', 'Time-block the week.', 'Quarterly reallocation.'],
+    leadingIndicators: [
+      { name: 'Weekly planning', target: 1, unit: '/wk', cadence: 'weekly' },
+    ],
+    laggingIndicators: [
+      { name: 'Time on goals', unit: '%' },
+      { name: 'Money on goals', unit: '%' },
+    ],
+    actions: [
+      act({ id: 'res_plan', name: 'Weekly planning', cadence: 'weekly', icon: '🗓️', estMins: 30, compoundScore: 8 }),
+      act({ id: 'res_alloc', name: 'Quarterly reallocation', cadence: 'quarterly', icon: '📊', estMins: 90, compoundScore: 8 }),
+    ],
+    trigger: 'Sunday + quarterly',
+    checklist: ['Review last week', 'Time-block next week', 'Align with goals'],
+    sop: 'Sunday: 30 min planning. Quarterly: reallocate time + money across goals.',
+    automation: ['Calendar'],
+    riskRegister: [{ risk: 'Misallocation', mitigation: 'Quarterly reallocation' }],
+    killCriteria: ['< 50% time on goals for 4 weeks → restructure'],
+    experiments: [],
+    reviewQuestions: ['Did my week match my goals?', 'Where did time leak?'],
+    dependencies: ['strategy_goals', 'finCapital', 'attention'],
+    resources: ['Newport "Time-Block Planner"'],
+  }),
+
+  // ============================================================
+  // LEVEL 5 — LEGACY (2 domains)
+  // ============================================================
+
+  legacy: card({
+    id: 'legacy', level: 5, name: 'Legacy', icon: '🏛️',
+    objective: 'What outlives you: children, work, capital, archive, open source, fund.',
+    principles: ['Build for decades, not quarters.', 'Teach what you learn.', 'Open source what you build.'],
+    leadingIndicators: [
+      { name: 'Legacy reviews', target: 1, unit: '/yr', cadence: 'annual' },
     ],
     laggingIndicators: [
       { name: 'Legacy assets', unit: 'count' },
     ],
     actions: [
-      { id: 'leg_review', name: 'Annual legacy review', cadence: 'annual', icon: '🏛️' },
-      { id: 'leg_archive', name: 'Family / life archive', cadence: 'quarterly', icon: '📦' },
-      { id: 'leg_open', name: 'Open source / educational contribution', cadence: 'quarterly', icon: '🌍' },
+      act({ id: 'leg_annual', name: 'Annual legacy review', cadence: 'annual', icon: '🏛️', estMins: 240, compoundScore: 10 }),
+      act({ id: 'leg_archive', name: 'Archive update', cadence: 'quarterly', icon: '🗂️', estMins: 60, compoundScore: 6 }),
+      act({ id: 'leg_oss', name: 'Open source contribution', cadence: 'quarterly', icon: '🔓', estMins: 120, compoundScore: 7 }),
     ],
     trigger: 'Annual + quarterly',
-    reviewQuestions: [
-      'What will outlive me?',
-      'What am I building that my grandchildren will benefit from?',
+    checklist: ['List legacy assets', 'Score durability', 'Pick one to advance'],
+    sop: 'Annual: review what will outlive you. Quarterly: archive + open source.',
+    automation: [],
+    riskRegister: [{ risk: 'No durable assets', mitigation: 'Annual review' }],
+    killCriteria: ['No legacy asset advanced for 1 year → force one'],
+    experiments: [],
+    reviewQuestions: ['What will outlive me?', 'What did I advance this year?'],
+    dependencies: ['strategy_vision', 'familyCapital', 'prodCapital'],
+    resources: ['Brooks "The Second Mountain"'],
+  }),
+
+  values: card({
+    id: 'values', level: 5, name: 'Values', icon: '💎',
+    objective: 'Explicit values that govern decisions and trade-offs.',
+    principles: ['Values are tested by trade-offs.', 'Re-validate annually.', 'Write them down.'],
+    leadingIndicators: [
+      { name: 'Value reviews', target: 1, unit: '/yr', cadence: 'annual' },
     ],
+    laggingIndicators: [
+      { name: 'Value-behavior alignment', unit: '1-5' },
+    ],
+    actions: [
+      act({ id: 'val_annual', name: 'Annual values review', cadence: 'annual', icon: '💎', estMins: 120, compoundScore: 9 }),
+    ],
+    trigger: 'Annual review window',
+    checklist: ['List current values', 'Test each against a recent trade-off', 'Rewrite if needed'],
+    sop: 'Annual: list 5-7 values. For each, recall a recent decision where it was tested. Rewrite if behavior diverged.',
+    automation: [],
+    riskRegister: [{ risk: 'Stated vs lived values diverge', mitigation: 'Annual review with trade-off test' }],
+    killCriteria: ['Values unchanged for 3 years → force rewrite'],
+    experiments: [],
+    reviewQuestions: ['Which value was tested this year?', 'Did I live it?'],
+    dependencies: ['identity', 'legacy'],
+    resources: ['Haidt "The Righteous Mind"'],
   }),
 };
 
-// ---- Default SOPs for domains that don't have one ----
-const DEFAULT_SOPS = {
-  body: {
-    title: 'Morning Body Routine', when: 'Daily, morning', duration: '15 min',
-    steps: ['Weigh in (weekly)', 'Sunlight 5–15 min', 'Mobility 5–10 min', 'Skincare AM', 'Plan workout or do Floor', 'Log protein target'],
-  },
-  psyche: {
-    title: 'Evening Reflection', when: 'Daily, evening', duration: '5 min',
-    steps: ['Mood check-in (1–5)', 'One win today', 'One thing to improve', 'Name one emotion felt today', 'Gratitude: one sentence'],
-  },
-  environment: {
-    title: 'Workspace Reset', when: 'Sunday evening', duration: '10 min',
-    steps: ['Clear desk', 'Close all browser tabs not needed Monday', 'Inbox Zero', 'Notification audit (monthly)', 'Plan Monday top 3'],
-  },
-  executive: {
-    title: 'Daily Planning', when: 'Daily, morning', duration: '5 min',
-    steps: ['Review calendar', 'Pick top 3 tasks', 'Block 1–2 Deep Work sessions', 'Identify the #1 thing that matters most', 'Decline anything not on the plan'],
-  },
-  attention: {
-    title: 'Deep Work Session', when: 'Daily, pre-defined block', duration: '90 min',
-    steps: ['Phone in another room / DND', 'Single tab, single task', 'Timer: 90 min', 'No context switching until timer ends', 'Log minutes in Career Log'],
-  },
-  decisions: {
-    title: 'Pre-mortem', when: 'Before any decision with > 1 month consequences', duration: '20 min',
-    steps: ['Write the decision and expected outcome', 'Imagine it failed in 1 year — what went wrong?', 'List 3 ways it could fail', 'For each, what would prevent it?', 'Set review date', 'Log in Decision Journal'],
-  },
-  bioCapital: {
-    title: 'Quarterly Health Check', when: 'Quarterly', duration: '2 hours',
-    steps: ['Book blood panel', 'Book dermatology', 'Book dental', 'Review training plan', 'Update lagging indicators', 'Compare to last quarter'],
-  },
-  intelCapital: {
-    title: 'Weekly Learning Review', when: 'Sunday', duration: '20 min',
-    steps: ['What did I learn this week?', 'Capture 5 notes to second brain', 'Which skill needs deliberate practice?', 'Schedule practice block', 'Read 1 chapter / paper'],
-  },
-  finCapital: {
-    title: 'Portfolio Review', when: 'Every Sunday', duration: '15 min',
-    steps: ['Check total balance', 'Check cash position', 'Check allocation vs target', 'Review major news affecting holdings', 'Do NOT make emotional changes', 'Update Net Worth'],
-  },
-  socCapital: {
-    title: 'Weekly Reach-out', when: 'Sunday', duration: '10 min',
-    steps: ['Pick 2 contacts to reach out to', 'Send a message — give value first', 'Log new contacts this month', 'Audit contact list quarterly'],
-  },
-  familyCapital: {
-    title: 'Family Day', when: 'Monthly, 1st Sunday', duration: 'Full day',
-    steps: ['No work phone before noon', 'Plan one activity together', 'Quality conversation (no screens)', 'Photo / video for archive', 'Plan next month\'s family day'],
-  },
-  prodCapital: {
-    title: 'Project Review', when: 'Sunday', duration: '20 min',
-    steps: ['For each active project: what shipped?', 'What is blocked?', 'Check kill criteria — has it been met?', 'Decide: kill, continue, or scale', 'Plan next week\'s #1 priority per project'],
-  },
-  repCapital: {
-    title: 'Public Output Session', when: 'Monthly', duration: '2 hours',
-    steps: ['Pick one thing shipped this month', 'Write a post / record a demo', 'Update portfolio', 'Update LinkedIn if relevant', 'Schedule next public output'],
-  },
-  strategy: {
-    title: 'Quarterly Strategy Review', when: 'Quarter start (Jan/Apr/Jul/Oct)', duration: '3–4 hours',
-    steps: ['Am I playing the right game?', 'What one bet changes the next 5 years?', 'Which competencies are becoming scarce?', 'Which AI opportunities am I acting on?', 'What to kill? What to scale?', 'Write 3–5 goals for the quarter'],
-  },
-  legacy: {
-    title: 'Annual Legacy Review', when: 'December or birthday', duration: '6–8 hours',
-    steps: ['Values — have they changed?', 'Mission — do I still want this?', 'Capital audit (all 7 forms)', '3 / 5 / 10 year strategy', 'What could destroy the system?', 'Plan 3–5 main goals for the year', 'What did I build that outlives me?'],
-  },
-};
-
-// Fill in missing SOPs
-for (const [id, sop] of Object.entries(DEFAULT_SOPS)) {
-  if (DEFAULT_DOMAINS[id] && !DEFAULT_DOMAINS[id].sop) {
-    DEFAULT_DOMAINS[id].sop = sop;
-  }
+// ---- Helper: get domain by id ----
+export function getDomain(id) {
+  return DEFAULT_DOMAINS[id] || null;
 }
 
-/** Flat ordered list of domains by level. */
-export const DOMAIN_LIST = Object.values(DEFAULT_DOMAINS).sort(
-  (a, b) => a.level - b.level || a.id.localeCompare(b.id)
-);
+// ---- Helper: all domains as array ----
+export function allDomains() {
+  return Object.values(DEFAULT_DOMAINS);
+}
 
-/** Domains grouped by level. */
-export const DOMAINS_BY_LEVEL = [1, 2, 3, 4, 5].map((lvl) => ({
-  level: LEVELS[lvl],
-  domains: DOMAIN_LIST.filter((d) => d.level === lvl),
-}));
+// ---- Helper: domains by level ----
+export function domainsByLevel(level) {
+  return allDomains().filter(d => d.level === level);
+}
 
-/** Domains grouped by layer (3-layer architecture). */
-export const DOMAINS_BY_LAYER = LAYER_ORDER.map((layerId) => ({
-  layer: LAYERS[layerId],
-  domains: DOMAIN_LIST.filter((d) => LAYERS[layerId].levels.includes(d.level)),
-}));
+// ---- Helper: domains by layer ----
+export function domainsByLayer(layerId) {
+  const layer = LAYERS[layerId];
+  if (!layer) return [];
+  return allDomains().filter(d => layer.levels.includes(d.level));
+}

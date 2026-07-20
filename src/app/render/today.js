@@ -1,27 +1,31 @@
 // ============================================================
-// Life OS v2 — Today tab (Cognitive Interface)
-// Three attention levels: Glance (3s) → Operate (30s) → Reflect
+// Life OS v3 — Today (v3 §8)
+// The entire app is centered around Today. Everything else
+// supports Today.
+//   Top:    Version + Date
+//   Center: Large Progress Ring (Life Version + Today's Completion)
+//   Top Right: Streak + Shield count
+//   Command Center: 10-12 KPIs
+//   Today's Actions: grouped by domain (Title, Trigger, II,
+//                    Time, Floor, Complete toggle, Progress)
+//   Conditional: Recall, Commitments (only if needed)
+//   Reflection: Mood, One Win, One Lesson
 // ============================================================
 
 import { el, div, span, toggle, svg, svgEl } from '../dom.js';
-import { getState, getDay, setDayAction, setDayField, checkShieldEarned, currentStreak } from '../state.js';
-import { todayKey, fmtDateLong, fmtDate, hour } from '../util.js';
+import { getState, getDay, setDayAction, setDayField, currentStreak } from '../state.js';
+import { todayKey, fmtDate, dayName, fmtNum } from '../util.js';
 import { dueToday, todayProgress } from '../cadence.js';
-import { toast, confetti } from '../ui.js';
+import { toast } from '../ui.js';
 import { renderHeatmap } from './heatmap.js';
-import { setSubroute } from '../main.js';
-import { activeBundles } from '../temptation-bundling.js';
-import { activeCommitments } from '../commitments.js';
-import { systemHealth } from '../system-health.js';
 import { enterFocusMode } from '../focus-mode.js';
-import { generateSuggestions } from '../suggestions.js';
 
 export function renderToday() {
   const s = getState();
   const t = todayKey();
   const due = dueToday();
   const day = getDay(t);
-  const prog = todayProgress();
+  const prog = todayProgress(s);
   const streak = currentStreak();
 
   // Group by domain
@@ -31,42 +35,15 @@ export function renderToday() {
   }
 
   return el('div', { class: 'page' }, [
-    // ---- GLANCE: top bar (version + date + streak/shields) ----
     topBar(s, t, streak),
-
-    // ---- GLANCE: large progress ring ----
     heroRing(s, prog),
-
-    // ---- GLANCE: 6-metric command panel ----
-    metricPanel(s),
-
-    // Focus Mode + Suggestions buttons
-    el('div', { class: 'flex gap-2', style: { marginTop: 'var(--sp-4)' } }, [
-      el('button', {
-        class: 'btn btn--ghost',
-        style: { flex: 1, fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-semibold)' },
-        on: { click: enterFocusMode }
-      }, ['🎯 Focus']),
-      el('button', {
-        class: 'btn btn--ghost',
-        style: { flex: 1, fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-semibold)' },
-        on: { click: () => showSuggestions() }
-      }, ['💡 Suggest']),
-    ]),
-
-    // Suggestion container (populated on click)
-    el('div', { id: 'suggestion-container' }),
-
-    // ---- OPERATE: today's actions ----
+    kpiPanel(s),
+    focusButton(),
     el('div', { class: 'section-head', style: { marginTop: 'var(--sp-8)' } }, [
       el('div', { class: 'section-title' }, ['Today']),
-      el('span', { class: 'text-mute', style: { fontSize: 'var(--fs-meta)' } }, [prog.done + '/' + prog.due + ' done']),
+      el('span', { class: 'text-mute text-meta' }, [`${prog.done}/${prog.due} done`]),
     ]),
-
-    // Loss aversion nudge (only if streak at risk)
     streakNudge(streak, prog),
-
-    // Action sections by domain
     ...Object.values(byDomain).map(({ domain, items }) =>
       el('div', { class: 'card' }, [
         el('div', { class: 'card-head' }, [
@@ -76,59 +53,40 @@ export function renderToday() {
             el('div', { class: 'card-subtitle' }, [items.length === 1 ? '1 action' : `${items.length} actions`]),
           ]),
         ]),
-        el('div', { class: 'list' }, items.map((a) => actionRow(a, day, t))),
+        el('div', { class: 'list' }, items.map(a => actionRow(a, day, t))),
       ])
     ),
-
-    // Recall (only if cards due — hide if empty)
     recallSection(s, t),
-
-    // Commitments (only if active — hide if empty)
     commitmentSection(s, t),
-
-    // ---- REFLECT: mood + note ----
-    el('div', { class: 'card', style: { marginTop: 'var(--sp-6)' } }, [
-      el('div', { class: 'card-head' }, [
-        el('div', { class: 'card-icon' }, ['🧘']),
-        el('div', { class: 'card-title' }, ['Reflection']),
-      ]),
-      moodRow(day, t),
-      noteRow(day, t),
-    ]),
-
-    // Heatmap (history at the bottom)
+    reflectionCard(day, t),
     el('div', { style: { marginTop: 'var(--sp-6)' } }, [renderHeatmap(105)]),
   ]);
 }
 
-// ---- Top bar: version left, date right, streak/shields as row ----
+// ---- Top bar: version left, date right, streak/shields row ----
 function topBar(s, t, streak) {
-  const d = new Date();
-  const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
   return el('div', { style: { padding: 'var(--sp-4) 0 var(--sp-2)' } }, [
-    // Row 1: version + date
     el('div', { class: 'flex items-center justify-between' }, [
       el('div', { style: { fontSize: 'var(--fs-page)', fontWeight: 'var(--fw-bold)', letterSpacing: 'var(--ls-tight)', fontVariantNumeric: 'tabular-nums' } }, ['v' + s.version.toFixed(2)]),
       el('div', { style: { textAlign: 'right' } }, [
-        el('div', { style: { fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-semibold)' } }, [dayName]),
+        el('div', { style: { fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-semibold)' } }, [dayName(t)]),
         el('div', { style: { fontSize: 'var(--fs-meta)', color: 'var(--c-text-mute)' } }, [fmtDate(t)]),
       ]),
     ]),
-    // Row 2: streak + shields (only if > 0)
     (streak > 0 || s.shields > 0) && el('div', { class: 'flex items-center gap-2', style: { marginTop: 'var(--sp-2)' } }, [
-      streak > 0 && el('span', { class: 'chip', style: { fontSize: 'var(--fs-meta)', background: 'rgba(255,159,67,0.12)', color: 'var(--c-attention)' } }, ['🔥 ' + streak + 'd streak']),
-      s.shields > 0 && el('span', { class: 'chip', style: { fontSize: 'var(--fs-meta)', background: 'rgba(255,209,102,0.12)', color: 'var(--c-shield)' } }, ['🛡️ ' + s.shields + ' shields']),
+      streak > 0 && el('span', { class: 'chip chip--attention' }, ['🔥 ' + streak + 'd streak']),
+      s.shields > 0 && el('span', { class: 'chip chip--shield' }, ['🛡️ ' + s.shields + ' shields']),
     ]),
   ]);
 }
 
-// ---- Hero ring: large, centered, version in center ----
+// ---- Hero ring: large, centered, version + completion inside ----
 function heroRing(s, prog) {
   const pct = prog.pct;
   const size = 180, stroke = 12, r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - Math.min(1, Math.max(0, pct)));
-  return el('div', { class: 'ring-hero', style: { marginTop: 'var(--sp-4)' } }, [
+  return el('div', { class: 'ring-hero' }, [
     svg(`0 0 ${size} ${size}`, { width: size, height: size, style: 'transform: rotate(-90deg)' }, [
       svgEl('circle', { cx: size/2, cy: size/2, r, fill: 'none', stroke: 'var(--c-bg-elev-3)', 'stroke-width': stroke }),
       svgEl('circle', { cx: size/2, cy: size/2, r, fill: 'none', stroke: 'var(--c-accent)', 'stroke-width': stroke, 'stroke-linecap': 'round', 'stroke-dasharray': circ, 'stroke-dashoffset': offset, style: 'transition: stroke-dashoffset var(--dur-slow) var(--ease-out)' }),
@@ -140,42 +98,59 @@ function heroRing(s, prog) {
   ]);
 }
 
-// ---- 6-metric panel (Glance level) ----
-function metricPanel(s) {
+// ---- KPI panel (Command Center — v3 §8: 10-12 KPIs) ----
+function kpiPanel(s) {
   const t = todayKey();
-  const lastMetric = (metric) => {
-    const arr = s.metrics?.[metric];
+  const last = (key) => {
+    const arr = s.metrics?.[key];
     if (!arr || !arr.length) return null;
-    const today = arr.find(m => m.date === t);
-    return today ? today.value : arr[arr.length - 1].value;
+    const todayEntry = arr.find(m => m.date === t);
+    return todayEntry ? todayEntry.value : arr[arr.length - 1].value;
   };
-  const sleep = lastMetric('sleep');
-  const hrv = lastMetric('hrv');
-  const steps = lastMetric('steps');
+  const sleep = last('sleep');
+  const hrv = last('hrv');
+  const steps = last('steps');
   const deepWork = s.days[t]?.deepWorkMins || 0;
   const runway = s.optionality?.runwayMonths || 0;
   const mood = s.days[t]?.mood;
-
   const moodEmoji = mood === 1 ? '😞' : mood === 2 ? '😕' : mood === 3 ? '😐' : mood === 4 ? '🙂' : mood === 5 ? '😄' : '—';
+  const stepsStr = steps != null ? fmtNum(steps) : '—';
+  const netWorth = s.northStar?.netWorth;
+  const energy = s.northStar?.energy;
+  const opps = s.opportunities.filter(o => o.status === 'open' || o.status === 'exploring').length;
 
-  const stepsStr = steps != null ? (steps >= 1000 ? (steps / 1000).toFixed(1) + 'k' : String(steps)) : '—';
-
-  return el('div', { class: 'metric-panel', style: { marginTop: 'var(--sp-6)' } }, [
-    metricCell('Sleep', sleep != null ? sleep + 'h' : '—', sleep != null && sleep < 6 ? 'low' : null),
-    metricCell('HRV', hrv != null ? String(hrv) : '—', null, 'ms'),
-    metricCell('Deep', deepWork ? (deepWork / 60).toFixed(1) + 'h' : '—', null),
-    metricCell('Runway', runway + 'm', runway < 6 ? 'low' : null),
-    metricCell('Steps', stepsStr, null),
-    metricCell('Mood', moodEmoji, null),
+  return el('div', { class: 'kpi-grid', style: { marginTop: 'var(--sp-6)' } }, [
+    kpiCell('Energy', energy != null ? String(energy) : '—', energy != null && energy < 3 ? 'low' : null),
+    kpiCell('Sleep', sleep != null ? sleep + 'h' : '—', sleep != null && sleep < 6 ? 'low' : null),
+    kpiCell('HRV', hrv != null ? String(hrv) : '—', null, 'ms'),
+    kpiCell('Runway', runway + 'm', runway < 6 ? 'low' : null),
+    kpiCell('Deep', deepWork ? (deepWork / 60).toFixed(1) + 'h' : '—', null),
+    kpiCell('Mood', moodEmoji, null),
+    kpiCell('Steps', stepsStr, null),
+    kpiCell('Net', netWorth != null ? fmtNum(netWorth) : '—', null),
+    kpiCell('Opps', String(opps), null),
+    kpiCell('Health', String(Math.round((s.version - 1) * 100)), null),
+    kpiCell('System', '—', null),
+    kpiCell('Sat', s.northStar?.lifeSatisfaction != null ? String(s.northStar.lifeSatisfaction) : '—', null),
   ]);
 }
 
-function metricCell(label, value, sub, unit) {
+function kpiCell(label, value, sub, unit) {
   const isLow = sub === 'low';
-  return el('div', { class: 'metric-cell' }, [
-    el('div', { class: 'metric-cell-label' }, [label]),
-    el('div', { class: 'metric-cell-value', style: isLow ? { color: 'var(--c-attention)' } : {} }, [value, unit && el('span', { style: { fontSize: 'var(--fs-meta)', color: 'var(--c-text-mute)', marginLeft: '2px' } }, [unit])]),
-    isLow && el('div', { class: 'metric-cell-sub', style: { color: 'var(--c-attention)' } }, ['⚠']),
+  return el('div', { class: `kpi-cell ${isLow ? 'kpi-cell--low' : ''}` }, [
+    el('div', { class: 'kpi-cell-label' }, [label]),
+    el('div', { class: 'kpi-cell-value' }, [value, unit && el('span', { style: { fontSize: '10px', color: 'var(--c-text-mute)', marginLeft: '2px' } }, [unit])]),
+    isLow && el('div', { class: 'kpi-cell-sub', style: { color: 'var(--c-attention)' } }, ['⚠']),
+  ]);
+}
+
+// ---- Focus button ----
+function focusButton() {
+  return el('div', { class: 'flex gap-2', style: { marginTop: 'var(--sp-4)' } }, [
+    el('button', {
+      class: 'btn btn--ghost btn--block',
+      on: { click: enterFocusMode }
+    }, ['🎯 Focus']),
   ]);
 }
 
@@ -183,205 +158,114 @@ function metricCell(label, value, sub, unit) {
 function streakNudge(streak, prog) {
   const remaining = prog.due - prog.done - prog.floor;
   if (streak < 3 || remaining <= 0 || prog.due === 0) return null;
-  return el('div', { class: 'card card--pad-sm mb-3', style: { borderColor: 'var(--c-accent)', marginTop: 'var(--sp-3)' } }, [
+  return el('div', { class: 'card card--accent card--pad-sm mb-3', style: { marginTop: 'var(--sp-3)' } }, [
     el('div', { class: 'flex items-center gap-2' }, [
       el('span', {}, ['🔥']),
-      el('span', { class: 'text-sm' }, [
-        `Don't lose your ${streak}-day streak. `,
-        el('strong', {}, [`${remaining} action${remaining > 1 ? 's' : ''} left`]),
-        ' to protect it.',
+      el('div', { style: { flex: 1, fontSize: 'var(--fs-sub)' } }, [
+        `You're on a ${streak}-day streak. Complete ${remaining} more to keep it alive.`,
       ]),
     ]),
   ]);
 }
 
-// ---- Action row with Apple-style toggle ----
-function actionRow(action, day, key) {
-  const v = day.habits[action.id] || null;
-  const isDone = v === 'full' || v === 'rest';
-  const isFloor = v === 'floor';
-  const bundles = activeBundles().filter((b) => b.actionId === action.id);
-
-  return el('div', { class: 'list-item', style: { padding: 'var(--sp-4) var(--sp-3)' } }, [
-    // Toggle on the left (Apple style)
-    toggle({
-      state: v,
-      onFull: () => doFull(action, key),
-      onFloor: () => doFloor(action, key),
-      onRest: () => doRest(action, key),
-    }),
-    // Action info
-    el('div', { class: 'list-item-body', style: { marginLeft: 'var(--sp-3)' } }, [
-      el('div', { class: 'list-item-title', style: isDone ? { color: 'var(--c-text-mute)', textDecoration: 'line-through' } : {} }, [
-        action.icon ? `${action.icon} ` : '', action.name,
-      ]),
-      // Implementation intention (Gollwitzer)
-      action.implementationIntention && !isDone && el('div', { class: 'list-item-sub', style: { fontStyle: 'italic', opacity: '0.8' } }, [
-        '🔗 ', action.cue, ' → ', action.response,
-      ]),
-      // Temptation bundle (Milkman)
-      bundles.length > 0 && !isDone && el('div', { class: 'list-item-sub', style: { color: 'var(--c-accent)' } }, [
-        '🎧 Bundle: only ', bundles[0].want, ' during ', bundles[0].should,
-      ]),
-      // Floor description
-      action.floor && el('div', { class: 'list-item-sub' }, [
-        isFloor ? `Floor: ${action.floor}` : (isDone ? (action.full || 'Done') : `Floor: ${action.floor}`)
+// ---- Action row (v3 §8: Title, Trigger, II, Time, Floor, Toggle, Progress) ----
+function actionRow(action, day, t) {
+  const st = day.actions[action.id];
+  const isDone = st === 'full' || st === 'rest';
+  const isFloor = st === 'floor';
+  return el('div', { class: 'action-row' }, [
+    el('div', { class: 'action-row-head' }, [
+      toggle(st, () => {
+        setDayAction(t, action.id, null);
+        const newSt = getState().days[t]?.actions[action.id];
+        if (newSt === 'full' || newSt === 'rest') toast(`${action.name} ✓`, { icon: action.icon });
+      }),
+      el('div', { class: 'action-row-body' }, [
+        el('div', { class: 'action-row-title', style: isDone ? { color: 'var(--c-healthy)' } : {} }, [action.name]),
+        action.cue && !isDone && el('div', { class: 'action-row-trigger' }, ['🔗 ', action.cue, ' → ', action.response]),
+        action.implementationIntention && !isDone && el('div', { class: 'action-row-ii' }, [action.implementationIntention]),
+        el('div', { class: 'action-row-meta' }, [
+          action.estMins && el('span', { class: 'action-row-time' }, [`${action.estMins}m`]),
+          action.floor && el('span', { class: 'action-row-floor' }, ['Floor: ' + action.floor]),
+          action.compoundScore && el('span', { class: `compound-score ${action.compoundScore >= 8 ? 'compound-score--high' : action.compoundScore >= 6 ? 'compound-score--mid' : 'compound-score--low'}` }, [`↗ ${action.compoundScore}`]),
+        ]),
       ]),
     ]),
   ]);
 }
 
-function doFull(action, key) {
-  setDayAction(key, action.id, 'full');
-  const prog = todayProgress();
-  const allFull = prog.done === prog.due && prog.floor === 0;
-  const allDone = prog.done + prog.floor === prog.due;
-  if (prog.due > 0 && allDone) {
-    confetti();
-    toast(allFull ? 'Perfect day. 🎉' : 'All done! Great work.', { icon: allFull ? '⭐' : '✅' });
-    if (allFull && checkShieldEarned()) {
-      setTimeout(() => toast('Shield earned! 🛡️', { icon: '🛡️' }), 800);
-    }
-  } else {
-    toast(`${action.name} ✓`, { duration: 1200 });
-  }
-}
-
-function doFloor(action, key) {
-  setDayAction(key, action.id, 'floor');
-  toast(`${action.name} floor ✓`, { duration: 1200, icon: '🟡' });
-}
-
-function doRest(action, key) {
-  setDayAction(key, action.id, 'rest');
-  toast(`${action.name} rest ✓`, { duration: 1200, icon: '😴' });
-}
-
-// ---- Recall section (hidden if empty) ----
+// ---- Recall section (conditional — only if cards due) ----
 function recallSection(s, t) {
-  const srDue = (s.spacedRepetition || []).filter((i) => i.due <= t);
-  if (srDue.length === 0) return null;
+  const due = (s.spacedRepetition || []).filter(c => c.nextDue && c.nextDue <= t);
+  if (!due.length) return null;
   return el('div', { class: 'card', style: { marginTop: 'var(--sp-4)' } }, [
     el('div', { class: 'card-head' }, [
       el('div', { class: 'card-icon' }, ['🧠']),
-      el('div', {}, [
-        el('div', { class: 'card-title' }, ['Recall']),
-        el('div', { class: 'card-subtitle' }, [`${srDue.length} card${srDue.length > 1 ? 's' : ''} due`]),
-      ]),
+      el('div', { class: 'card-title' }, ['Recall']),
+      el('span', { class: 'chip chip--accent' }, [String(due.length)]),
     ]),
-    el('div', { class: 'list' }, srDue.slice(0, 3).map((item) =>
-      el('div', { class: 'list-item list-item--interactive', on: { click: () => setSubroute('spaced-repetition') } }, [
-        el('div', { class: 'list-item-body' }, [
-          el('div', { class: 'list-item-title' }, [item.question]),
-          el('div', { class: 'list-item-sub' }, [`rep ${item.repetitions} · EF ${item.easeFactor.toFixed(1)}`]),
-        ]),
-        el('span', { class: 'chip chip--accent' }, ['Review']),
-      ])
-    )),
+    el('div', { class: 'text-mute text-meta' }, [`${due.length} card${due.length === 1 ? '' : 's'} due`]),
   ]);
 }
 
-// ---- Commitments section (hidden if empty) ----
+// ---- Commitments section (conditional — only if active) ----
 function commitmentSection(s, t) {
-  const commitments = activeCommitments();
-  if (commitments.length === 0) return null;
+  const active = (s.commitments || []).filter(c => c.status === 'active');
+  if (!active.length) return null;
   return el('div', { class: 'card', style: { marginTop: 'var(--sp-4)' } }, [
     el('div', { class: 'card-head' }, [
       el('div', { class: 'card-icon' }, ['🔒']),
-      el('div', {}, [
-        el('div', { class: 'card-title' }, ['Commitments']),
-        el('div', { class: 'card-subtitle' }, [`${commitments.length} active · points at stake`]),
-      ]),
+      el('div', { class: 'card-title' }, ['Commitments']),
+      el('span', { class: 'chip chip--attention' }, [String(active.length)]),
     ]),
-    el('div', { class: 'list' }, commitments.map((c) => {
-      const daysLeft = Math.ceil((new Date(c.deadline) - new Date(t)) / 86400000);
-      return el('div', { class: 'list-item' }, [
-        el('div', { class: 'list-item-body' }, [
-          el('div', { class: 'list-item-title' }, [c.actionName]),
-          el('div', { class: 'list-item-sub' }, [
-            `${c.stake} pts staked · `,
-            daysLeft <= 0 ? 'due TODAY' : `${daysLeft}d left`,
-          ]),
-        ]),
-      ]);
-    })),
+    el('div', { class: 'text-mute text-meta' }, [`${active.length} active`]),
   ]);
 }
 
-// ---- Reflection ----
-function moodRow(day, key) {
-  const moods = ['😞', '😕', '😐', '🙂', '😄'];
-  return el('div', { class: 'flex items-center gap-2 mb-3' }, [
-    el('span', { class: 'text-xs text-mute uppercase' }, ['Mood']),
-    el('div', { class: 'flex gap-2 flex-1 justify-end' }, moods.map((emoji, i) => {
-      const val = i + 1;
-      const active = day.mood === val;
-      return el('button', {
-        class: `btn btn--sm ${active ? 'btn--primary' : 'btn--ghost'}`,
-        style: { width: '36px', height: '36px', fontSize: '18px' },
-        on: { click: () => setDayField(key, 'mood', active ? null : val) }
-      }, [emoji]);
-    })),
+// ---- Reflection (v3 §8: Mood, One Win, One Lesson) ----
+function reflectionCard(day, t) {
+  return el('div', { class: 'card', style: { marginTop: 'var(--sp-6)' } }, [
+    el('div', { class: 'card-head' }, [
+      el('div', { class: 'card-icon' }, ['🧘']),
+      el('div', { class: 'card-title' }, ['Reflection']),
+    ]),
+    moodRow(day, t),
+    winRow(day, t),
+    lessonRow(day, t),
   ]);
 }
 
-function noteRow(day, key) {
-  return el('div', { class: 'field' }, [
+function moodRow(day, t) {
+  const emojis = ['😞', '😕', '😐', '🙂', '😄'];
+  return el('div', {}, [
+    el('div', { class: 'field-label mb-2' }, ['Mood']),
+    el('div', { class: 'reflect-mood' }, emojis.map((e, i) =>
+      el('button', {
+        class: `reflect-mood-btn ${day.mood === i + 1 ? 'reflect-mood-btn--selected' : ''}`,
+        on: { click: () => setDayField(t, 'mood', i + 1) }
+      }, [e])
+    )),
+  ]);
+}
+
+function winRow(day, t) {
+  return el('div', { class: 'field', style: { marginTop: 'var(--sp-3)' } }, [
+    el('div', { class: 'field-label' }, ['One win']),
     el('textarea', {
       class: 'field-textarea',
-      placeholder: 'One win, one thing to improve…',
-      on: { input: (e) => setDayField(key, 'note', e.target.value) }
-    }, [day.note || '']),
+      placeholder: 'What went well today?',
+      on: { input: (e) => setDayField(t, 'win', e.target.value) }
+    }, [day.win || '']),
   ]);
 }
 
-// ---- Suggestions (fresh each time) ----
-function showSuggestions() {
-  const container = document.getElementById('suggestion-container');
-  if (!container) return;
-  const { todos, notTodos } = generateSuggestions(3);
-
-  // Clear and rebuild
-  while (container.firstChild) container.removeChild(container.firstChild);
-
-  const node = el('div', { style: { marginTop: 'var(--sp-4)' } }, [
-    // TO DO
-    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-2)' } }, [
-      el('div', { class: 'section-title', style: { fontSize: 'var(--fs-body)', color: 'var(--c-success)' } }, ['✅ To Do']),
-    ]),
-    el('div', { class: 'list' }, todos.map((item) =>
-      el('div', { class: 'list-item', style: { alignItems: 'flex-start' } }, [
-        el('span', { style: { fontSize: '20px', flexShrink: '0' } }, [item.icon]),
-        el('div', { class: 'list-item-body' }, [
-          el('div', { class: 'list-item-title', style: { fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-medium)' } }, [item.text]),
-          el('div', { class: 'list-item-sub' }, [item.source]),
-        ]),
-      ])
-    )),
-
-    // NOT TO DO
-    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-4)' } }, [
-      el('div', { class: 'section-title', style: { fontSize: 'var(--fs-body)', color: 'var(--c-danger)' } }, ['🚫 Not To Do']),
-    ]),
-    el('div', { class: 'list' }, notTodos.map((item) =>
-      el('div', { class: 'list-item', style: { alignItems: 'flex-start' } }, [
-        el('span', { style: { fontSize: '20px', flexShrink: '0' } }, [item.icon]),
-        el('div', { class: 'list-item-body' }, [
-          el('div', { class: 'list-item-title', style: { fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-medium)' } }, [item.text]),
-          el('div', { class: 'list-item-sub' }, [item.source]),
-        ]),
-      ])
-    )),
-
-    // Refresh button
-    el('button', {
-      class: 'btn btn--ghost',
-      style: { width: '100%', marginTop: 'var(--sp-3)', fontSize: 'var(--fs-meta)' },
-      on: { click: showSuggestions }
-    }, ['🔄 New suggestions']),
+function lessonRow(day, t) {
+  return el('div', { class: 'field' }, [
+    el('div', { class: 'field-label' }, ['One lesson']),
+    el('textarea', {
+      class: 'field-textarea',
+      placeholder: 'What did you learn?',
+      on: { input: (e) => setDayField(t, 'lesson', e.target.value) }
+    }, [day.lesson || '']),
   ]);
-
-  container.appendChild(node);
-  // Scroll to suggestions
-  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }

@@ -1,177 +1,122 @@
 // ============================================================
-// Life OS v2 — UI host: toasts, modals, sheets, confetti
-// Single source for transient UI. Used by every render module.
+// Life OS v3 — UI primitives: toast, modal, sheet, confirm,
+// prompt, confetti. Stack-based overlays.
 // ============================================================
 
 import { el, clear, mount, $ } from './dom.js';
-import { uid } from './util.js';
 
-// ---- Haptics ----
-
-function haptic(ms = 10) {
-  try {
-    import('./state.js').then(({ getState }) => {
-      const s = getState();
-      if (s.settings.haptics && navigator.vibrate) navigator.vibrate(ms);
-    });
-  } catch {}
-}
-
-// ---- Toasts ----
-
-let toastWrap = null;
-
-function ensureToastWrap() {
-  if (!toastWrap) toastWrap = $('#toast-wrap');
-  return toastWrap;
-}
-
-export function toast(message, opts = {}) {
-  const { duration = 2400, icon = '' } = opts;
-  haptic(10);
-  const wrap = ensureToastWrap();
+// ---- Toast ----
+export function toast(msg, opts = {}) {
+  const wrap = $('#toast-wrap');
   if (!wrap) return;
-  // Limit to 3 toasts
-  const existing = wrap.querySelectorAll('.toast');
-  if (existing.length >= 3) existing[0].remove();
-  const t = el('div', { class: 'toast' }, [icon ? `${icon} ` : '', message]);
+  // Cap at 3
+  while (wrap.children.length >= 3) wrap.removeChild(wrap.firstChild);
+  const t = el('div', { class: 'toast' }, [opts.icon ? `${opts.icon} ${msg}` : msg]);
   wrap.appendChild(t);
+  if (navigator.vibrate && opts.haptics !== false) navigator.vibrate(10);
   setTimeout(() => {
-    t.style.transition = 'opacity .3s, transform .3s';
     t.style.opacity = '0';
-    t.style.transform = 'translateY(8px)';
-    setTimeout(() => t.remove(), 320);
-  }, duration);
+    t.style.transition = 'opacity var(--dur-base)';
+    setTimeout(() => t.remove(), 300);
+  }, opts.duration || 2400);
 }
 
-// ---- Modal ----
+// ---- Overlay stack ----
+const _stack = [];
 
-let modalHost = null, overlayHost = null;
-let modalStack = [];
-
-function ensureHosts() {
-  if (!modalHost) modalHost = $('#modal');
-  if (!overlayHost) overlayHost = $('#overlay');
-  return { modalHost, overlayHost };
-}
-
-export function openModal(content, opts = {}) {
-  const { modalHost, overlayHost } = ensureHosts();
-  clear(modalHost);
-  const close = el('button', { class: 'btn btn--ghost btn--icon', style: { position: 'absolute', top: '12px', right: '12px' }, on: { click: () => closeModal() } }, ['×']);
-  const inner = el('div', {}, [close, content]);
-  mount(modalHost, inner);
-  modalHost.classList.add('modal--open');
-  overlayHost.classList.add('overlay--open');
-  overlayHost.onclick = () => closeModal();
-  modalStack.push(opts.onClose);
-  return modalHost;
-}
-
-export function closeModal() {
-  const { modalHost, overlayHost } = ensureHosts();
-  modalHost.classList.remove('modal--open');
-  overlayHost.classList.remove('overlay--open');
-  overlayHost.onclick = null;
-  const cb = modalStack.pop();
-  if (typeof cb === 'function') cb();
-}
-
-// ---- Sheet (bottom) ----
-
-let sheetHost = null;
-let sheetStack = [];
-
-function ensureSheet() {
-  if (!sheetHost) sheetHost = $('#sheet');
-  return sheetHost;
-}
-
-export function openSheet(content, opts = {}) {
-  const { modalHost, overlayHost } = ensureHosts();
-  const sh = ensureSheet();
-  clear(sh);
-  const handle = el('div', { class: 'sheet-handle' });
-  const title = opts.title ? el('h2', { class: 'sheet-title' }, [opts.title]) : null;
-  const close = el('button', { class: 'btn btn--ghost btn--icon', style: { position: 'absolute', top: '12px', right: '12px' }, on: { click: () => closeSheet() } }, ['×']);
-  mount(sh, [handle, close, title, content].filter(Boolean));
-  sh.classList.add('sheet--open');
-  overlayHost.classList.add('overlay--open');
-  overlayHost.onclick = () => closeSheet();
-  sheetStack.push(opts.onClose);
-  return sh;
-}
-
-export function closeSheet() {
-  const { overlayHost } = ensureHosts();
-  const sh = ensureSheet();
-  sh.classList.remove('sheet--open');
-  overlayHost.classList.remove('overlay--open');
-  overlayHost.onclick = null;
-  const cb = sheetStack.pop();
-  if (typeof cb === 'function') cb();
+function openOverlay(node, kind) {
+  const overlay = $('#overlay');
+  overlay.classList.add('overlay--open');
+  overlay.onclick = () => closeAll();
+  const host = kind === 'sheet' ? $('#sheet') : $('#modal');
+  clear(host);
+  mount(host, [node]);
+  host.classList.add(kind === 'sheet' ? 'sheet--open' : 'modal--open');
+  _stack.push({ kind, host });
 }
 
 export function closeAll() {
-  closeModal();
-  closeSheet();
+  const overlay = $('#overlay');
+  overlay.classList.remove('overlay--open');
+  overlay.onclick = null;
+  for (const { kind, host } of _stack) {
+    host.classList.remove(kind === 'sheet' ? 'sheet--open' : 'modal--open');
+    setTimeout(() => clear(host), 240);
+  }
+  _stack.length = 0;
 }
 
-// ---- Confetti ----
+// ---- Modal ----
+export function modal({ title, body, onClose }) {
+  const head = el('div', { class: 'modal-head' }, [
+    el('div', { style: { fontSize: 'var(--fs-section)', fontWeight: 'var(--fw-semibold)' } }, [title || '']),
+    el('button', { class: 'modal-close', on: { click: () => { closeAll(); onClose && onClose(); } } }, ['×']),
+  ]);
+  const node = el('div', {}, [head, el('div', { class: 'modal-body' }, [body])]);
+  openOverlay(node, 'modal');
+  return node;
+}
 
-const COLORS = ['#007acc', '#4caf85', '#d4a543', '#e85d75', '#c262d4', '#ffd166'];
+// ---- Sheet ----
+export function sheet({ title, body, onClose }) {
+  const handle = el('div', { class: 'sheet-handle' });
+  const titleEl = title ? el('div', { class: 'sheet-title' }, [title]) : null;
+  const close = el('button', { class: 'modal-close', style: { position: 'absolute', top: 'var(--sp-2)', right: 'var(--sp-3)' }, on: { click: () => { closeAll(); onClose && onClose(); } } }, ['×']);
+  const inner = el('div', { class: 'sheet-body' }, [body]);
+  const node = el('div', {}, [handle, titleEl, close, inner]);
+  openOverlay(node, 'sheet');
+  return node;
+}
 
+// ---- Confirm (promise) ----
+export function confirm({ title, message, danger }) {
+  return new Promise((resolve) => {
+    const body = el('div', {}, [
+      message && el('p', { style: { color: 'var(--c-text-soft)', marginBottom: 'var(--sp-4)' } }, [message]),
+      el('div', { class: 'flex gap-2' }, [
+        el('button', { class: 'btn btn--ghost btn--block', on: { click: () => { closeAll(); resolve(false); } } }, ['Cancel']),
+        el('button', { class: `btn ${danger ? 'btn--danger' : 'btn--primary'} btn--block`, on: { click: () => { closeAll(); resolve(true); } } }, [danger ? 'Delete' : 'Confirm']),
+      ]),
+    ]);
+    modal({ title: title || 'Confirm', body });
+  });
+}
+
+// ---- Prompt (promise) ----
+export function prompt({ title, label, placeholder, initial }) {
+  return new Promise((resolve) => {
+    const input = el('input', { class: 'field-input', placeholder: placeholder || '', value: initial || '' });
+    const body = el('div', {}, [
+      label && el('div', { class: 'field-label' }, [label]),
+      input,
+      el('div', { class: 'flex gap-2 mt-4' }, [
+        el('button', { class: 'btn btn--ghost btn--block', on: { click: () => { closeAll(); resolve(null); } } }, ['Cancel']),
+        el('button', { class: 'btn btn--primary btn--block', on: { click: () => { closeAll(); resolve(input.value); } } }, ['Save']),
+      ]),
+    ]);
+    modal({ title: title || 'Prompt', body });
+    setTimeout(() => input.focus(), 100);
+  });
+}
+
+// ---- Confetti (v3 §10 — review completion) ----
 export function confetti(count = 80) {
-  haptic([10, 30, 10]);
   const host = $('#confetti');
   if (!host) return;
-  clear(host); // remove any existing pieces
   host.classList.remove('hidden');
+  clear(host);
+  // Use the 5 semantic colors + accent
+  const colors = ['#5b9bd5', '#4caf85', '#ff9f43', '#e85d75', '#b266d4', '#ffd166'];
   for (let i = 0; i < count; i++) {
     const piece = el('div', { class: 'confetti-piece', style: {
       left: `${Math.random() * 100}%`,
-      background: COLORS[i % COLORS.length],
-      animationDelay: `${Math.random() * 0.4}s`,
-      animationDuration: `${1.6 + Math.random() * 1.2}s`,
+      background: colors[i % colors.length],
+      animationDelay: `${Math.random() * 0.5}s`,
+      animationDuration: `${2.5 + Math.random() * 1.2}s`,
       transform: `rotate(${Math.random() * 360}deg)`,
     } });
     host.appendChild(piece);
-    setTimeout(() => piece.remove(), 3000);
   }
-  setTimeout(() => host.classList.add('hidden'), 3200);
-}
-
-// ---- Confirm dialog (promise-based) ----
-
-export function confirmDialog({ title = 'Confirm', message = '', confirmText = 'Confirm', danger = false }) {
-  return new Promise((resolve) => {
-    const body = el('div', {}, [
-      el('h3', { class: 'text-lg font-bold mb-3' }, [title]),
-      message ? el('p', { class: 'text-sm text-soft mb-4' }, [message]) : null,
-      el('div', { class: 'flex gap-2 justify-end' }, [
-        el('button', { class: 'btn btn--ghost', on: { click: () => { closeModal(); resolve(false); } } }, ['Cancel']),
-        el('button', { class: `btn ${danger ? 'btn--danger' : 'btn--primary'}`, on: { click: () => { closeModal(); resolve(true); } } }, [confirmText]),
-      ]),
-    ]);
-    openModal(body, { onClose: () => resolve(false) });
-  });
-}
-
-// ---- Prompt dialog (promise-based) ----
-
-export function promptDialog({ title = 'Enter', label = '', placeholder = '', initial = '', confirmText = 'Save' }) {
-  return new Promise((resolve) => {
-    const inp = el('input', { class: 'field-input', value: initial, placeholder });
-    const body = el('div', {}, [
-      el('h3', { class: 'text-lg font-bold mb-3' }, [title]),
-      label ? el('div', { class: 'field-label mb-2' }, [label]) : null,
-      inp,
-      el('div', { class: 'flex gap-2 justify-end mt-4' }, [
-        el('button', { class: 'btn btn--ghost', on: { click: () => { closeModal(); resolve(null); } } }, ['Cancel']),
-        el('button', { class: 'btn btn--primary', on: { click: () => { closeModal(); resolve(inp.value); } } }, [confirmText]),
-      ]),
-    ]);
-    openModal(body);
-    setTimeout(() => { inp.focus(); inp.select(); }, 100);
-  });
+  if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
+  setTimeout(() => { host.classList.add('hidden'); clear(host); }, 3200);
 }

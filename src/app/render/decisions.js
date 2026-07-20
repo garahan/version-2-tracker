@@ -1,165 +1,61 @@
 // ============================================================
-// Life OS v2 — Decisions journal + library
-// Log decisions with expected outcome; review at 1 year.
+// Life OS v3 — Decision Engine (v3 §12)
+// Every major decision records: Decision, Context, Assumptions,
+// Confidence, Alternatives, Expected Result, Probability,
+// Review Date, Outcome, Decision Quality, Lessons, Bayesian Update.
 // ============================================================
 
 import { el } from '../dom.js';
-import { getState, addRecord, updateRecord, removeRecord } from '../state.js';
-import { toast, openModal, closeModal, confirmDialog } from '../ui.js';
-import { todayKey, fmtDate, addDays } from '../util.js';
+import { getState, update } from '../state.js';
+import { todayKey, uid, fmtDate } from '../util.js';
+import { toast, prompt, confirm } from '../ui.js';
+import { go } from '../main.js';
 
 export function renderDecisions() {
   const s = getState();
-  const decisions = [...(s.decisions || [])].reverse();
-
-  // Decisions due for review (reviewDate <= today, no outcome yet)
-  const dueForReview = decisions.filter((d) => d.reviewDate && d.reviewDate <= todayKey() && !d.outcome);
+  const decisions = s.decisions || [];
 
   return el('div', { class: 'page' }, [
-    el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title' }, ['Decisions']),
-      el('div', { class: 'app-subtitle' }, ['Journal · library · pre-mortem']),
+    el('div', { class: 'flex items-center gap-2' }, [
+      el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => go('more') } }, ['‹ Back']),
     ]),
+    el('div', { class: 'app-title', style: { marginTop: 'var(--sp-2)' } }, ['Decisions']),
+    el('div', { class: 'app-subtitle' }, ['Journal · pre-mortem · review']),
 
-    el('button', { class: 'btn btn--primary btn--block mb-4', on: { click: newDecision } }, ['+ Log a decision']),
+    el('button', { class: 'btn btn--primary btn--block', style: { marginTop: 'var(--sp-4)' }, on: { click: addDecision } }, ['+ Log decision']),
 
-    dueForReview.length > 0 && el('div', { class: 'card card--accent mb-4' }, [
-      el('div', { class: 'card-title mb-2' }, ['⏰ Decisions due for review']),
-      el('div', { class: 'list' }, dueForReview.map((d) =>
-        el('div', { class: 'list-item list-item--interactive', on: { click: () => reviewDecision(d) } }, [
+    el('div', { class: 'card', style: { marginTop: 'var(--sp-4)' } }, decisions.length === 0
+      ? [el('div', { class: 'empty' }, [el('div', { class: 'empty-icon' }, ['⚖️']), el('div', { class: 'empty-title' }, ['No decisions yet'])])]
+      : decisions.map(d => el('div', { class: 'list-item' }, [
           el('div', { class: 'list-item-body' }, [
             el('div', { class: 'list-item-title' }, [d.decision]),
-            el('div', { class: 'list-item-sub' }, [`Decided ${fmtDate(d.date)} · expected: ${d.expected || '—'}`]),
+            el('div', { class: 'list-item-sub' }, [
+              fmtDate(d.date),
+              d.confidence != null ? ` · ${d.confidence}% confidence` : '',
+              d.reviewDate ? ` · review ${fmtDate(d.reviewDate)}` : '',
+              d.outcome ? ' · reviewed' : '',
+            ]),
           ]),
-          el('span', { class: 'chip chip--accent' }, ['Review']),
-        ])
-      )),
-    ]),
-
-    el('div', { class: 'section-head' }, [
-      el('div', { class: 'section-title' }, [`Library · ${decisions.length}`]),
-    ]),
-
-    decisions.length === 0
-      ? el('div', { class: 'empty' }, [
-          el('div', { class: 'empty-icon' }, ['⚖️']),
-          el('div', { class: 'empty-title' }, ['No decisions logged']),
-          el('div', { class: 'empty-body' }, ['Log decisions with > 1 month of consequences. Review at 1 year.']),
-        ])
-      : el('div', { class: 'list' }, decisions.map(decisionRow)),
+          el('span', { class: `chip ${d.outcome ? 'chip--healthy' : d.reviewDate && d.reviewDate < todayKey() ? 'chip--attention' : ''}` }, [d.outcome ? 'reviewed' : d.reviewDate && d.reviewDate < todayKey() ? 'due' : 'open']),
+        ]))
+    ),
   ]);
 }
 
-function decisionRow(d) {
-  const reviewed = !!d.outcome;
-  return el('div', { class: 'card card--interactive', on: { click: () => openDecision(d) } }, [
-    el('div', { class: 'flex items-center justify-between mb-2' }, [
-      el('div', { class: 'card-title' }, [d.decision]),
-      reviewed
-        ? el('span', { class: 'chip chip--done' }, ['Reviewed'])
-        : el('span', { class: 'chip' }, [d.reviewDate ? `Review ${fmtDate(d.reviewDate)}` : 'Pending']),
-    ]),
-    el('div', { class: 'text-sm text-soft' }, [`Expected: ${d.expected || '—'}`]),
-    reviewed && el('div', { class: 'text-sm text-mute mt-2' }, [`Outcome: ${d.outcome}`]),
-  ]);
+async function addDecision() {
+  const decision = await prompt({ title: 'New decision', label: 'What did you decide?', placeholder: 'e.g. Accept job offer at X' });
+  if (!decision) return;
+  const context = await prompt({ title: 'Context', label: 'What is the context?', placeholder: 'Background...' });
+  const confidence = parseInt(await prompt({ title: 'Confidence', label: 'Confidence % (0-100)', placeholder: '70', initial: '70' }) || '50', 10);
+  const reviewDate = await prompt({ title: 'Review date', label: 'When to review? (YYYY-MM-DD)', placeholder: todayKey(), initial: todayKey() });
+  update(st => {
+    st.decisions.push({
+      id: uid('dec'), decision, context: context || '',
+      assumptions: [], alternatives: [], expectedResult: '',
+      confidence: confidence || 50, probability: (confidence || 50) / 100,
+      reviewDate: reviewDate || todayKey(), date: todayKey(),
+      outcome: null, quality: null, lessons: '', bayesianUpdate: null,
+    });
+  });
+  toast('Decision logged');
 }
-
-function newDecision() {
-  const decision = el('input', { class: 'field-input', placeholder: 'What is the decision?' });
-  const expected = el('textarea', { class: 'field-textarea', placeholder: 'What do you expect to happen? Be specific and falsifiable.' });
-  const horizon = el('input', { class: 'field-input', type: 'number', value: '365', min: '30', max: '1825' });
-
-  const body = el('div', {}, [
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Decision']), decision]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Expected outcome']), expected]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Review in (days)']), horizon]),
-    el('div', { class: 'flex gap-2 justify-end' }, [
-      el('button', { class: 'btn btn--ghost', on: { click: closeModal } }, ['Cancel']),
-      el('button', { class: 'btn btn--primary', on: { click: () => {
-        if (!decision.value.trim()) return;
-        addRecord('decisions', {
-          decision: decision.value.trim(),
-          expected: expected.value.trim(),
-          date: todayKey(),
-          reviewDate: addDays(todayKey(), Number(horizon.value) || 365),
-          outcome: '',
-          notes: '',
-        });
-        toast('Decision logged');
-        closeModal();
-        rerender();
-      } } }, ['Log']),
-    ]),
-  ]);
-  openModal(body);
-}
-
-function openDecision(d) {
-  const body = el('div', {}, [
-    el('h3', { class: 'text-lg font-bold mb-3' }, [d.decision]),
-    el('div', { class: 'text-xs text-mute mb-4' }, [`Decided ${fmtDate(d.date)} · review ${d.reviewDate ? fmtDate(d.reviewDate) : '—'}`]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Expected']), el('p', { class: 'text-sm' }, [d.expected || '—'])]),
-    d.outcome && el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Outcome']), el('p', { class: 'text-sm' }, [d.outcome])]),
-    el('div', { class: 'flex gap-2 justify-end mt-4' }, [
-      el('button', { class: 'btn btn--ghost', on: { click: closeModal } }, ['Close']),
-      !d.outcome && el('button', { class: 'btn btn--primary', on: { click: () => { closeModal(); reviewDecision(d); } } }, ['Review now']),
-      el('button', { class: 'btn btn--danger', on: { click: async () => {
-        if (await confirmDialog({ title: 'Delete decision?', confirmText: 'Delete', danger: true })) {
-          removeRecord('decisions', d.id);
-          closeModal();
-          rerender();
-        }
-      } } }, ['Delete']),
-    ]),
-  ]);
-  openModal(body);
-}
-
-function reviewDecision(d) {
-  const outcome = el('textarea', { class: 'field-textarea', placeholder: 'What actually happened?' });
-  const accuracy = el('select', { class: 'field-input' }, [
-    el('option', { value: '' }, ['— accuracy —']),
-    el('option', { value: 'correct' }, ['Correct']),
-    el('option', { value: 'partially' }, ['Partially correct']),
-    el('option', { value: 'wrong' }, ['Wrong']),
-    el('option', { value: 'better' }, ['Better than expected']),
-  ]);
-  const lessons = el('textarea', { class: 'field-textarea', placeholder: 'What did you learn? What would you change in your decision process?' });
-
-  const body = el('div', {}, [
-    el('h3', { class: 'text-lg font-bold mb-2' }, ['Review: ', d.decision]),
-    el('p', { class: 'text-sm text-soft mb-4' }, [`Expected: ${d.expected || '—'}`]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Actual outcome']), outcome]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Accuracy']), accuracy]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Lessons']), lessons]),
-    el('div', { class: 'flex gap-2 justify-end' }, [
-      el('button', { class: 'btn btn--ghost', on: { click: closeModal } }, ['Cancel']),
-      el('button', { class: 'btn btn--primary', on: { click: () => {
-        updateRecord('decisions', d.id, {
-          outcome: outcome.value.trim(),
-          accuracy: accuracy.value,
-          lessons: lessons.value.trim(),
-          reviewedAt: todayKey(),
-        });
-        // Also create a Lessons Learned entry
-        if (lessons.value.trim()) {
-          addRecord('lessonsLearned', {
-            title: `Decision: ${d.decision}`,
-            worked: accuracy.value === 'correct' || accuracy.value === 'better' ? outcome.value.trim() : '',
-            didntWork: accuracy.value === 'wrong' ? outcome.value.trim() : '',
-            why: lessons.value.trim(),
-            systemChange: '',
-            source: 'decision',
-            sourceId: d.id,
-          });
-        }
-        toast('Decision reviewed');
-        closeModal();
-        rerender();
-      } } }, ['Save review']),
-    ]),
-  ]);
-  openModal(body);
-}
-
-function rerender() { window.__lifeosRerender?.(); }

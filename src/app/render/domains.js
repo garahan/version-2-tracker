@@ -1,145 +1,157 @@
 // ============================================================
-// Life OS v2 — Domains (expandable tree / mind map style)
-// 3 layers, expandable, bottom sheet for Management Card.
+// Life OS v3 — Domains (v3 §9)
+// Hierarchy: Foundation → Executive → Capital → Strategy → Legacy
+// Expand → Choose Domain → Bottom Sheet with universal card.
 // ============================================================
 
 import { el } from '../dom.js';
-import { getState, getDomain, updateDomain } from '../state.js';
-import { DOMAINS_BY_LAYER, LAYERS, CADENCE } from '../data/domains.js';
-import { openSheet, closeSheet, toast } from '../ui.js';
+import { LAYERS, LAYER_ORDER, LEVELS, allDomains, domainsByLayer, getDomain } from '../data/domains.js';
+import { getState, update } from '../state.js';
+import { sheet, toast } from '../ui.js';
+import { cadenceLabel } from '../cadence.js';
 
 export function renderDomains() {
+  const s = getState();
   return el('div', { class: 'page' }, [
-    el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title' }, ['Domains']),
-      el('div', { class: 'app-subtitle' }, ['15 systems · 3 layers']),
+    el('div', { class: 'app-title' }, ['Domains']),
+    el('div', { class: 'app-subtitle' }, ['22 systems · 3 layers']),
+    ...LAYER_ORDER.map(layerId => renderLayer(layerId, s)),
+  ]);
+}
+
+function renderLayer(layerId, s) {
+  const layer = LAYERS[layerId];
+  const domains = domainsByLayer(layerId);
+  return el('div', { class: 'domain-tree-layer', style: { marginTop: 'var(--sp-4)' } }, [
+    el('div', { class: 'domain-tree-head', dataset: { layer: layerId }, on: { click: (e) => toggleLayer(e) } }, [
+      el('span', {}, [layer.icon]),
+      el('div', { class: 'domain-tree-layer-name' }, [layer.name]),
+      el('span', { class: 'domain-tree-layer-count' }, [`${domains.length} domains`]),
+      el('span', { class: 'domain-tree-chevron' }, ['›']),
     ]),
-    ...DOMAINS_BY_LAYER.map(({ layer, domains }) =>
-      domainTreeLayer(layer, domains)
-    ),
+    el('div', { class: 'domain-tree-children', id: `layer-${layerId}` }, domains.map(d => renderDomain(d, s))),
   ]);
 }
 
-function domainTreeLayer(layer, domains) {
-  let open = false;
-  const head = el('div', { class: 'domain-tree-head', on: { click: () => toggle() } }, [
-    el('span', { style: { fontSize: '20px' } }, [layer.icon]),
-    el('span', {}, [layer.name]),
-    el('span', { class: 'domain-tree-chevron' }, ['›']),
-  ]);
-  const childrenWrap = el('div', { class: 'domain-tree-children' }, [
-    ...domains.map((d) => domainTreeDomain(d)),
-  ]);
-  const section = el('div', { class: 'domain-tree-layer' }, [head, childrenWrap]);
-
-  function toggle() {
-    open = !open;
-    head.classList.toggle('domain-tree-head--open', open);
-    childrenWrap.classList.toggle('domain-tree-children--open', open);
-  }
-  // Default: operating layer open, others closed
-  if (layer.id === 'operating') toggle();
-
-  return section;
+function toggleLayer(e) {
+  const head = e.currentTarget;
+  const layerId = head.dataset.layer;
+  const children = document.getElementById(`layer-${layerId}`);
+  if (!children) return;
+  const open = children.classList.toggle('domain-tree-children--open');
+  head.classList.toggle('domain-tree-head--open', open);
 }
 
-function domainTreeDomain(d) {
-  const state = getState().domains[d.id] || d;
+function renderDomain(d, s) {
+  const userDomain = s.domains[d.id] || d;
+  const maturity = userDomain.maturity || 1;
   return el('div', { class: 'domain-tree-domain', on: { click: () => openDomain(d.id) } }, [
-    el('span', { style: { fontSize: '18px' } }, [d.icon]),
-    el('div', { style: { flex: 1 } }, [
-      el('div', { style: { fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-medium)' } }, [d.name]),
-      el('div', { style: { fontSize: 'var(--fs-meta)', color: 'var(--c-text-mute)' } }, [d.objective]),
+    el('div', { class: 'domain-tree-domain-icon' }, [d.icon]),
+    el('div', { class: 'domain-tree-domain-body' }, [
+      el('div', { class: 'domain-tree-domain-name' }, [d.name]),
+      el('div', { class: 'domain-tree-domain-obj clamp-1' }, [d.objective]),
     ]),
-    el('span', { class: `chip chip--${d.color}`, style: { fontSize: 'var(--fs-meta)' } }, [`L${state.maturity}`]),
+    el('div', { class: 'maturity' }, [1,2,3,4,5].map(n =>
+      el('div', { class: `maturity-dot ${n <= maturity ? 'maturity-dot--filled' : ''}` })
+    )),
   ]);
 }
 
+// ---- Domain bottom sheet (v3 §9 — universal card) ----
 function openDomain(id) {
-  const d = getDomain(id);
-  openSheet(domainSheet(d), { title: `${d.icon} ${d.name}` });
-}
-
-function domainSheet(d) {
-  const state = getState().domains[d.id] || d;
-  return el('div', {}, [
-    // Objective
-    collapsibleSection('Objective', [
-      el('p', { class: 'text-sm', style: { lineHeight: 'var(--lh-normal)' } }, [d.objective]),
-    ], true), // open by default
-
-    // Leading indicators
-    d.leadingIndicators?.length && collapsibleSection('Leading Indicators', [
-      el('ul', { class: 'text-sm', style: { paddingLeft: 'var(--sp-6)' } }, d.leadingIndicators.map(i => el('li', {}, [i]))),
-    ]),
-
-    // Lagging indicators
-    d.laggingIndicators?.length && collapsibleSection('Lagging Indicators', [
-      el('ul', { class: 'text-sm', style: { paddingLeft: 'var(--sp-6)' } }, d.laggingIndicators.map(i => el('li', {}, [i]))),
-    ]),
-
-    // Actions
-    d.actions?.length && collapsibleSection(`Actions · ${d.actions.length}`, [
-      el('div', { class: 'list' }, d.actions.map(a => el('div', { class: 'list-item' }, [
+  const s = getState();
+  const d = s.domains[id] || getDomain(id);
+  if (!d) return;
+  const body = el('div', {}, [
+    section('Objective', true, el('p', { class: 'card-body' }, [d.objective])),
+    d.principles?.length && section('Principles', false, list(d.principles)),
+    d.leadingIndicators?.length && section('Leading indicators', false, indicators(d.leadingIndicators)),
+    d.laggingIndicators?.length && section('Lagging indicators', false, indicators(d.laggingIndicators)),
+    d.actions?.length && section(`Actions (${d.actions.length})`, false, actionsList(d.actions)),
+    d.trigger && section('Trigger', false, el('p', { class: 'card-body' }, [d.trigger])),
+    d.checklist?.length && section('Checklist', false, list(d.checklist)),
+    d.sop && section('SOP', false, el('pre', { style: { whiteSpace: 'pre-wrap', fontSize: 'var(--fs-sub)', color: 'var(--c-text-soft)', lineHeight: 'var(--lh-normal)' } }, [d.sop])),
+    d.automation?.length && section('Automation', false, list(d.automation)),
+    d.riskRegister?.length && section('Risk register', false, d.riskRegister.map(r =>
+      el('div', { class: 'list-item' }, [
         el('div', { class: 'list-item-body' }, [
-          el('div', { class: 'list-item-title' }, [`${a.icon || ''} ${a.name}`]),
-          el('div', { class: 'list-item-sub' }, [
-            CADENCE[a.cadence] || a.cadence,
-            a.floor ? ` · Floor: ${a.floor}` : '',
-          ]),
+          el('div', { class: 'list-item-title' }, [r.risk]),
+          el('div', { class: 'list-item-sub' }, ['Mitigation: ' + r.mitigation]),
         ]),
-      ]))),
-    ]),
+      ])
+    )),
+    d.killCriteria?.length && section('Kill criteria', false, list(d.killCriteria)),
+    d.experiments?.length && section('Experiments', false, d.experiments.map(x =>
+      el('div', { class: 'list-item' }, [
+        el('div', { class: 'list-item-body' }, [
+          el('div', { class: 'list-item-title' }, [x.name]),
+          el('div', { class: 'list-item-sub' }, ['Status: ' + (x.status || '—')]),
+        ]),
+      ])
+    )),
+    d.reviewQuestions?.length && section('Review questions', false, list(d.reviewQuestions)),
+    d.dependencies?.length && section('Dependencies', false, list(d.dependencies)),
+    d.resources?.length && section('Resources', false, list(d.resources)),
+    section('Maturity', true, maturityControl(d.id, d.maturity || 1)),
+  ]);
+  sheet({ title: `${d.icon} ${d.name}`, body });
+}
 
-    // SOP
-    d.sop && collapsibleSection('SOP', [
-      el('pre', { class: 'text-sm', style: { whiteSpace: 'pre-wrap', fontFamily: 'var(--font-sans)', lineHeight: 'var(--lh-normal)' } }, [d.sop]),
+function section(title, openByDefault, content) {
+  return el('div', { class: `sheet-section ${openByDefault ? 'sheet-section--open' : ''}` }, [
+    el('div', { class: 'sheet-section-head', on: { click: (e) => {
+      const sec = e.currentTarget.parentElement;
+      sec.classList.toggle('sheet-section--open');
+    } } }, [
+      el('div', { style: { fontSize: 'var(--fs-sub)', fontWeight: 'var(--fw-semibold)' } }, [title]),
+      el('span', { class: 'sheet-section-chevron' }, ['›']),
     ]),
-
-    // Risk register
-    d.riskRegister?.length && collapsibleSection('Risks', [
-      el('ul', { class: 'text-sm', style: { paddingLeft: 'var(--sp-6)' } }, d.riskRegister.map(r => el('li', {}, [r]))),
-    ]),
-
-    // Kill criteria
-    d.killCriteria?.length && collapsibleSection('Kill Criteria', [
-      el('ul', { class: 'text-sm', style: { paddingLeft: 'var(--sp-6)' } }, d.killCriteria.map(k => el('li', {}, [k]))),
-    ]),
-
-    // Review questions
-    d.reviewQuestions?.length && collapsibleSection('Review Questions', [
-      el('ul', { class: 'text-sm', style: { paddingLeft: 'var(--sp-6)' } }, d.reviewQuestions.map(q => el('li', {}, [q]))),
-    ]),
-
-    // Maturity
-    collapsibleSection(`Maturity · L${state.maturity}`, [
-      el('div', { class: 'flex gap-2' }, [1,2,3,4,5].map(lvl =>
-        el('button', {
-          class: `btn btn--sm ${state.maturity === lvl ? 'btn--primary' : 'btn--ghost'}`,
-          on: { click: () => { updateDomain(d.id, { maturity: lvl }); toast('Maturity updated'); } }
-        }, [`L${lvl}`])
-      )),
-    ]),
+    el('div', { class: 'sheet-section-body' }, [content]),
   ]);
 }
 
-/**
- * Collapsible section for Management Card sheet.
- * Auto-saves — no Save/Cancel buttons.
- */
-function collapsibleSection(title, children, openByDefault = false) {
-  let open = openByDefault;
-  const head = el('div', { class: `sheet-section-head ${open ? 'sheet-section--open' : ''}`, on: { click: () => toggle() } }, [
-    el('span', {}, [title]),
-    el('span', { class: 'sheet-section-chevron' }, ['›']),
-  ]);
-  const body = el('div', { class: `sheet-section-body ${open ? 'sheet-section--open' : ''}` }, children);
-  const section = el('div', { class: 'sheet-section' }, [head, body]);
+function list(items) {
+  return el('ul', {}, items.map(i => el('li', { style: { padding: 'var(--sp-2) 0', fontSize: 'var(--fs-sub)', color: 'var(--c-text-soft)', borderBottom: '1px solid var(--c-border)' } }, ['• ', i])));
+}
 
-  function toggle() {
-    open = !open;
-    head.classList.toggle('sheet-section--open', open);
-    body.classList.toggle('sheet-section--open', open);
-  }
-  return section;
+function indicators(items) {
+  return el('div', {}, items.map(i =>
+    el('div', { class: 'list-item' }, [
+      el('div', { class: 'list-item-body' }, [
+        el('div', { class: 'list-item-title' }, [i.name]),
+        el('div', { class: 'list-item-sub' }, [
+          i.target != null ? `Target: ${i.target}${i.unit ? ' ' + i.unit : ''}` : '',
+          i.cadence ? ` · ${cadenceLabel(i.cadence)}` : '',
+        ]),
+      ]),
+    ])
+  ));
+}
+
+function actionsList(actions) {
+  return el('div', {}, actions.map(a =>
+    el('div', { class: 'list-item' }, [
+      el('div', { class: 'list-item-icon' }, [a.icon || '•']),
+      el('div', { class: 'list-item-body' }, [
+        el('div', { class: 'list-item-title' }, [a.name]),
+        el('div', { class: 'list-item-sub' }, [
+          cadenceLabel(a.cadence),
+          a.floor ? ` · Floor: ${a.floor}` : '',
+          a.estMins ? ` · ${a.estMins}m` : '',
+        ]),
+      ]),
+    ])
+  ));
+}
+
+function maturityControl(domainId, current) {
+  return el('div', { class: 'flex gap-2' }, [1,2,3,4,5].map(n =>
+    el('button', {
+      class: `btn ${n === current ? 'btn--primary' : 'btn--ghost'} btn--sm`,
+      on: { click: () => {
+        update(st => { if (!st.domains[domainId]) st.domains[domainId] = { ...getDomain(domainId) }; st.domains[domainId].maturity = n; });
+        toast(`Maturity set to L${n}`);
+      } }
+    }, [`L${n}`])
+  ));
 }

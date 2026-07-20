@@ -1,139 +1,169 @@
 /* ============================================================
-   Life OS v2 — Design Tokens
-   Single source of truth for all visual decisions.
+   Life OS v3 — Design Tokens
+   Single source of truth for every visual decision.
+
+   Color philosophy (v3 §24): "Never decorate. Communicate.
+   Every color means something."
+
+   Five semantic colors carry meaning. One accent carries
+   identity (progress ring + primary actions). Nothing else.
    ============================================================ */
 
 :root {
-  /* ---- Color: Midnight (default) ----
-     A deep, low-glare palette designed for evening use and OLED screens.
-     Accent is electric blue. Semantic colors map to domain levels. */
+  /* ============================================================
+     COLOR — 5 semantic + 1 accent
+     ============================================================
+     Blue   = Information (neutral, structural, "this is data")
+     Green  = Healthy / on track / done
+     Orange = Attention / warning / floor
+     Red    = Danger / missed / critical
+     Purple = Strategy / meta / long-term
+     Accent = Identity (progress ring, primary actions). Default
+              blue. User-selectable but only ONE at a time.
+     ============================================================ */
+
+  /* ---- Semantic palette (meaning, never decorative) ---- */
+  --c-info:      #5b9bd5;  /* Blue — information */
+  --c-healthy:   #4caf85;  /* Green — healthy / done */
+  --c-attention: #ff9f43;  /* Orange — attention / floor */
+  --c-danger:    #e85d75;  /* Red — danger / missed */
+  --c-strategy:  #b266d4;  /* Purple — strategy / meta */
+
+  /* Semantic soft tints (12% — for chip backgrounds, subtle fills) */
+  --c-info-soft:      rgba(91, 155, 213, 0.14);
+  --c-healthy-soft:   rgba(76, 175, 133, 0.14);
+  --c-attention-soft: rgba(255, 159, 67, 0.14);
+  --c-danger-soft:    rgba(232, 93, 117, 0.14);
+  --c-strategy-soft:  rgba(178, 102, 212, 0.14);
+
+  /* Semantic borders (45% — for accented card borders) */
+  --c-info-border:      rgba(91, 155, 213, 0.45);
+  --c-healthy-border:   rgba(76, 175, 133, 0.45);
+  --c-attention-border: rgba(255, 159, 67, 0.45);
+  --c-danger-border:    rgba(232, 93, 117, 0.45);
+  --c-strategy-border:  rgba(178, 102, 212, 0.45);
+
+  /* ---- Accent (identity — default blue) ----
+     Used ONLY for: progress ring, primary action buttons, active
+     nav state, focus highlight. Never for domain identity (domains
+     have no color — state does). */
+  --c-accent:        #007acc;
+  --c-accent-text:   #4db8ff;
+  --c-accent-soft:   rgba(0, 122, 204, 0.14);
+  --c-accent-glow:   rgba(0, 122, 204, 0.32);
+  --c-accent-border: rgba(0, 122, 204, 0.45);
+
+  /* ---- State mapping (aliases to semantic colors) ----
+     Completion states map to the 5 semantic colors so every
+     toggle in the app communicates meaning, not decoration. */
+  --c-done:    var(--c-healthy);   /* full completion = green */
+  --c-floor:   var(--c-attention); /* floor = orange (minimum) */
+  --c-missed:  var(--c-danger);    /* missed = red */
+  --c-rest:    var(--c-info);      /* rest = blue (intentional) */
+  --c-shield:  #ffd166;            /* shield = gold (unique — earned protection) */
+
+  /* ---- Heatmap ramp (low → high, uses accent) ---- */
+  --c-heat-0: rgba(255, 255, 255, 0.04);
+  --c-heat-1: rgba(0, 122, 204, 0.22);
+  --c-heat-2: rgba(0, 122, 204, 0.44);
+  --c-heat-3: rgba(0, 122, 204, 0.68);
+  --c-heat-4: rgba(0, 122, 204, 0.92);
+
+  /* ============================================================
+     SURFACES — Midnight (default)
+     A deep, low-glare palette for OLED and evening use.
+     4 elevation steps: bg → elev-1 (cards) → elev-2 (inputs)
+     → elev-3 (icons/inactive).
+     ============================================================ */
   --c-bg:           #0b0d12;
   --c-bg-elev-1:    #11141b;
   --c-bg-elev-2:    #161a23;
   --c-bg-elev-3:    #1c2230;
-  --c-bg-glass:     rgba(22, 26, 35, 0.72);
-  --c-border:       rgba(255, 255, 255, 0.06);
-  --c-border-strong:rgba(255, 255, 255, 0.12);
-  --c-border-accent:rgba(0, 122, 204, 0.45);
+  --c-bg-glass:     rgba(17, 20, 27, 0.78);
 
-  --c-text:         #e8ecf2;
-  --c-text-soft:    #a8b0c0;
-  --c-text-mute:    #6b7385;
-  --c-text-faint:   #444c5e;
+  --c-border:        rgba(255, 255, 255, 0.07);
+  --c-border-strong: rgba(255, 255, 255, 0.14);
 
-  --c-accent:       #007acc;
-  --c-accent-soft:  rgba(0, 122, 204, 0.16);
-  --c-accent-glow:  rgba(0, 122, 204, 0.35);
-  --c-accent-text:  #4db8ff;
+  --c-text:        #e8ecf2;
+  --c-text-soft:   #a8b0c0;
+  --c-text-mute:   #6b7385;
+  --c-text-faint:  #444c5e;
+  --c-on-accent:   #ffffff;  /* text on accent-colored fills */
 
-  /* Semantic — domain levels */
-  --c-l1: #4caf85;  /* Foundation — green (life support) */
-  --c-l2: #5b9bd5;  /* Executive — blue (cognition) */
-  --c-l3: #d4a543;  /* Capital — gold (compounding) */
-  --c-l4: #c262d4;  /* Strategy — purple (meta) */
-  --c-l5: #e85d75;  /* Legacy — red (timeless) */
-
-  /* Semantic — states */
-  --c-done:    #4caf85;
-  --c-floor:   #d4a543;
-  --c-missed:  #e85d75;
-  --c-rest:    #5b9bd5;
-  --c-shield:  #ffd166;
-  --c-warning: #ff9f43;
-  --c-warn:    #ff9f43;  /* alias */
-  --c-danger:  #e85d75;
-  --c-success: #4caf85;
-
-  /* Semantic — cognitive interface colors (meaning, not beauty) */
-  --c-info:      #5b9bd5;  /* Blue — information */
-  --c-healthy:   #4caf85;  /* Green — healthy / on track */
-  --c-attention: #ff9f43;  /* Orange — needs attention */
-  --c-danger2:   #e85d75;  /* Red — danger / critical */
-  --c-strategy:  #c262d4;  /* Purple — strategic / meta */
-
-  /* Heatmap ramp (low → high) */
-  --c-heat-0: rgba(255,255,255,0.04);
-  --c-heat-1: rgba(0, 122, 204, 0.20);
-  --c-heat-2: rgba(0, 122, 204, 0.40);
-  --c-heat-3: rgba(0, 122, 204, 0.65);
-  --c-heat-4: rgba(0, 122, 204, 0.90);
-
-  /* ---- Typography (Apple HIG scale) ----
-     34 = page title, 22 = section, 17 = body, 15 = secondary, 13 = metadata
-     System font stack for native feel on every platform.
-     Numeric font feature for tabular alignment in metrics. */
+  /* ============================================================
+     TYPOGRAPHY — Apple HIG scale
+     34 = large title, 22 = title2, 17 = body, 15 = subhead,
+     13 = footnote. System font for native feel everywhere.
+     ============================================================ */
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
 
-  --fs-meta:    13px;   /* metadata, captions */
-  --fs-sec:     15px;   /* secondary text */
-  --fs-body:    17px;   /* body text (Apple body) */
-  --fs-section: 22px;   /* section headers (Apple title2) */
-  --fs-page:    34px;   /* page titles (Apple large title) */
-  --fs-display: 48px;   /* hero numbers (ring, score) */
+  --fs-meta:    13px;   /* footnote — labels, metadata, captions */
+  --fs-sub:     15px;   /* subhead — secondary text */
+  --fs-body:    17px;   /* body — primary text (Apple body) */
+  --fs-section: 22px;   /* title2 — section headers */
+  --fs-page:    34px;   /* large title — page titles */
+  --fs-display: 48px;   /* hero numbers — ring center, scores */
   --fs-mega:    72px;   /* focus mode timer */
-
-  /* Legacy aliases (backward compat) */
-  --fs-2xs: 10px;
-  --fs-xs:  11px;
-  --fs-sm:  13px;
-  --fs-md:  15px;
-  --fs-lg:  17px;
-  --fs-xl:  20px;
-  --fs-2xl: 24px;
-  --fs-3xl: 30px;
-  --fs-4xl: 38px;
-  --fs-5xl: 48px;
 
   --fw-regular:  400;
   --fw-medium:   500;
   --fw-semibold: 600;
   --fw-bold:     700;
 
-  --lh-tight:  1.15;
-  --lh-snug:   1.3;
-  --lh-normal: 1.5;
-  --lh-loose:  1.7;
+  --lh-tight:  1.12;   /* large titles */
+  --lh-snug:   1.3;    /* headings */
+  --lh-normal: 1.5;    /* body */
+  --lh-loose:  1.7;    /* relaxed / reflection text */
 
-  --ls-tight:  -0.02em;
+  --ls-tight:  -0.02em;  /* large text */
   --ls-normal: 0;
-  --ls-wide:   0.04em;
-  --ls-xwide:  0.12em;
+  --ls-wide:   0.04em;   /* uppercase labels */
+  --ls-xwide:  0.12em;   /* overlines / metadata */
 
-  /* ---- Spacing scale (8-point grid) ----
-     All spacing is multiples of 8. 4px is the only exception (hairline). */
-  --sp-1:  4px;   /* hairline — borders, tight gaps */
-  --sp-2:  8px;   /* base unit */
-  --sp-3:  12px;  /* 1.5 units — small gaps */
-  --sp-4:  16px;  /* 2 units — card padding */
-  --sp-6:  24px;  /* 3 units — section gaps */
-  --sp-8:  32px;  /* 4 units — large gaps */
-  --sp-10: 40px;  /* 5 units */
-  --sp-12: 48px;  /* 6 units — page padding */
-  --sp-16: 64px;  /* 8 units — hero spacing */
-  --sp-20: 80px;  /* 10 units — max spacing */
-  --sp-24: 96px;  /* 12 units — focus mode */
+  /* ============================================================
+     SPACING — 8-point grid
+     4px is the only sub-grid unit (hairline). Everything else
+     is a multiple of 8.
+     ============================================================ */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
 
-  /* ---- Radii ---- */
-  --r-xs: 4px;
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 14px;
-  --r-xl: 20px;
-  --r-2xl: 28px;
-  --r-pill: 999px;
+  /* ============================================================
+     RADII
+     ============================================================ */
+  --r-xs:    4px;
+  --r-sm:    8px;
+  --r-md:    12px;
+  --r-lg:    16px;
+  --r-xl:    22px;
+  --r-2xl:   28px;
+  --r-pill:  999px;
   --r-circle: 50%;
 
-  /* ---- Shadows (layered for depth) ---- */
-  --sh-sm: 0 1px 2px rgba(0,0,0,0.4);
-  --sh-md: 0 4px 12px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.4);
-  --sh-lg: 0 12px 32px rgba(0,0,0,0.45), 0 4px 8px rgba(0,0,0,0.35);
-  --sh-xl: 0 24px 64px rgba(0,0,0,0.55), 0 8px 16px rgba(0,0,0,0.4);
-  --sh-glow: 0 0 24px var(--c-accent-glow);
-  --sh-inner: inset 0 1px 0 rgba(255,255,255,0.04);
+  /* ============================================================
+     SHADOWS — layered for depth (dark theme)
+     ============================================================ */
+  --sh-sm:    0 1px 2px rgba(0,0,0,0.4);
+  --sh-md:    0 4px 12px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.4);
+  --sh-lg:    0 12px 32px rgba(0,0,0,0.45), 0 4px 8px rgba(0,0,0,0.35);
+  --sh-xl:    0 24px 64px rgba(0,0,0,0.55), 0 8px 16px rgba(0,0,0,0.4);
+  --sh-glow:  0 0 24px var(--c-accent-glow);
+  --sh-inner: inset 0 1px 0 rgba(255,255,255,0.05);
 
-  /* ---- Motion ----
-     Easing curves inspired by iOS — natural, not robotic. */
+  /* ============================================================
+     MOTION — iOS-inspired easing. Fast, meaningful, never
+     distracting. (v3 §24)
+     ============================================================ */
   --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in:     cubic-bezier(0.7, 0, 0.84, 0);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
@@ -145,74 +175,90 @@
   --dur-slow:    400ms;
   --dur-page:    600ms;
 
-  /* ---- Layout ---- */
-  --nav-h: 64px;
-  --max-w: 640px;
-  --tab-w: 640px;
-  --safe-top: env(safe-area-inset-top, 0px);
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
+  --nav-h:    62px;
+  --max-w:    640px;
+  --safe-top:    env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
-  /* ---- Z-index scale ---- */
+  /* ============================================================
+     Z-INDEX scale
+     ============================================================ */
   --z-base:    1;
   --z-sticky:  100;
   --z-nav:     500;
   --z-overlay: 900;
   --z-modal:   1000;
   --z-toast:   2000;
+  --z-focus:   3000;
 }
 
-/* ---- Theme: Light (daytime) ---- */
+/* ============================================================
+   THEME — Light (daytime)
+   ============================================================ */
 [data-theme="light"] {
   --c-bg:           #f5f6f8;
   --c-bg-elev-1:    #ffffff;
   --c-bg-elev-2:    #eef0f4;
   --c-bg-elev-3:    #e4e7ed;
-  --c-bg-glass:     rgba(255, 255, 255, 0.82);
-  --c-border:       rgba(0, 0, 0, 0.08);
-  --c-border-strong:rgba(0, 0, 0, 0.14);
-  --c-border-accent:rgba(0, 122, 204, 0.35);
+  --c-bg-glass:     rgba(255, 255, 255, 0.84);
 
-  --c-text:         #14171f;
-  --c-text-soft:    #4a5263;
-  --c-text-mute:    #7a8395;
-  --c-text-faint:   #b3bac8;
+  --c-border:        rgba(0, 0, 0, 0.08);
+  --c-border-strong: rgba(0, 0, 0, 0.14);
 
-  --c-accent-soft:  rgba(0, 122, 204, 0.10);
-  --c-accent-glow:  rgba(0, 122, 204, 0.20);
+  --c-text:        #14171f;
+  --c-text-soft:   #4a5263;
+  --c-text-mute:   #7a8395;
+  --c-text-faint:  #b3bac8;
+  --c-on-accent:   #ffffff;
 
-  --sh-sm: 0 1px 2px rgba(0,0,0,0.06);
-  --sh-md: 0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
-  --sh-lg: 0 12px 32px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
-  --sh-xl: 0 24px 64px rgba(0,0,0,0.14), 0 8px 16px rgba(0,0,0,0.08);
+  --c-info-soft:      rgba(91, 155, 213, 0.12);
+  --c-healthy-soft:   rgba(76, 175, 133, 0.12);
+  --c-attention-soft: rgba(255, 159, 67, 0.12);
+  --c-danger-soft:    rgba(232, 93, 117, 0.12);
+  --c-strategy-soft:  rgba(178, 102, 212, 0.12);
+
+  --sh-sm:    0 1px 2px rgba(0,0,0,0.06);
+  --sh-md:    0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+  --sh-lg:    0 12px 32px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.06);
+  --sh-xl:    0 24px 64px rgba(0,0,0,0.14), 0 8px 16px rgba(0,0,0,0.08);
   --sh-inner: inset 0 1px 0 rgba(255,255,255,0.6);
 
   --c-heat-0: rgba(0,0,0,0.04);
-  --c-heat-1: rgba(0, 122, 204, 0.18);
-  --c-heat-2: rgba(0, 122, 204, 0.38);
-  --c-heat-3: rgba(0, 122, 204, 0.62);
-  --c-heat-4: rgba(0, 122, 204, 0.88);
+  --c-heat-1: rgba(0, 122, 204, 0.20);
+  --c-heat-2: rgba(0, 122, 204, 0.40);
+  --c-heat-3: rgba(0, 122, 204, 0.64);
+  --c-heat-4: rgba(0, 122, 204, 0.90);
 }
 
-/* ---- Theme: OLED (pure black for AMOLED) ---- */
+/* ============================================================
+   THEME — OLED (pure black for AMOLED)
+   ============================================================ */
 [data-theme="oled"] {
   --c-bg:           #000000;
   --c-bg-elev-1:    #060608;
   --c-bg-elev-2:    #0c0d11;
   --c-bg-elev-3:    #14161c;
-  --c-bg-glass:     rgba(6, 6, 8, 0.82);
+  --c-bg-glass:     rgba(6, 6, 8, 0.84);
 }
 
-/* ---- Accent variants (user-selectable) ---- */
-[data-accent="blue"]   { --c-accent: #007acc; --c-accent-text: #4db8ff; --c-accent-soft: rgba(0,122,204,0.16); --c-accent-glow: rgba(0,122,204,0.35); --c-border-accent: rgba(0,122,204,0.45); }
-[data-accent="green"]  { --c-accent: #2ea043; --c-accent-text: #56d364; --c-accent-soft: rgba(46,160,67,0.16); --c-accent-glow: rgba(46,160,67,0.35); --c-border-accent: rgba(46,160,67,0.45); }
-[data-accent="violet"] { --c-accent: #8957e5; --c-accent-text: #b392f0; --c-accent-soft: rgba(137,87,229,0.16); --c-accent-glow: rgba(137,87,229,0.35); --c-border-accent: rgba(137,87,229,0.45); }
-[data-accent="amber"]  { --c-accent: #d4a543; --c-accent-text: #f0c674; --c-accent-soft: rgba(212,165,67,0.16); --c-accent-glow: rgba(212,165,67,0.35); --c-border-accent: rgba(212,165,67,0.45); }
-[data-accent="rose"]   { --c-accent: #e85d75; --c-accent-text: #ff8195; --c-accent-soft: rgba(232,93,117,0.16); --c-accent-glow: rgba(232,93,117,0.35); --c-border-accent: rgba(232,93,117,0.45); }
-[data-accent="cyan"]   { --c-accent: #00b8d4; --c-accent-text: #5ee3ff; --c-accent-soft: rgba(0,184,212,0.16); --c-accent-glow: rgba(0,184,212,0.35); --c-border-accent: rgba(0,184,212,0.45); }
-[data-accent="lime"]   { --c-accent: #7cb342; --c-accent-text: #aed581; --c-accent-soft: rgba(124,179,66,0.16); --c-accent-glow: rgba(124,179,66,0.35); --c-border-accent: rgba(124,179,66,0.45); }
-[data-accent="slate"]  { --c-accent: #8b9dad; --c-accent-text: #b8c5d2; --c-accent-soft: rgba(139,157,173,0.16); --c-accent-glow: rgba(139,157,173,0.35); --c-border-accent: rgba(139,157,173,0.45); }
+/* ============================================================
+   ACCENT — user-selectable identity color (only ONE active)
+   Used for: progress ring, primary buttons, active nav, focus.
+   Never for: domain identity, state, decoration.
+   ============================================================ */
+[data-accent="blue"]   { --c-accent: #007acc; --c-accent-text: #4db8ff; --c-accent-soft: rgba(0,122,204,0.14); --c-accent-glow: rgba(0,122,204,0.32); --c-accent-border: rgba(0,122,204,0.45); }
+[data-accent="green"]  { --c-accent: #2ea043; --c-accent-text: #56d364; --c-accent-soft: rgba(46,160,67,0.14); --c-accent-glow: rgba(46,160,67,0.32); --c-accent-border: rgba(46,160,67,0.45); }
+[data-accent="violet"] { --c-accent: #8957e5; --c-accent-text: #b392f0; --c-accent-soft: rgba(137,87,229,0.14); --c-accent-glow: rgba(137,87,229,0.32); --c-accent-border: rgba(137,87,229,0.45); }
+[data-accent="amber"]  { --c-accent: #d4a543; --c-accent-text: #f0c674; --c-accent-soft: rgba(212,165,67,0.14); --c-accent-glow: rgba(212,165,67,0.32); --c-accent-border: rgba(212,165,67,0.45); }
+[data-accent="rose"]   { --c-accent: #e85d75; --c-accent-text: #ff8195; --c-accent-soft: rgba(232,93,117,0.14); --c-accent-glow: rgba(232,93,117,0.32); --c-accent-border: rgba(232,93,117,0.45); }
+[data-accent="cyan"]   { --c-accent: #00b8d4; --c-accent-text: #5ee3ff; --c-accent-soft: rgba(0,184,212,0.14); --c-accent-glow: rgba(0,184,212,0.32); --c-accent-border: rgba(0,184,212,0.45); }
 
-/* ---- Reduced motion ---- */
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

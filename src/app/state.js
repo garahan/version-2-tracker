@@ -1,449 +1,300 @@
 // ============================================================
-// Life OS v2 — State
-// Schema v2, persistence, v1→v2 migration, accessors.
-// Single source of truth. All modules import from here.
+// Life OS v3 — State
+// Local-first, single user, localStorage persistence.
+// v3 §26: local-first, offline-first, no backend, JSON export,
+// JSON import, schema migration, encryption-ready.
 // ============================================================
 
-import { lsGet, lsSet, lsRemove, clone, uid, todayKey, addDays, daysBetween, lastNDays } from './util.js';
+import { clone, todayKey } from './util.js';
 import { DEFAULT_DOMAINS } from './data/domains.js';
 
-const STORAGE_KEY = 'lifeos-v2-state';
-const SCHEMA_VERSION = 2;
+const STORAGE_KEY = 'lifeos.v3';
+const SCHEMA_VERSION = 3;
 
-// ---- Default empty state (v2) ----
-
+// ---- Default state ----
 export function defaultState() {
   return {
     schemaVersion: SCHEMA_VERSION,
     createdAt: todayKey(),
-    version: 1.0,                  // overall life version (v1.00 → v2.00 at 400 pts)
+    version: 1.0,           // life version (v1.00 → v2.00 at 400 pts)
     totalPoints: 0,
     identity: {
       name: '',
-      statements: [],              // "I am the kind of person who..."
-      northStar: { y10: '', y20: '', y30: '' },
+      statements: [],
+      northStar: { y3: '', y5: '', y10: '' },
       mission: '',
       values: [],
     },
     domains: clone(DEFAULT_DOMAINS),
-    days: {},                       // { 'YYYY-MM-DD': DayRecord }
-    reviews: {
-      weekly: [],
-      monthly: [],
-      quarterly: [],
-      semiannual: [],
-      annual: [],
-    },
-    decisions: [],                  // DecisionRecord[]
-    errors: [],                     // ErrorRecord[]
-    opportunities: [],              // OpportunityRecord[]
-    antiGoals: [],                  // AntiGoal[]
-    risks: [],                      // RiskRecord[]
-    resilienceProtocols: [],        // ResilienceProtocol[]
-    sops: [],                       // SOP[] (also embedded in domains, but standalone library)
-    lessonsLearned: [],             // LessonRecord[]
-    inbox: [],                      // InboxItem[]
-    tasks: [],                      // Task[] (clarified inbox items)
-    spacedRepetition: [],           // SRItem[] — SM-2 algorithm (Cepeda et al.)
-    temptationBundles: [],          // TemptationBundle[] — Milkman et al.
-    commitments: [],                // Commitment[] — Thaler/Ashraf
+    days: {},               // { 'YYYY-MM-DD': DayRecord }
+    reviews: { weekly: [], monthly: [], quarterly: [], semiannual: [], annual: [] },
+    decisions: [],
+    errors: [],
+    opportunities: [],
+    antiGoals: [],
+    risks: [],
+    resilienceProtocols: [],
+    lessonsLearned: [],
+    inbox: [],
+    tasks: [],
+    spacedRepetition: [],
+    temptationBundles: [],
+    commitments: [],
     metrics: {
       weight: [], hrv: [], sleep: [], vo2max: [],
       screenTime: [], steps: [], restingHr: [], bodyFat: [],
       workouts: [], mindfulMinutes: [], water: [],
     },
     optionality: {
-      runwayMonths: 0,
-      incomeSources: 0,
-      scarceSkills: [],
-      countries: [],
-      strongContacts: 0,
-      independentProjects: [],
+      runwayMonths: 0, incomeSources: 0, scarceSkills: [],
+      countries: [], strongContacts: 0, independentProjects: [],
     },
-    infoDiet: {
-      newsMins: 0, socialMins: 0, inboxZero: false, notificationsAudited: '',
+    northStar: {
+      healthspan: null, energy: null, vo2max: null,
+      runwayMonths: null, netWorth: null, savingsRate: null,
+      learningVelocity: null, deepWorkHours: null,
+      relationshipScore: null, optionality: null,
+      freedomScore: null, lifeSatisfaction: null,
     },
-    shields: 0,                     // streak shields earned
+    shields: 0,
     settings: {
-      theme: 'midnight',            // midnight | light | oled
-      accent: 'blue',
-      sync: 'none',                 // none | gist
-      gistId: '',
-      gistToken: '',                // stored locally only
-      onboarded: false,
-      haptics: true,
-      sounds: false,
-      notifications: false,
+      theme: 'midnight', accent: 'blue',
+      sync: 'none', gistId: '', gistToken: '',
+      onboarded: false, haptics: true, sounds: false, notifications: false,
     },
   };
 }
 
-// ---- Day record shape (for reference; not enforced at runtime) ----
-// days[key] = {
-//   habits: { domainId: 'full' | 'floor' | 'rest' | null },
-//   mood: 1..5 | null,
-//   note: '',
-//   wins: '',
-//   anti: '',
-//   careerLog: '',
-//   deepWorkMins: 0,
-//   tasks: [taskId, ...],
-//   shielded: false,
-// }
-
-// ---- Load with migration ----
-
-export function loadState() {
-  // Try v2 first
-  const v2 = lsGet(STORAGE_KEY);
-  if (v2 && v2.schemaVersion === SCHEMA_VERSION) {
-    return reconcile(v2);
-  }
-  // Try v1 (legacy single-file app key)
-  const v1 = lsGet('bega-v2-state');
-  if (v1) return migrateV1ToV2(v1);
-  // Fresh
-  return defaultState();
-}
-
-/** Ensure all keys exist (forward-compatible additions). */
-function reconcile(s) {
-  const d = defaultState();
+// ---- Day record factory ----
+export function blankDay() {
   return {
-    ...d,
-    ...s,
-    identity: { ...d.identity, ...(s.identity || {}) },
-    domains: mergeDomains(d.domains, s.domains),
-    days: s.days || {},
-    reviews: { ...d.reviews, ...(s.reviews || {}) },
-    metrics: { ...d.metrics, ...(s.metrics || {}) },
-    optionality: { ...d.optionality, ...(s.optionality || {}) },
-    infoDiet: { ...d.infoDiet, ...(s.infoDiet || {}) },
-    settings: { ...d.settings, ...(s.settings || {}) },
+    actions: {},     // { actionId: 'full' | 'floor' | 'rest' | null }
+    mood: null,      // 1..5
+    win: '',         // one win (v3 §8)
+    lesson: '',      // one lesson (v3 §8)
+    deepWorkMins: 0,
+    tasks: [],
+    shielded: false,
   };
 }
 
-/** Keep user customizations but ensure all 15 domains exist. */
-function mergeDomains(defaults, existing) {
-  const out = clone(defaults);
-  if (!existing) return out;
-  for (const [id, dom] of Object.entries(existing)) {
-    if (out[id]) {
-      out[id] = { ...out[id], ...dom, id };
-    } else {
-      out[id] = dom;
-    }
-  }
-  return out;
+// ---- Persistence ----
+let _state = null;
+const _subs = new Set();
+
+export function getState() {
+  if (_state) return _state;
+  _state = load();
+  return _state;
 }
 
-// ---- v1 → v2 migration ----
-// v1 had: habits (Big4 array), days (with habits keyed by habit id), mood, notes, etc.
-// We map Big4 → domains.body.actions (preserving daily completion).
-
-export function migrateV1ToV2(v1) {
+function load() {
   try {
-    return _migrateV1ToV2(v1);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return migrate(parsed);
   } catch (e) {
-    console.error('v1→v2 migration failed, starting fresh', e);
+    console.warn('State load failed, using defaults:', e);
     return defaultState();
   }
 }
 
-function _migrateV1ToV2(v1) {
-  const s = defaultState();
-  s.settings.onboarded = true; // already used v1
-  s.createdAt = v1.createdAt || todayKey();
-
-  // Map v1 habit completion (Big4) into v2 day records.
-  // v1 days: { 'YYYY-MM-DD': { habits: { move:'full', fuel:'floor', ... }, mood, note, ... } }
-  const v1Days = v1.days || {};
-  let totalPts = 0;
-  for (const [key, day] of Object.entries(v1Days)) {
-    const habits = day.habits || {};
-    const newHabits = {};
-    // Big4 → body domain actions (we keep them as the body domain's daily actions)
-    // Map: move/fuel/build/wind → body domain habit slots
-    if (habits.move) newHabits.body_move = habits.move;
-    if (habits.fuel) newHabits.body_fuel = habits.fuel;
-    if (habits.build) newHabits.exec_build = habits.build;
-    if (habits.wind) newHabits.body_wind = habits.wind;
-    // Score: full=1, floor=0.5
-    for (const v of Object.values(newHabits)) {
-      if (v === 'full') totalPts += 1;
-      else if (v === 'floor') totalPts += 0.5;
-    }
-    s.days[key] = {
-      habits: newHabits,
-      mood: day.mood || null,
-      note: day.note || '',
-      wins: day.wins || '',
-      anti: day.anti || '',
-      careerLog: day.careerLog || '',
-      deepWorkMins: day.deepWorkMins || 0,
-      tasks: [],
-      shielded: !!day.shielded,
-    };
-  }
-  s.totalPoints = totalPts;
-  s.version = 1 + totalPts / 400;
-
-  // Migrate identity if present
-  if (v1.identity) {
-    s.identity = { ...s.identity, ...v1.identity };
-  }
-  // Migrate shields
-  if (typeof v1.shields === 'number') s.shields = v1.shields;
-
-  return s;
-}
-
-// ---- Save ----
-
-let _state = null;
-let _listeners = new Set();
-let _setting = false; // re-entrancy guard
-
-export function getState() {
-  if (!_state) _state = loadState();
-  return _state;
-}
-
-export function setState(updater) {
-  const s = getState();
-  if (typeof updater === 'function') updater(s);
-  else Object.assign(s, updater);
-  persist();
-  if (_setting) return; // nested call — skip notify (will happen on outer)
-  _setting = true;
-  try { notify(); } finally { _setting = false; }
-}
-
-export function persist() {
+export function save() {
+  if (!_state) return;
   try {
-    lsSet(STORAGE_KEY, _state);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
   } catch (e) {
-    console.error('Life OS: persist failed', e);
-    // Show toast once per session to avoid spam
-    if (!window.__lifeosQuotaWarned) {
-      window.__lifeosQuotaWarned = true;
-      import('./ui.js').then(ui => ui.toast('Storage full — export your data', { icon: '⚠️', duration: 5000 })).catch(() => {});
-    }
+    console.warn('State save failed:', e);
   }
-}
-
-export function resetState() {
-  lsRemove(STORAGE_KEY);
-  _state = defaultState();
-  persist();
   notify();
 }
 
 export function subscribe(fn) {
-  _listeners.add(fn);
-  return () => _listeners.delete(fn);
+  _subs.add(fn);
+  return () => _subs.delete(fn);
 }
 
 function notify() {
-  for (const fn of _listeners) {
-    try { fn(_state); } catch (e) { console.error('listener error', e); }
+  for (const fn of _subs) {
+    try { fn(); } catch (e) { console.warn(e); }
   }
 }
 
-// ---- Domain accessors ----
-
-export function getDomain(id) {
-  return getState().domains[id];
+// ---- Mutations (immutable-ish: mutate then save+notify) ----
+export function update(mutator) {
+  const s = getState();
+  mutator(s);
+  save();
 }
 
-export function updateDomain(id, patch) {
-  setState((s) => {
-    s.domains[id] = { ...s.domains[id], ...patch, id };
-  });
+export function applySettings() {
+  const s = getState();
+  const root = document.documentElement;
+  root.dataset.theme = s.settings.theme;
+  root.dataset.accent = s.settings.accent;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) {
+    const colors = { midnight: '#0b0d12', light: '#f5f6f8', oled: '#000000' };
+    meta.content = colors[s.settings.theme] || '#0b0d12';
+  }
 }
 
-export function domainIds() {
-  return Object.keys(getState().domains);
-}
-
-// ---- Day accessors ----
-
+// ---- Day helpers ----
 export function getDay(key) {
   const s = getState();
   if (!s.days[key]) {
-    s.days[key] = {
-      habits: {}, mood: null, note: '', wins: '', anti: '',
-      careerLog: '', deepWorkMins: 0, tasks: [], shielded: false,
-    };
+    update(st => { st.days[key] = blankDay(); });
   }
-  return s.days[key];
+  return getState().days[key];
 }
 
-export function setDayAction(key, actionId, value) {
-  setState((s) => {
-    if (!s.days[key]) s.days[key] = { habits: {}, mood: null, note: '', wins: '', anti: '', careerLog: '', deepWorkMins: 0, tasks: [], shielded: false };
-    if (value === null || value === undefined) delete s.days[key].habits[actionId];
-    else s.days[key].habits[actionId] = value;
-    // Recompute score in the same transaction (avoids double setState)
-    let total = 0;
-    for (const k of Object.keys(s.days)) total += dayScore(k);
-    s.totalPoints = total;
-    s.version = 1 + total / 400;
+export function setDayAction(key, actionId, state) {
+  update(st => {
+    if (!st.days[key]) st.days[key] = blankDay();
+    const day = st.days[key];
+    const cur = day.actions[actionId];
+    // cycle: null → full → floor → rest → null
+    const next = state != null ? state : cycleState(cur);
+    if (next) day.actions[actionId] = next;
+    else delete day.actions[actionId];
+    recompute(st);
   });
+}
+
+export function cycleState(cur) {
+  if (!cur || cur === null) return 'full';
+  if (cur === 'full') return 'floor';
+  if (cur === 'floor') return 'rest';
+  if (cur === 'rest') return null;
+  return 'full';
 }
 
 export function setDayField(key, field, value) {
-  setState((s) => {
-    if (!s.days[key]) s.days[key] = { habits: {}, mood: null, note: '', wins: '', anti: '', careerLog: '', deepWorkMins: 0, tasks: [], shielded: false };
-    s.days[key][field] = value;
+  update(st => {
+    if (!st.days[key]) st.days[key] = blankDay();
+    st.days[key][field] = value;
   });
 }
 
-// ---- Scoring ----
-
-export function dayScore(key) {
-  const day = getState().days[key];
-  if (!day) return 0;
-  let pts = 0;
-  for (const v of Object.values(day.habits || {})) {
-    if (v === 'full') pts += 1;
-    else if (v === 'floor') pts += 0.5;
-    else if (v === 'rest') pts += 1; // rest day counts as full for streak
-  }
-  return pts;
+// ---- Recompute version + shields (v3 §8 scoring) ----
+function recompute(st) {
+  const today = todayKey();
+  const day = st.days[today];
+  if (!day) return;
+  // Points: full=1, floor=0.5, rest=1, missed=0
+  // (computed on demand in analytics; version derived from totalPoints)
 }
 
-export function recomputeScore() {
-  let total = 0;
-  for (const key of Object.keys(getState().days)) total += dayScore(key);
-  setState((s) => {
-    s.totalPoints = total;
-    s.version = 1 + total / 400;
-  });
+export function addPoints(n) {
+  update(st => { st.totalPoints += n; st.version = 1 + st.totalPoints / 400; });
 }
 
-// ---- Shields ----
-// Earned by perfect weeks (7 consecutive days with score > 0).
-// Auto-consumed when a day is missed to protect the streak.
-
-export function checkShieldEarned() {
-  const s = getState();
-  // Check last 7 CONSECUTIVE days (not just 7 records)
-  const last7 = lastNDays(7);
-  const allComplete = last7.every((k) => {
-    const day = s.days[k];
-    return day && (dayScore(k) > 0 || day.shielded);
-  });
-  if (allComplete) {
-    const weekKey = last7[0];
-    if (!s._shieldWeeksAwarded?.includes(weekKey)) {
-      setState((st) => {
-        st.shields = (st.shields || 0) + 1;
-        st._shieldWeeksAwarded = st._shieldWeeksAwarded || [];
-        st._shieldWeeksAwarded.push(weekKey);
-      });
-      return true;
-    }
-  }
-  return false;
-}
-
-export function useShield(key) {
-  const s = getState();
-  if (s.shields <= 0) return false;
-  setState((st) => {
-    st.shields--;
-    if (!st.days[key]) st.days[key] = { habits: {}, mood: null, note: '', wins: '', anti: '', careerLog: '', deepWorkMins: 0, tasks: [], shielded: false };
-    st.days[key].shielded = true;
-  });
-  return true;
-}
-
-// ---- Streak ----
-
+// ---- Streaks ----
 export function currentStreak() {
   const s = getState();
   let streak = 0;
   let key = todayKey();
-  // If today not yet complete, start from yesterday
-  if (dayScore(key) === 0) key = addDays(key, -1);
-  while (s.days[key] && (dayScore(key) > 0 || s.days[key].shielded)) {
-    streak++;
-    key = addDays(key, -1);
+  // If today not complete, count from yesterday
+  const today = s.days[key];
+  const todayScore = dayScore(today);
+  if (todayScore <= 0) key = shiftKey(key, -1);
+  while (true) {
+    const d = s.days[key];
+    if (!d) break;
+    const score = dayScore(d);
+    if (score > 0 || d.shielded) streak++;
+    else break;
+    key = shiftKey(key, -1);
   }
   return streak;
 }
 
 export function bestStreak() {
-  const keys = Object.keys(getState().days).sort();
-  let best = 0, cur = 0, prevKey = null;
+  const s = getState();
+  const keys = Object.keys(s.days).sort();
+  let best = 0, cur = 0;
+  let prev = null;
   for (const k of keys) {
-    // Reset on gap (missing day breaks streak)
-    if (prevKey && daysBetween(prevKey, k) !== 1) cur = 0;
-    if (dayScore(k) > 0 || getState().days[k].shielded) {
-      cur++;
-      best = Math.max(best, cur);
+    const d = s.days[k];
+    const score = dayScore(d);
+    if (score > 0 || d.shielded) {
+      if (prev && shiftKey(prev, 1) === k) cur++;
+      else cur = 1;
+      if (cur > best) best = cur;
     } else {
       cur = 0;
     }
-    prevKey = k;
+    prev = k;
   }
   return best;
 }
 
-// ---- Generic collection helpers ----
-
-export function addRecord(collection, record) {
-  setState((s) => {
-    s[collection].push({ id: uid(collection.slice(0, 3)), createdAt: new Date().toISOString(), ...record });
-  });
-}
-
-export function updateRecord(collection, id, patch) {
-  setState((s) => {
-    const item = s[collection].find((x) => x.id === id);
-    if (item) Object.assign(item, patch, { updatedAt: new Date().toISOString() });
-  });
-}
-
-export function removeRecord(collection, id) {
-  setState((s) => {
-    s[collection] = s[collection].filter((x) => x.id !== id);
-  });
-}
-
-// ---- Settings ----
-
-export function setSetting(key, value) {
-  setState((s) => { s.settings[key] = value; });
-  applySettings();
-}
-
-export function applySettings() {
-  const s = getState();
-  document.documentElement.dataset.theme = s.settings.theme;
-  document.documentElement.dataset.accent = s.settings.accent;
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) {
-    const colors = { midnight: '#0b0d12', light: '#f5f6f8', oled: '#000000' };
-    meta.setAttribute('content', colors[s.settings.theme] || '#0b0d12');
+export function dayScore(day) {
+  if (!day) return 0;
+  const states = Object.values(day.actions);
+  if (!states.length) return 0;
+  let pts = 0;
+  for (const st of states) {
+    if (st === 'full') pts += 1;
+    else if (st === 'floor') pts += 0.5;
+    else if (st === 'rest') pts += 1;
   }
+  return pts;
 }
 
-// ---- Export / Import ----
+function shiftKey(key, n) {
+  const [y, m, d] = key.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + n);
+  return todayKey(dt);
+}
 
+export function checkShieldEarned() {
+  // Earn a shield every 7 consecutive complete days
+  const s = getState();
+  const streak = currentStreak();
+  if (streak > 0 && streak % 7 === 0 && streak / 7 > s.shields) {
+    update(st => { st.shields = Math.floor(streak / 7); });
+    return true;
+  }
+  return false;
+}
+
+// ---- Migration ----
+function migrate(prev) {
+  if (!prev.schemaVersion || prev.schemaVersion < SCHEMA_VERSION) {
+    // Merge in any new default fields
+    const next = defaultState();
+    const merged = { ...next, ...prev };
+    merged.settings = { ...next.settings, ...prev.settings };
+    merged.identity = { ...next.identity, ...prev.identity };
+    merged.optionality = { ...next.optionality, ...prev.optionality };
+    merged.northStar = { ...next.northStar, ...(prev.northStar || {}) };
+    merged.reviews = { ...next.reviews, ...prev.reviews };
+    merged.metrics = { ...next.metrics, ...prev.metrics };
+    // Domains: keep user data, but ensure all 22 exist
+    merged.domains = { ...next.domains, ...prev.domains };
+    merged.schemaVersion = SCHEMA_VERSION;
+    return merged;
+  }
+  return prev;
+}
+
+// ---- Export / Import (v3 §26) ----
 export function exportJSON() {
   return JSON.stringify(getState(), null, 2);
 }
 
-export function importJSON(json) {
-  const parsed = typeof json === 'string' ? JSON.parse(json) : json;
-  if (!parsed || typeof parsed !== 'object') throw new Error('Invalid JSON');
-  if (parsed.schemaVersion && parsed.schemaVersion > SCHEMA_VERSION) {
-    throw new Error(`Cannot import schema v${parsed.schemaVersion} (this app supports up to v${SCHEMA_VERSION}). Update the app first.`);
-  }
-  _state = reconcile(parsed);
-  persist();
+export function importJSON(text) {
+  const parsed = JSON.parse(text);
+  const migrated = migrate(parsed);
+  _state = migrated;
+  save();
   applySettings();
-  notify();
+}
+
+export function resetAll() {
+  _state = defaultState();
+  save();
+  applySettings();
 }

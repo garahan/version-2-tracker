@@ -1,136 +1,74 @@
 // ============================================================
-// Life OS v2 — Inbox (capture → clarify → schedule → archive)
-// GTD-style flow. Nothing lives only in your head.
+// Life OS v3 — Inbox (GTD capture)
 // ============================================================
 
 import { el } from '../dom.js';
-import { getState, addRecord, updateRecord, removeRecord } from '../state.js';
-import { toast, promptDialog, confirmDialog } from '../ui.js';
-import { uid, todayKey } from '../util.js';
+import { getState, update } from '../state.js';
+import { todayKey, uid } from '../util.js';
+import { toast } from '../ui.js';
+import { go } from '../main.js';
 
 export function renderInbox() {
   const s = getState();
   const items = s.inbox || [];
 
   return el('div', { class: 'page' }, [
-    el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title' }, ['Inbox']),
-      el('div', { class: 'app-subtitle' }, ['Capture · clarify · schedule · archive']),
+    el('div', { class: 'flex items-center gap-2' }, [
+      el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => go('more') } }, ['‹ Back']),
     ]),
+    el('div', { class: 'app-title', style: { marginTop: 'var(--sp-2)' } }, ['Inbox']),
+    el('div', { class: 'app-subtitle' }, ['Capture · clarify · archive']),
 
     // Capture bar
-    el('div', { class: 'capture mb-4' }, [
+    el('div', { class: 'capture', style: { marginTop: 'var(--sp-4)' } }, [
       el('input', {
-        class: 'capture-input',
-        id: 'inbox-capture',
-        placeholder: 'Capture anything… (Enter to save)',
+        class: 'capture-input', placeholder: 'Capture anything...',
         on: { keydown: (e) => {
           if (e.key === 'Enter' && e.target.value.trim()) {
-            addRecord('inbox', { text: e.target.value.trim(), status: 'raw', createdAt: todayKey() });
+            const text = e.target.value.trim();
+            update(st => { st.inbox.push({ id: uid('inb'), text, status: 'raw', created: todayKey() }); });
             e.target.value = '';
             toast('Captured');
-            rerender();
           }
         } }
       }),
-      el('button', { class: 'btn btn--primary btn--sm', on: { click: () => {
-        const inp = document.getElementById('inbox-capture');
-        if (inp.value.trim()) {
-          addRecord('inbox', { text: inp.value.trim(), status: 'raw', createdAt: todayKey() });
-          inp.value = '';
-          toast('Captured');
-          rerender();
-        }
-      } } }, ['Add']),
     ]),
 
     // Counts
-    el('div', { class: 'flex gap-2 mb-4' }, [
-      el('span', { class: 'chip' }, [`Raw: ${items.filter(i => i.status === 'raw').length}`]),
-      el('span', { class: 'chip chip--accent' }, [`Actionable: ${items.filter(i => i.status === 'action').length}`]),
-      el('span', { class: 'chip' }, [`Someday: ${items.filter(i => i.status === 'someday').length}`]),
-      el('span', { class: 'chip' }, [`Archived: ${items.filter(i => i.status === 'archived').length}`]),
+    el('div', { class: 'flex gap-2 mt-4' }, [
+      el('span', { class: 'chip' }, ['Raw: ' + items.filter(i => (i.status || 'raw') === 'raw').length]),
+      el('span', { class: 'chip chip--info' }, ['Action: ' + items.filter(i => i.status === 'action').length]),
+      el('span', { class: 'chip chip--strategy' }, ['Scheduled: ' + items.filter(i => i.status === 'scheduled').length]),
+      el('span', { class: 'chip chip--healthy' }, ['Archived: ' + items.filter(i => i.status === 'archived').length]),
     ]),
 
     // List
-    items.length === 0
-      ? emptyState()
-      : el('div', { class: 'list' }, items.map(itemRow)),
+    el('div', { class: 'card', style: { marginTop: 'var(--sp-4)' } }, items.length === 0
+      ? [el('div', { class: 'empty' }, [el('div', { class: 'empty-icon' }, ['📥']), el('div', { class: 'empty-title' }, ['Inbox empty'])])]
+      : items.map(item =>
+        el('div', { class: 'list-item' }, [
+          el('div', { class: 'list-item-body' }, [
+            el('div', { class: 'list-item-title' }, [item.text]),
+            el('div', { class: 'list-item-sub' }, [item.created || todayKey(), ' · ', item.status || 'raw']),
+          ]),
+          el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => cycleItem(item.id) } }, ['→']),
+          el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => deleteItem(item.id) } }, ['×']),
+        ])
+      )
+    ),
   ]);
 }
 
-function itemRow(item) {
-  const statusChip = ({
-    raw: el('span', { class: 'chip' }, ['Raw']),
-    action: el('span', { class: 'chip chip--accent' }, ['Action']),
-    someday: el('span', { class: 'chip' }, ['Someday']),
-    archived: el('span', { class: 'chip' }, ['Archived']),
-  })[item.status] || el('span', { class: 'chip' }, [item.status]);
-
-  return el('div', { class: 'list-item' }, [
-    el('div', { class: 'list-item-body' }, [
-      el('div', { class: 'list-item-title' }, [item.text]),
-      el('div', { class: 'list-item-sub' }, [item.createdAt || '']),
-    ]),
-    statusChip,
-    el('button', { class: 'btn btn--ghost btn--sm btn--icon', on: { click: () => clarify(item) } }, ['→']),
-    el('button', { class: 'btn btn--ghost btn--sm btn--icon', on: { click: async () => {
-      if (await confirmDialog({ title: 'Delete?', message: item.text, confirmText: 'Delete', danger: true })) {
-        removeRecord('inbox', item.id);
-        rerender();
-      }
-    } } }, ['×']),
-  ]);
+function cycleItem(id) {
+  const order = ['raw', 'action', 'scheduled', 'archived'];
+  update(st => {
+    const item = st.inbox.find(i => i.id === id);
+    if (!item) return;
+    const cur = order.indexOf(item.status || 'raw');
+    item.status = order[(cur + 1) % order.length];
+  });
 }
 
-function clarify(item) {
-  // Quick action menu
-  const body = el('div', {}, [
-    el('p', { class: 'text-sm text-soft mb-4' }, [item.text]),
-    el('div', { class: 'flex flex-col gap-2' }, [
-      el('button', { class: 'btn btn--primary btn--block', on: { click: () => {
-        updateRecord('inbox', item.id, { status: 'action' });
-        toast('Marked actionable');
-        rerender();
-        closeAllSafe();
-      } } }, ['→ Actionable (do it)']),
-      el('button', { class: 'btn btn--block', on: { click: () => {
-        updateRecord('inbox', item.id, { status: 'someday' });
-        toast('Moved to Someday');
-        rerender();
-        closeAllSafe();
-      } } }, ['📅 Someday / maybe']),
-      el('button', { class: 'btn btn--block', on: { click: () => {
-        updateRecord('inbox', item.id, { status: 'archived' });
-        toast('Archived');
-        rerender();
-        closeAllSafe();
-      } } }, ['🗄️ Archive']),
-      el('button', { class: 'btn btn--danger btn--block', on: { click: () => {
-        removeRecord('inbox', item.id);
-        toast('Deleted');
-        rerender();
-        closeAllSafe();
-      } } }, ['🗑️ Delete']),
-    ]),
-  ]);
-  openModalSafe(body, 'Clarify');
+function deleteItem(id) {
+  update(st => { st.inbox = st.inbox.filter(i => i.id !== id); });
 }
-
-function emptyState() {
-  return el('div', { class: 'empty' }, [
-    el('div', { class: 'empty-icon' }, ['📥']),
-    el('div', { class: 'empty-title' }, ['Inbox empty']),
-    el('div', { class: 'empty-body' }, ['Capture anything on your mind above.']),
-  ]);
-}
-
-// Avoid circular imports — use dynamic import for UI host
-let _ui = null;
-async function getUI() {
-  if (!_ui) _ui = await import('../ui.js');
-  return _ui;
-}
-function openModalSafe(body, title) { getUI().then(ui => ui.openModal(body, { title })); }
-function closeAllSafe() { getUI().then(ui => ui.closeAll()); }
-function rerender() { window.__lifeosRerender?.(); }

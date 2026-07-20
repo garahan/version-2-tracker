@@ -1,249 +1,121 @@
 // ============================================================
-// Life OS v2 — Risks, Resilience, Anti-Goals, Optionality
+// Life OS v3 — Risk Engine (v3 §16)
+// Risk register, resilience protocols, anti-goals, optionality.
 // ============================================================
 
 import { el } from '../dom.js';
-import { getState, addRecord, removeRecord, setState } from '../state.js';
-import { toast, openModal, closeModal, confirmDialog } from '../ui.js';
-import { todayKey, fmtDate } from '../util.js';
+import { getState, update } from '../state.js';
+import { todayKey, uid } from '../util.js';
+import { toast, prompt } from '../ui.js';
+import { go } from '../main.js';
 
 export function renderRisks() {
   const s = getState();
   const risks = s.risks || [];
-  const protocols = s.resilienceProtocols || [];
   const antiGoals = s.antiGoals || [];
+  const protocols = s.resilienceProtocols || [];
+  const opt = s.optionality || {};
 
   return el('div', { class: 'page' }, [
-    el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title' }, ['Risks & Resilience']),
-      el('div', { class: 'app-subtitle' }, ['Risk register · protocols · anti-goals · optionality']),
+    el('div', { class: 'flex items-center gap-2' }, [
+      el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => go('more') } }, ['‹ Back']),
     ]),
-
-    // Anti-goals
-    el('div', { class: 'section-head' }, [
-      el('div', { class: 'section-title' }, [`Anti-goals · ${antiGoals.length}`]),
-      el('button', { class: 'section-action', on: { click: newAntiGoal } }, ['+ Add']),
-    ]),
-    antiGoals.length === 0
-      ? el('div', { class: 'empty mb-6' }, [el('div', { class: 'empty-icon' }, ['🚫']), el('div', { class: 'empty-title' }, ['No anti-goals']), el('div', { class: 'empty-body' }, ['What will you NEVER do?'])])
-      : el('div', { class: 'list mb-6' }, antiGoals.map(antiGoalRow)),
+    el('div', { class: 'app-title', style: { marginTop: 'var(--sp-2)' } }, ['Risks']),
+    el('div', { class: 'app-subtitle' }, ['Register · protocols · anti-goals · optionality']),
 
     // Risk register
-    el('div', { class: 'section-head' }, [
-      el('div', { class: 'section-title' }, [`Risk register · ${risks.length}`]),
-      el('button', { class: 'section-action', on: { click: newRisk } }, ['+ Add']),
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-4)' } }, [
+      el('div', { class: 'section-title' }, [`Risk register (${risks.length})`]),
+      el('button', { class: 'btn btn--ghost btn--sm', on: { click: addRisk } }, ['+']),
     ]),
-    risks.length === 0
-      ? el('div', { class: 'empty mb-6' }, [el('div', { class: 'empty-icon' }, ['⚠️']), el('div', { class: 'empty-title' }, ['No risks logged']), el('div', { class: 'empty-body' }, ['What could destroy the system?'])])
-      : el('div', { class: 'list mb-6' }, risks.map(riskRow)),
+    el('div', { class: 'card' }, risks.length === 0
+      ? [el('div', { class: 'empty' }, [el('div', { class: 'empty-icon' }, ['🛡️']), el('div', { class: 'empty-title' }, ['No risks logged'])])]
+      : risks.map(r => el('div', { class: 'list-item' }, [
+          el('div', { class: 'list-item-body' }, [
+            el('div', { class: 'list-item-title' }, [r.risk]),
+            el('div', { class: 'list-item-sub' }, [
+              r.likelihood != null ? `Likelihood: ${r.likelihood}/5 · ` : '',
+              r.impact != null ? `Impact: ${r.impact}/5 · ` : '',
+              r.mitigation || '',
+            ]),
+          ]),
+          el('span', { class: `chip ${(r.likelihood || 0) * (r.impact || 0) >= 12 ? 'chip--danger' : (r.likelihood || 0) * (r.impact || 0) >= 6 ? 'chip--attention' : 'chip--healthy'}` }, [String((r.likelihood || 0) * (r.impact || 0))]),
+        ]))
+    ),
+
+    // Anti-goals
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
+      el('div', { class: 'section-title' }, [`Anti-goals (${antiGoals.length})`]),
+      el('button', { class: 'btn btn--ghost btn--sm', on: { click: addAntiGoal } }, ['+']),
+    ]),
+    el('div', { class: 'card' }, antiGoals.length === 0
+      ? [el('div', { class: 'empty' }, [el('div', { class: 'empty-title' }, ['No anti-goals'])])]
+      : antiGoals.map(g => el('div', { class: 'list-item' }, [
+          el('div', { class: 'list-item-body' }, [el('div', { class: 'list-item-title' }, [g.text || g])]),
+          el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => update(st => { st.antiGoals = st.antiGoals.filter(x => (x.id || x) !== (g.id || g)); }) } }, ['×']),
+        ]))
+    ),
 
     // Resilience protocols
-    el('div', { class: 'section-head' }, [
-      el('div', { class: 'section-title' }, [`Resilience protocols · ${protocols.length}`]),
-      el('button', { class: 'section-action', on: { click: newProtocol } }, ['+ Add']),
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
+      el('div', { class: 'section-title' }, [`Resilience protocols (${protocols.length})`]),
+      el('button', { class: 'btn btn--ghost btn--sm', on: { click: addProtocol } }, ['+']),
     ]),
-    protocols.length === 0
-      ? el('div', { class: 'empty mb-6' }, [el('div', { class: 'empty-icon' }, ['🛡️']), el('div', { class: 'empty-title' }, ['No protocols']), el('div', { class: 'empty-body' }, ['Pre-written checklists for rare critical events.'])])
-      : el('div', { class: 'list mb-6' }, protocols.map(protocolRow)),
+    el('div', { class: 'card' }, protocols.length === 0
+      ? [el('div', { class: 'empty' }, [el('div', { class: 'empty-title' }, ['No protocols'])])]
+      : protocols.map(p => el('div', { class: 'list-item' }, [
+          el('div', { class: 'list-item-body' }, [
+            el('div', { class: 'list-item-title' }, [p.name]),
+            el('div', { class: 'list-item-sub' }, [p.steps || '']),
+          ]),
+        ]))
+    ),
 
-    // Optionality tracker
-    el('div', { class: 'section-head' }, [el('div', { class: 'section-title' }, ['Optionality tracker'])]),
-    optionalityCard(s),
-  ]);
-}
-
-function antiGoalRow(a) {
-  return el('div', { class: 'card' }, [
-    el('div', { class: 'flex items-center justify-between mb-2' }, [
-      el('div', { class: 'card-title' }, ['🚫 ', a.rule]),
-      el('button', { class: 'btn btn--ghost btn--icon', on: { click: async () => {
-        if (await confirmDialog({ title: 'Delete?', confirmText: 'Delete', danger: true })) {
-          removeRecord('antiGoals', a.id);
-          rerender();
-        }
-      } } }, ['×']),
+    // Optionality (v3 §16)
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
+      el('div', { class: 'section-title' }, ['Optionality']),
     ]),
-    a.why && el('div', { class: 'text-sm text-soft' }, [a.why]),
-    el('div', { class: 'mt-2' }, [el('span', { class: `chip ${a.enforced === 'always' ? 'chip--accent' : ''}` }, [a.enforced || 'always'])]),
-  ]);
-}
-
-function riskRow(r) {
-  const score = (r.likelihood || 1) * (r.impact || 1);
-  const level = score >= 16 ? 'chip--missed' : score >= 8 ? 'chip--floor' : 'chip--done';
-  return el('div', { class: 'card' }, [
-    el('div', { class: 'flex items-center justify-between mb-2' }, [
-      el('div', { class: 'card-title' }, [r.risk]),
-      el('span', { class: `chip ${level}` }, [`L${r.likelihood || 1}×I${r.impact || 1}`]),
-    ]),
-    r.domain && el('div', { class: 'text-xs text-mute mb-2' }, [r.domain]),
-    r.mitigation && el('div', { class: 'text-sm text-soft' }, [`Mitigation: ${r.mitigation}`]),
-    el('div', { class: 'flex justify-end mt-2' }, [
-      el('button', { class: 'btn btn--ghost btn--sm btn--icon', on: { click: async () => {
-        if (await confirmDialog({ title: 'Delete?', confirmText: 'Delete', danger: true })) {
-          removeRecord('risks', r.id);
-          rerender();
-        }
-      } } }, ['×']),
+    el('div', { class: 'card' }, [
+      optRow('Runway (months)', opt.runwayMonths || 0),
+      optRow('Income sources', opt.incomeSources || 0),
+      optRow('Strong contacts', opt.strongContacts || 0),
+      optRow('Scarce skills', (opt.scarceSkills || []).length),
+      optRow('Countries', (opt.countries || []).length),
+      optRow('Independent projects', (opt.independentProjects || []).length),
     ]),
   ]);
 }
 
-function protocolRow(p) {
-  return el('div', { class: 'card' }, [
-    el('div', { class: 'flex items-center justify-between mb-2' }, [
-      el('div', { class: 'card-title' }, ['🛡️ ', p.trigger]),
-      el('button', { class: 'btn btn--ghost btn--icon', on: { click: async () => {
-        if (await confirmDialog({ title: 'Delete?', confirmText: 'Delete', danger: true })) {
-          removeRecord('resilienceProtocols', p.id);
-          rerender();
-        }
-      } } }, ['×']),
-    ]),
-    el('ol', { class: 'list mt-2' }, (p.checklist || []).map((step, i) =>
-      el('li', { class: 'list-item' }, [
-        el('div', { class: 'list-item-icon', style: { fontSize: '12px', fontWeight: '700' } }, [String(i + 1)]),
-        el('div', { class: 'list-item-body' }, [el('div', { class: 'text-sm' }, [step])]),
-      ])
-    )),
+function optRow(label, value) {
+  return el('div', { class: 'ns-metric' }, [
+    el('div', { class: 'ns-metric-body' }, [el('div', { class: 'ns-metric-label' }, [label])]),
+    el('div', { class: 'ns-metric-value' }, [String(value)]),
   ]);
 }
 
-function optionalityCard(s) {
-  const o = s.optionality || {};
-  return el('div', { class: 'card' }, [
-    el('div', { class: 'bento' }, [
-      optCell('Runway', `${o.runwayMonths || 0}m`, 'months without income'),
-      optCell('Income sources', String(o.incomeSources || 0), 'distinct streams'),
-      optCell('Scarce skills', String((o.scarceSkills || []).length), 'high-leverage'),
-      optCell('Countries', String((o.countries || []).length), 'can live & work'),
-      optCell('Strong contacts', String(o.strongContacts || 0), '50+ trusted'),
-      optCell('Indep. projects', String((o.independentProjects || []).length), 'revenue-capable'),
-    ]),
-    el('div', { class: 'flex justify-end mt-3' }, [
-      el('button', { class: 'btn btn--sm', on: { click: editOptionality } }, ['Edit']),
-    ]),
-  ]);
+async function addRisk() {
+  const risk = await prompt({ title: 'Risk', label: 'What could go wrong?', placeholder: '...' });
+  if (!risk) return;
+  const likelihood = parseInt(await prompt({ title: 'Likelihood', label: 'Likelihood (1-5)', initial: '3' }) || '3', 10);
+  const impact = parseInt(await prompt({ title: 'Impact', label: 'Impact (1-5)', initial: '3' }) || '3', 10);
+  const mitigation = await prompt({ title: 'Mitigation', label: 'Mitigation?', placeholder: '...' });
+  update(st => {
+    st.risks.push({ id: uid('rsk'), risk, likelihood, impact, mitigation: mitigation || '', status: 'open', created: todayKey() });
+  });
+  toast('Risk added');
 }
 
-function optCell(label, value, sub) {
-  return el('div', { class: 'bento-cell' }, [
-    el('div', { class: 'stat-label' }, [label]),
-    el('div', { class: 'stat-value', style: { fontSize: 'var(--fs-xl)' } }, [value]),
-    el('div', { class: 'text-xs text-mute mt-2' }, [sub]),
-  ]);
+async function addAntiGoal() {
+  const text = await prompt({ title: 'Anti-goal', label: 'What will you NEVER do?', placeholder: 'e.g. Work for a toxic boss' });
+  if (!text) return;
+  update(st => { st.antiGoals.push({ id: uid('ag'), text }); });
+  toast('Anti-goal added');
 }
 
-function editOptionality() {
-  const s = getState();
-  const o = s.optionality || {};
-  const runway = el('input', { class: 'field-input', type: 'number', value: String(o.runwayMonths || 0) });
-  const income = el('input', { class: 'field-input', type: 'number', value: String(o.incomeSources || 0) });
-  const contacts = el('input', { class: 'field-input', type: 'number', value: String(o.strongContacts || 0) });
-  const skills = el('textarea', { class: 'field-textarea' }, [(o.scarceSkills || []).join('\n')]);
-  const countries = el('textarea', { class: 'field-textarea' }, [(o.countries || []).join('\n')]);
-  const projects = el('textarea', { class: 'field-textarea' }, [(o.independentProjects || []).join('\n')]);
-
-  const body = el('div', {}, [
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Runway (months)']), runway]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Income sources']), income]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Strong contacts']), contacts]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Scarce skills (one per line)']), skills]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Countries (one per line)']), countries]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Independent projects (one per line)']), projects]),
-    el('div', { class: 'flex gap-2 justify-end' }, [
-      el('button', { class: 'btn btn--ghost', on: { click: closeModal } }, ['Cancel']),
-      el('button', { class: 'btn btn--primary', on: { click: () => {
-        setState((st) => {
-          st.optionality = {
-            runwayMonths: Number(runway.value) || 0,
-            incomeSources: Number(income.value) || 0,
-            strongContacts: Number(contacts.value) || 0,
-            scarceSkills: skills.value.split('\n').map(s => s.trim()).filter(Boolean),
-            countries: countries.value.split('\n').map(s => s.trim()).filter(Boolean),
-            independentProjects: projects.value.split('\n').map(s => s.trim()).filter(Boolean),
-          };
-        });
-        toast('Optionality updated');
-        closeModal();
-        rerender();
-      } } }, ['Save']),
-    ]),
-  ]);
-  openModal(body);
+async function addProtocol() {
+  const name = await prompt({ title: 'Protocol name', label: 'e.g. Job loss protocol', placeholder: '...' });
+  if (!name) return;
+  const steps = await prompt({ title: 'Steps', label: 'Pre-written steps', placeholder: '...' });
+  update(st => { st.resilienceProtocols.push({ id: uid('rp'), name, steps: steps || '' }); });
+  toast('Protocol added');
 }
-
-function newAntiGoal() {
-  const rule = el('input', { class: 'field-input', placeholder: 'What will you NEVER do?' });
-  const why = el('input', { class: 'field-input', placeholder: 'Why? (the cost of doing it)' });
-  const enforced = el('select', { class: 'field-input' }, [
-    el('option', { value: 'always' }, ['Always']),
-    el('option', { value: 'event' }, ['Event-triggered']),
-  ]);
-  const body = el('div', {}, [
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Rule']), rule]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Why']), why]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Enforced']), enforced]),
-    el('div', { class: 'flex gap-2 justify-end' }, [
-      el('button', { class: 'btn btn--ghost', on: { click: closeModal } }, ['Cancel']),
-      el('button', { class: 'btn btn--primary', on: { click: () => {
-        if (!rule.value.trim()) return;
-        addRecord('antiGoals', { rule: rule.value.trim(), why: why.value.trim(), enforced: enforced.value, date: todayKey() });
-        toast('Anti-goal added');
-        closeModal();
-        rerender();
-      } } }, ['Add']),
-    ]),
-  ]);
-  openModal(body);
-}
-
-function newRisk() {
-  const risk = el('input', { class: 'field-input', placeholder: 'What could go wrong?' });
-  const domain = el('input', { class: 'field-input', placeholder: 'Domain (e.g. finance, health)' });
-  const likelihood = el('select', { class: 'field-input' }, [1,2,3,4,5].map(n => el('option', { value: n }, [String(n)])));
-  const impact = el('select', { class: 'field-input' }, [1,2,3,4,5].map(n => el('option', { value: n }, [String(n)])));
-  const mitigation = el('textarea', { class: 'field-textarea', placeholder: 'Mitigation plan' });
-  const body = el('div', {}, [
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Risk']), risk]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Domain']), domain]),
-    el('div', { class: 'bento bento--3' }, [
-      el('div', {}, [el('div', { class: 'field-label' }, ['Likelihood (1-5)']), likelihood]),
-      el('div', {}, [el('div', { class: 'field-label' }, ['Impact (1-5)']), impact]),
-    ]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Mitigation']), mitigation]),
-    el('div', { class: 'flex gap-2 justify-end' }, [
-      el('button', { class: 'btn btn--ghost', on: { click: closeModal } }, ['Cancel']),
-      el('button', { class: 'btn btn--primary', on: { click: () => {
-        if (!risk.value.trim()) return;
-        addRecord('risks', { risk: risk.value.trim(), domain: domain.value.trim(), likelihood: Number(likelihood.value), impact: Number(impact.value), mitigation: mitigation.value.trim(), date: todayKey() });
-        toast('Risk added');
-        closeModal();
-        rerender();
-      } } }, ['Add']),
-    ]),
-  ]);
-  openModal(body);
-}
-
-function newProtocol() {
-  const trigger = el('input', { class: 'field-input', placeholder: 'When this happens… (e.g. Job loss)' });
-  const steps = el('textarea', { class: 'field-textarea', placeholder: 'Checklist steps (one per line)' });
-  const body = el('div', {}, [
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Trigger']), trigger]),
-    el('div', { class: 'field' }, [el('div', { class: 'field-label' }, ['Checklist (one per line)']), steps]),
-    el('div', { class: 'flex gap-2 justify-end' }, [
-      el('button', { class: 'btn btn--ghost', on: { click: closeModal } }, ['Cancel']),
-      el('button', { class: 'btn btn--primary', on: { click: () => {
-        if (!trigger.value.trim()) return;
-        addRecord('resilienceProtocols', { trigger: trigger.value.trim(), checklist: steps.value.split('\n').map(s => s.trim()).filter(Boolean), date: todayKey() });
-        toast('Protocol added');
-        closeModal();
-        rerender();
-      } } }, ['Add']),
-    ]),
-  ]);
-  openModal(body);
-}
-
-function rerender() { window.__lifeosRerender?.(); }

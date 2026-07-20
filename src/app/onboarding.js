@@ -1,84 +1,53 @@
 // ============================================================
-// Life OS v2 — Onboarding
-// First-run experience. Explains levels + cadence.
-// Sets onboarded=true on completion.
+// Life OS v3 — Onboarding (first run)
 // ============================================================
 
-import { el, clear, mount } from './dom.js';
-import { setSetting, getState } from './state.js';
-import { DOMAINS_BY_LAYER, DOMAINS_BY_LEVEL, LEVELS, LAYERS } from './data/domains.js';
+import { el, clear, mount, $ } from './dom.js';
+import { update, applySettings } from './state.js';
+
+const STEPS = [
+  { hero: '⚡', title: 'Life OS', sub: 'Operating system for human optimization', body: 'Not a habit tracker. Not a to-do app. A system that compounds every form of capital through better decisions, feedback loops, and leverage.' },
+  { hero: '🌱', title: '22 domains, 3 layers', sub: 'Foundation · Executive · Capital · Strategy · Legacy', body: 'Every domain uses the same universal management card: Objective, Principles, Indicators, Actions, Cadence, Risks, Kill Criteria, Maturity.' },
+  { hero: '📅', title: 'Cadence, not list', sub: 'Only high-ROI actions are daily', body: 'Everything else moves upward: weekly, monthly, quarterly, annual. Daily actions fit in 5–10 minutes. Reviews carry the strategic work.' },
+  { hero: '🎯', title: 'Today is the default', sub: 'Everything else supports Today', body: 'Open the app for 30 seconds each day. The system quietly guides better decisions over decades through the mathematics of compounding.' },
+];
 
 export function renderOnboarding() {
-  const root = document.getElementById('onboarding');
-  if (!root) return;
-  root.classList.remove('hidden');
-  clear(root);
   let step = 0;
-
-  const steps = [
-    // Step 0: Welcome
-    el('div', { class: 'onb-step' }, [
-      el('div', { class: 'onb-hero' }, ['⚡']),
-      el('h1', { class: 'onb-title' }, ['Life OS v2']),
-      el('p', { class: 'onb-sub' }, ['Operating System for Human Optimization.']),
-      el('p', { class: 'onb-body' }, [
-        'Not a habit tracker. A system for increasing the rate at which you accumulate all forms of capital — biological, intellectual, financial, social — through better decisions, faster learning, and leverage.',
-      ]),
-      el('button', { class: 'btn btn--primary btn--lg btn--block', on: { click: next } }, ['Begin →']),
-    ]),
-    // Step 1: The 3 layers
-    el('div', { class: 'onb-step' }, [
-      el('h2', { class: 'onb-title' }, ['Three layers']),
-      el('p', { class: 'onb-sub' }, ['Strategy manages the Operating System. Legacy defines why it exists.']),
-      ...DOMAINS_BY_LAYER.map(({ layer, domains }) =>
-        el('div', { class: 'card card--pad-sm mb-2' }, [
-          el('div', { class: 'flex items-center gap-2' }, [
-            el('span', { style: { fontSize: '20px' } }, [layer.icon]),
-            el('div', {}, [
-              el('div', { class: 'font-semibold' }, [layer.name]),
-              el('div', { class: 'text-xs text-mute' }, [domains.map((d) => d.name).join(' · ')]),
-            ]),
-          ]),
-        ])
-      ),
-      el('button', { class: 'btn btn--primary btn--lg btn--block mt-4', on: { click: next } }, ['Next →']),
-    ]),
-    // Step 2: Cadence
-    el('div', { class: 'onb-step' }, [
-      el('h2', { class: 'onb-title' }, ['Cadence, not list']),
-      el('p', { class: 'onb-sub' }, ['Less daily, more weekly / monthly / quarterly.']),
-      el('div', { class: 'card card--pad-sm mb-2' }, [el('div', { class: 'text-sm' }, ['📅 Daily — 8–12 items. Energy, Big4, deep work, plan, review.'])]),
-      el('div', { class: 'card card--pad-sm mb-2' }, [el('div', { class: 'text-sm' }, ['🗓️ Weekly — 10–15. Finance, projects, inbox, plan.'])]),
-      el('div', { class: 'card card--pad-sm mb-2' }, [el('div', { class: 'text-sm' }, ['📆 Monthly — 15–25. KPIs, budget, network, family.'])]),
-      el('div', { class: 'card card--pad-sm mb-2' }, [el('div', { class: 'text-sm' }, ['📊 Quarterly — strategy, health, rebalancing.'])]),
-      el('div', { class: 'card card--pad-sm mb-2' }, [el('div', { class: 'text-sm' }, ['🎯 Annual — full life review.'])]),
-      el('button', { class: 'btn btn--primary btn--lg btn--block mt-4', on: { click: next } }, ['Next →']),
-    ]),
-    // Step 3: Done
-    el('div', { class: 'onb-step' }, [
-      el('div', { class: 'onb-hero' }, ['🚀']),
-      el('h2', { class: 'onb-title' }, ['Ready']),
-      el('p', { class: 'onb-body' }, [
-        'Start with the Today tab. Tap protocols to complete them. On bad days, tap Floor. Never miss twice.',
-      ]),
-      el('p', { class: 'onb-body mt-4' }, [
-        'Explore Domains to see all 15 systems. Run your first Weekly Review on Sunday.',
-      ]),
-      el('button', { class: 'btn btn--primary btn--lg btn--block mt-4', on: { click: finish } }, ['Enter Life OS →']),
-    ]),
-  ];
+  const host = $('#onboarding');
+  if (!host) return;
+  host.classList.remove('hidden');
+  render();
 
   function render() {
-    clear(root);
-    mount(root, steps[step]);
+    clear(host);
+    const s = STEPS[step];
+    const isLast = step === STEPS.length - 1;
+    mount(host, [
+      el('div', { class: 'onb-step' }, [
+        el('div', { class: 'onb-hero' }, [s.hero]),
+        el('div', { class: 'onb-title' }, [s.title]),
+        el('div', { class: 'onb-sub' }, [s.sub]),
+        el('div', { class: 'onb-body' }, [s.body]),
+        el('div', { class: 'wizard-progress', style: { marginTop: 'var(--sp-6)' } }, STEPS.map((_, i) =>
+          el('div', { class: `wizard-dot ${i < step ? 'wizard-dot--done' : i === step ? 'wizard-dot--active' : ''}` })
+        )),
+        el('div', { class: 'flex gap-2', style: { marginTop: 'var(--sp-8)', width: '100%' } }, [
+          step > 0 && el('button', { class: 'btn btn--ghost btn--block', on: { click: () => { step--; render(); } } }, ['Back']),
+          el('button', { class: 'btn btn--primary btn--block', on: { click: () => {
+            if (isLast) { finish(); return; }
+            step++; render();
+          } } }, [isLast ? 'Begin' : 'Next']),
+        ]),
+      ]),
+    ]);
   }
 
-  function next() { step = Math.min(steps.length - 1, step + 1); render(); }
   function finish() {
-    setSetting('onboarded', true);
-    root.classList.add('hidden');
-    window.__lifeosRerender?.();
+    update(st => { st.settings.onboarded = true; });
+    applySettings();
+    host.classList.add('hidden');
+    clear(host);
+    window.__lifeosRerender && window.__lifeosRerender();
   }
-
-  render();
 }

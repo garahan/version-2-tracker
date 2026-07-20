@@ -1,87 +1,77 @@
 // ============================================================
-// Life OS v2 — More hub
-// Secondary navigation to Inbox, Decisions, Opportunities,
-// Lessons, Risks, Settings. Uses subroute system in main.js.
+// Life OS v3 — More Hub (v3 §11)
+// Grid layout. Hub for secondary sections.
 // ============================================================
 
 import { el } from '../dom.js';
 import { getState } from '../state.js';
-import { setSubroute } from '../main.js';
-import { todayKey } from '../util.js';
 import { systemHealth } from '../system-health.js';
+import { entropyMonitor } from '../system-health.js';
+import { todayKey } from '../util.js';
+import { setSubroute, currentSub } from '../main.js';
 
-const ITEMS = [
-  { id: 'system-health',  label: 'System Health',  icon: '🩺', desc: 'OS health · entropy monitor',              render: () => import('./system-health.js').then(m => m.renderSystemHealth()) },
-  { id: 'inbox',          label: 'Inbox',          icon: '📥', desc: 'Capture · clarify · schedule · archive',  render: () => import('./inbox.js').then(m => m.renderInbox()) },
-  { id: 'decisions',      label: 'Decisions',      icon: '⚖️', desc: 'Journal · library · pre-mortem',           render: () => import('./decisions.js').then(m => m.renderDecisions()) },
-  { id: 'opportunities',  label: 'Opportunities',  icon: '🔮', desc: 'Pipeline of possibilities',                render: () => import('./opportunities.js').then(m => m.renderOpportunities()) },
-  { id: 'lessons',        label: 'Lessons',        icon: '🎓', desc: 'Lessons learned · error log',              render: () => import('./lessons.js').then(m => m.renderLessons()) },
-  { id: 'spaced-repetition', label: 'Recall',      icon: '🧠', desc: 'Spaced repetition · SM-2',                 render: () => import('./spaced-repetition.js').then(m => m.renderSpacedRepetition()) },
-  { id: 'commitments',    label: 'Commitments',    icon: '🔒', desc: 'Stake points on actions',                  render: () => import('./commitments.js').then(m => m.renderCommitments()) },
-  { id: 'risks',          label: 'Risks',          icon: '🛡️', desc: 'Risk register · protocols · anti-goals · optionality', render: () => import('./risks.js').then(m => m.renderRisks()) },
-  { id: 'settings',       label: 'Settings',       icon: '⚙️', desc: 'Theme · sync · data · reset',              render: () => import('./settings.js').then(m => m.renderSettings()) },
+const TILES = [
+  { id: 'system-health', icon: '🩺', label: 'System Health', desc: 'OS health · entropy', badge: 'health' },
+  { id: 'analytics',     icon: '📈', label: 'Analytics',     desc: 'Momentum · trends · forecast', badge: null },
+  { id: 'dependencies',  icon: '🔗', label: 'Dependencies',  desc: 'How domains affect each other', badge: null },
+  { id: 'inbox',         icon: '📥', label: 'Inbox',         desc: 'Capture · clarify · archive', badge: 'inbox' },
+  { id: 'decisions',     icon: '⚖️', label: 'Decisions',     desc: 'Journal · pre-mortem', badge: 'decisions' },
+  { id: 'opportunities', icon: '🔮', label: 'Opportunities', desc: 'Pipeline of possibilities', badge: 'opps' },
+  { id: 'lessons',       icon: '🎓', label: 'Lessons',       desc: 'Lessons · error log', badge: 'lessons' },
+  { id: 'recall',        icon: '🧠', label: 'Recall',        desc: 'Spaced repetition · SM-2', badge: 'recall' },
+  { id: 'commitments',   icon: '🔒', label: 'Commitments',   desc: 'Stake points on actions', badge: 'commitments' },
+  { id: 'risks',         icon: '🛡️', label: 'Risks',         desc: 'Register · protocols · anti-goals', badge: 'risks' },
+  { id: 'settings',      icon: '⚙️', label: 'Settings',      desc: 'Theme · sync · data', badge: null },
 ];
-
-export const MORE_ITEMS = ITEMS;
 
 export function renderMore() {
   const s = getState();
-  const counts = {
-    'system-health': 0, // shown as badge via health score, not count
-    inbox: (s.inbox || []).filter(i => i.status !== 'archived').length,
-    decisions: (s.decisions || []).filter(d => d.reviewDate && d.reviewDate <= todayKey() && !d.outcome).length,
-    opportunities: (s.opportunities || []).length,
-    lessons: (s.lessonsLearned || []).length,
-    'spaced-repetition': (s.spacedRepetition || []).filter(i => i.due <= todayKey()).length,
-    commitments: (s.commitments || []).filter(c => c.status === 'active').length,
-    risks: (s.risks || []).length,
+  const health = systemHealth();
+  const entropy = entropyMonitor();
+  const t = todayKey();
+
+  const badges = {
+    health: { value: health.score, cls: health.score >= 70 ? 'more-tile-badge--healthy' : health.score >= 40 ? 'more-tile-badge--warning' : 'more-tile-badge--critical' },
+    inbox: { value: s.inbox.filter(i => (i.status || 'raw') !== 'archived').length, cls: '' },
+    decisions: { value: s.decisions.filter(d => !d.outcome && d.reviewDate && d.reviewDate < t).length, cls: 'more-tile-badge--warning' },
+    opps: { value: s.opportunities.length, cls: '' },
+    lessons: { value: s.lessonsLearned.length, cls: '' },
+    recall: { value: (s.spacedRepetition || []).filter(c => c.nextDue && c.nextDue <= t).length, cls: 'more-tile-badge--accent' },
+    commitments: { value: (s.commitments || []).filter(c => c.status === 'active').length, cls: '' },
+    risks: { value: s.risks.length, cls: '' },
   };
 
-  // System health score for badge
-  const health = systemHealth();
-
   return el('div', { class: 'page' }, [
-    el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title' }, ['More']),
-      el('div', { class: 'app-subtitle' }, ['Inbox · decisions · risks · settings']),
-    ]),
-
-    // 2-column big tiles
-    el('div', { class: 'more-grid' }, ITEMS.map((item) => {
-      const count = item.id === 'system-health'
-        ? health.score
-        : counts[item.id] || 0;
-      const badgeClass = item.id === 'system-health'
-        ? (health.status === 'critical' ? 'more-tile-badge--critical' : health.status === 'warning' ? 'more-tile-badge--warning' : '')
-        : '';
-      return el('div', {
-        class: 'more-tile',
-        on: { click: () => setSubroute(item.id) }
-      }, [
-        count > 0 && el('span', { class: `more-tile-badge ${badgeClass}` }, [String(count)]),
-        el('div', { class: 'more-tile-icon' }, [item.icon]),
-        el('div', { class: 'more-tile-label' }, [item.label]),
-        el('div', { class: 'more-tile-desc' }, [item.desc]),
+    el('div', { class: 'app-title' }, ['More']),
+    el('div', { class: 'app-subtitle' }, ['Engines · systems · settings']),
+    el('div', { class: 'more-grid', style: { marginTop: 'var(--sp-4)' } }, TILES.map(tile => {
+      const badge = tile.badge ? badges[tile.badge] : null;
+      return el('div', { class: 'more-tile', on: { click: () => setSubroute(tile.id) } }, [
+        badge && badge.value > 0 && el('div', { class: `more-tile-badge ${badge.cls}` }, [String(badge.value)]),
+        el('div', { class: 'more-tile-icon' }, [tile.icon]),
+        el('div', { class: 'more-tile-label' }, [tile.label]),
+        el('div', { class: 'more-tile-desc' }, [tile.desc]),
       ]);
     })),
-
-    el('div', { class: 'text-center text-mute mt-6', style: { fontSize: 'var(--fs-meta)' } }, [
-      'Life OS v2 · ', `v${s.version.toFixed(2)}`,
-    ]),
   ]);
 }
 
-/** Render a subroute view with a back button. */
+// ---- Subroute dispatcher ----
 export async function renderSubroute(id) {
-  const item = ITEMS.find((i) => i.id === id);
-  if (!item) return null;
-  const node = await item.render();
-  // Wrap with back button
-  const back = el('button', {
-    class: 'btn btn--ghost btn--sm',
-    style: { marginBottom: '12px' },
-    on: { click: () => setSubroute(null) }
-  }, ['← Back']);
-  const wrap = el('div', {}, [back, node]);
-  return wrap;
+  const map = {
+    'system-health': () => import('./system-health.js').then(m => m.renderSystemHealth()),
+    'analytics':     () => import('./analytics.js').then(m => m.renderAnalytics()),
+    'dependencies':  () => import('./dependencies.js').then(m => m.renderDependencies()),
+    'inbox':         () => import('./inbox.js').then(m => m.renderInbox()),
+    'decisions':     () => import('./decisions.js').then(m => m.renderDecisions()),
+    'opportunities': () => import('./opportunities.js').then(m => m.renderOpportunities()),
+    'lessons':       () => import('./lessons.js').then(m => m.renderLessons()),
+    'recall':        () => import('./recall.js').then(m => m.renderRecall()),
+    'commitments':   () => import('./commitments.js').then(m => m.renderCommitments()),
+    'risks':         () => import('./risks.js').then(m => m.renderRisks()),
+    'settings':      () => import('./settings.js').then(m => m.renderSettings()),
+  };
+  const fn = map[id];
+  if (!fn) return null;
+  return await fn();
 }

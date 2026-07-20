@@ -1,104 +1,61 @@
 // ============================================================
-// Life OS v2 — System Health view
-// Shows the health of the OS itself + entropy monitor.
+// Life OS v3 — System Health page (v3 §21)
 // ============================================================
 
 import { el } from '../dom.js';
 import { systemHealth, entropyMonitor } from '../system-health.js';
-import { setSubroute } from '../main.js';
+import { go } from '../main.js';
 
 export function renderSystemHealth() {
   const health = systemHealth();
   const entropy = entropyMonitor();
+  const statusCls = health.score >= 70 ? 'healthy' : health.score >= 40 ? 'warning' : 'critical';
 
   return el('div', { class: 'page' }, [
-    el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title' }, ['System Health']),
-      el('div', { class: 'app-subtitle' }, ['Health of the OS · entropy monitor']),
+    el('div', { class: 'flex items-center gap-2' }, [
+      el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => go('more') } }, ['‹ Back']),
+    ]),
+    el('div', { class: 'app-title', style: { marginTop: 'var(--sp-2)' } }, ['System Health']),
+    el('div', { class: 'app-subtitle' }, ['Health of the OS itself']),
+
+    // Overall score
+    el('div', { class: 'card', style: { marginTop: 'var(--sp-4)' } }, [
+      el('div', { class: 'overline' }, ['OS health score']),
+      el('div', { style: { fontSize: 'var(--fs-display)', fontWeight: 'var(--fw-bold)', fontVariantNumeric: 'tabular-nums' } }, [String(health.score)]),
+      el('div', { class: 'health-bar', style: { marginTop: 'var(--sp-3)' } }, [
+        el('div', { class: `health-bar-fill health-bar-fill--${statusCls}`, style: { width: health.score + '%' } }),
+      ]),
     ]),
 
-    // Overall health score
-    el('div', { class: `card mb-4 ${health.status === 'critical' ? 'card--accent' : ''}` }, [
-      el('div', { class: 'card-head' }, [
-        el('div', { class: 'card-icon', style: { fontSize: '28px' } }, [health.status === 'healthy' ? '✅' : health.status === 'warning' ? '⚠️' : '🚨']),
-        el('div', {}, [
-          el('div', { class: 'card-title' }, ['OS Health Score']),
-          el('div', { class: 'card-subtitle' }, [health.status === 'healthy' ? 'System is healthy' : health.status === 'warning' ? 'Needs attention' : 'Critical — fix now']),
+    // 6 checks
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
+      el('div', { class: 'section-title' }, ['Checks']),
+    ]),
+    el('div', { class: 'card' }, health.checks.map(c =>
+      el('div', { class: 'list-item' }, [
+        el('div', { class: 'list-item-body' }, [
+          el('div', { class: 'list-item-title' }, [c.label]),
+          el('div', { class: 'list-item-sub' }, [String(c.value)]),
         ]),
-        el('div', { class: 'stat-value', style: { fontSize: 'var(--fs-2xl)', marginLeft: 'auto' } }, [`${health.score}`]),
-      ]),
-      // Health bar
-      el('div', { class: 'health-bar' }, [
-        el('div', {
-          class: `health-bar-fill health-bar-fill--${health.status}`,
-          style: { width: `${health.score}%` },
-        }),
-      ]),
-    ]),
+        el('span', { class: `chip chip--${c.status === 'healthy' ? 'healthy' : c.status === 'warning' ? 'attention' : 'danger'}` }, [c.status]),
+      ])
+    )),
 
-    // Health checks
-    el('div', { class: 'section-head' }, [
-      el('div', { class: 'section-title' }, ['Health checks']),
+    // Entropy monitor (v3 §22)
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
+      el('div', { class: 'section-title' }, ['Entropy monitor']),
     ]),
-    el('div', { class: 'list mb-6' }, health.checks.map((c) => checkRow(c))),
-
-    // Entropy monitor
-    el('div', { class: `card mb-4 ${entropy.level === 'high' ? 'card--accent' : ''}` }, [
-      el('div', { class: 'card-head' }, [
-        el('div', { class: 'card-icon', style: { fontSize: '28px' } }, [entropy.level === 'low' ? '🌀' : entropy.level === 'medium' ? '🌊' : '🌪️']),
-        el('div', {}, [
-          el('div', { class: 'card-title' }, ['Entropy Monitor']),
-          el('div', { class: 'card-subtitle' }, [entropy.level === 'low' ? 'Low chaos' : entropy.level === 'medium' ? 'Building chaos' : 'High chaos — reduce']),
-        ]),
-        el('div', { class: 'stat-value', style: { fontSize: 'var(--fs-2xl)', marginLeft: 'auto' } }, [`${entropy.score}`]),
-      ]),
-      el('div', { class: 'health-bar' }, [
-        el('div', {
-          class: `health-bar-fill health-bar-fill--${entropy.level === 'low' ? 'healthy' : entropy.level === 'medium' ? 'warning' : 'critical'}`,
-          style: { width: `${entropy.score}%` },
-        }),
-      ]),
+    el('div', { class: 'card' }, [
+      el('div', { class: 'overline' }, ['Entropy score (higher = less chaos)']),
+      el('div', { style: { fontSize: 'var(--fs-display)', fontWeight: 'var(--fw-bold)', fontVariantNumeric: 'tabular-nums' } }, [String(entropy.score)]),
+      el('div', { class: 'list', style: { marginTop: 'var(--sp-3)' } }, entropy.items.map(i =>
+        el('div', { class: 'list-item' }, [
+          el('div', { class: 'list-item-body' }, [
+            el('div', { class: 'list-item-title' }, [i.label]),
+          ]),
+          el('span', { class: `chip ${i.value > 0 ? 'chip--attention' : 'chip--healthy'}` }, [String(i.value)]),
+        ])
+      )),
     ]),
-
-    // Entropy items
-    el('div', { class: 'section-head' }, [
-      el('div', { class: 'section-title' }, ['Entropy sources']),
-    ]),
-    el('div', { class: 'list' }, entropy.items.map((item) => entropyRow(item))),
   ]);
-}
-
-function checkRow(c) {
-  const statusIcon = c.status === 'ok' ? '✅' : c.status === 'warning' ? '⚠️' : '🚨';
-  return el('div', { class: 'list-item', on: { click: () => navigateToCheck(c.id) } }, [
-    el('div', { class: 'list-item-icon', style: { fontSize: '20px' } }, [c.icon]),
-    el('div', { class: 'list-item-body' }, [
-      el('div', { class: 'list-item-title' }, [c.label]),
-      el('div', { class: 'list-item-sub' }, [c.detail]),
-    ]),
-    el('span', { style: { fontSize: '18px' } }, [statusIcon]),
-  ]);
-}
-
-function entropyRow(item) {
-  return el('div', { class: 'list-item' }, [
-    el('div', { class: 'list-item-icon', style: { fontSize: '20px' } }, [item.icon]),
-    el('div', { class: 'list-item-body' }, [
-      el('div', { class: 'list-item-title' }, [item.label]),
-      el('div', { class: 'list-item-sub' }, [item.detail]),
-    ]),
-    item.count > 0 && el('span', { class: 'chip chip--accent' }, [String(item.count)]),
-  ]);
-}
-
-function navigateToCheck(id) {
-  const map = {
-    inbox: 'inbox',
-    reviews: null, // stay on reviews tab
-    risks: 'risks',
-    decisions: 'decisions',
-    lessons: 'lessons',
-  };
-  const subroute = map[id];
-  if (subroute) setSubroute(subroute);
 }
