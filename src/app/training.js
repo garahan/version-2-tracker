@@ -117,138 +117,271 @@ export const MUSCLE_COLORS = {
 
 // ---- Exercise SVG visuals (simple body diagrams) ----
 export const VISUALS = {
+  // PUSH-UP: person horizontal, arms pushing body up from ground
   pushup: [
-    // Person doing push-up (horizontal body)
-    svgEl('circle', { cx: 20, cy: 28, r: 6, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 26, y: 25, width: 40, height: 6, rx: 3, fill: 'currentColor', opacity: 0.7 }),
-    svgEl('rect', { x: 26, y: 31, width: 4, height: 14, rx: 2, fill: 'currentColor', opacity: 0.5 }),
-    svgEl('rect', { x: 62, y: 31, width: 4, height: 14, rx: 2, fill: 'currentColor', opacity: 0.5 }),
-    // Arrow showing movement
-    svgEl('path', { d: 'M40 50 v6 M37 53 l3 3 l3 -3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.4 }),
+    // Ground line
+    svgEl('line', { x1: 5, y1: 46, x2: 75, y2: 46, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Body (horizontal line - head to feet)
+    svgEl('line', { x1: 18, y1: 28, x2: 62, y2: 30, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Head
+    svgEl('circle', { cx: 16, cy: 27, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Arms (from shoulders down to ground)
+    svgEl('line', { x1: 24, y1: 29, x2: 24, y2: 44, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 30, y1: 29, x2: 30, y2: 44, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Down arrow (showing push direction = down then up)
+    svgEl('path', { d: 'M40 18 v8 M37 23 l3 3 l3 -3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
   ],
+  // SQUAT: person standing, knees bent, hips back
   squat: [
-    // Person doing squat (bent legs)
-    svgEl('circle', { cx: 40, cy: 12, r: 6, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 37, y: 18, width: 6, height: 14, rx: 2, fill: 'currentColor', opacity: 0.7 }),
-    svgEl('rect', { x: 30, y: 32, width: 10, height: 6, rx: 2, fill: 'currentColor', opacity: 0.6, transform: 'rotate(20 35 35)' }),
-    svgEl('rect', { x: 40, y: 32, width: 10, height: 6, rx: 2, fill: 'currentColor', opacity: 0.6, transform: 'rotate(-20 45 35)' }),
-    svgEl('rect', { x: 28, y: 38, width: 8, height: 12, rx: 2, fill: 'currentColor', opacity: 0.5 }),
-    svgEl('rect', { x: 44, y: 38, width: 8, height: 12, rx: 2, fill: 'currentColor', opacity: 0.5 }),
+    // Ground line
+    svgEl('line', { x1: 5, y1: 48, x2: 75, y2: 48, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Head
+    svgEl('circle', { cx: 40, cy: 10, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso (slightly leaning forward)
+    svgEl('line', { x1: 40, y1: 15, x2: 38, y2: 28, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Hips
+    svgEl('circle', { cx: 38, cy: 29, r: 3, fill: 'currentColor', opacity: 0.8 }),
+    // Thighs (bent, going down and outward)
+    svgEl('line', { x1: 38, y1: 30, x2: 30, y2: 38, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    svgEl('line', { x1: 38, y1: 30, x2: 46, y2: 38, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Calves (straight down to ground)
+    svgEl('line', { x1: 30, y1: 38, x2: 30, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 46, y1: 38, x2: 46, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Arms (forward for balance)
+    svgEl('line', { x1: 40, y1: 18, x2: 52, y2: 22, stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Down arrow (squat down)
+    svgEl('path', { d: 'M58 20 v8 M55 25 l3 3 l3 -3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
   ],
+  // PULL-UP: person hanging from bar, pulling up
   pullup: [
-    // Person hanging from bar
-    svgEl('rect', { x: 10, y: 8, width: 60, height: 3, rx: 1.5, fill: 'currentColor', opacity: 0.8 }),
-    svgEl('rect', { x: 30, y: 11, width: 3, height: 8, fill: 'currentColor', opacity: 0.5 }),
-    svgEl('rect', { x: 47, y: 11, width: 3, height: 8, fill: 'currentColor', opacity: 0.5 }),
-    svgEl('circle', { cx: 40, cy: 22, r: 5, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 37, y: 27, width: 6, height: 16, rx: 2, fill: 'currentColor', opacity: 0.7 }),
-    // Arrow up
-    svgEl('path', { d: 'M40 46 v-8 M37 41 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.4 }),
+    // Bar (horizontal line at top with supports)
+    svgEl('line', { x1: 8, y1: 8, x2: 72, y2: 8, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 8, y1: 4, x2: 8, y2: 8, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    svgEl('line', { x1: 72, y1: 4, x2: 72, y2: 8, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    // Arms (reaching up to bar)
+    svgEl('line', { x1: 34, y1: 18, x2: 34, y2: 9, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 46, y1: 18, x2: 46, y2: 9, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Head
+    svgEl('circle', { cx: 40, cy: 20, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 25, x2: 40, y2: 38, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs (hanging straight down)
+    svgEl('line', { x1: 40, y1: 38, x2: 35, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 40, y1: 38, x2: 45, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Up arrow (pulling body up)
+    svgEl('path', { d: 'M60 35 v-8 M57 30 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
   ],
+  // PLANK: person horizontal on forearms, straight body
   plank: [
-    // Person in plank position
-    svgEl('circle', { cx: 15, cy: 30, r: 5, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 20, y: 27, width: 45, height: 5, rx: 2.5, fill: 'currentColor', opacity: 0.7 }),
-    svgEl('rect', { x: 20, y: 32, width: 4, height: 12, rx: 2, fill: 'currentColor', opacity: 0.5 }),
-    svgEl('rect', { x: 61, y: 32, width: 4, height: 12, rx: 2, fill: 'currentColor', opacity: 0.5 }),
+    // Ground line
+    svgEl('line', { x1: 5, y1: 46, x2: 75, y2: 46, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Body (straight horizontal line)
+    svgEl('line', { x1: 20, y1: 30, x2: 64, y2: 32, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Head
+    svgEl('circle', { cx: 17, cy: 29, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Forearm (from elbow on ground up to shoulder)
+    svgEl('line', { x1: 24, y1: 44, x2: 24, y2: 31, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 24, y1: 44, x2: 30, y2: 44, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Legs (toes on ground)
+    svgEl('line', { x1: 62, y1: 33, x2: 64, y2: 45, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Clock icon (hold position)
+    svgEl('circle', { cx: 50, cy: 18, r: 6, fill: 'none', stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.4 }),
+    svgEl('line', { x1: 50, y1: 18, x2: 50, y2: 14, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.4 }),
+    svgEl('line', { x1: 50, y1: 18, x2: 53, y2: 18, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.4 }),
   ],
+  // LUNGE: person in split stance, one leg forward one back, knee down
   lunge: [
-    // Person in lunge position
-    svgEl('circle', { cx: 40, cy: 10, r: 5, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 37, y: 15, width: 6, height: 10, rx: 2, fill: 'currentColor', opacity: 0.7 }),
-    svgEl('rect', { x: 25, y: 25, width: 12, height: 6, rx: 2, fill: 'currentColor', opacity: 0.6, transform: 'rotate(15 31 28)' }),
-    svgEl('rect', { x: 43, y: 25, width: 12, height: 6, rx: 2, fill: 'currentColor', opacity: 0.6, transform: 'rotate(-15 49 28)' }),
-    svgEl('rect', { x: 22, y: 32, width: 8, height: 14, rx: 2, fill: 'currentColor', opacity: 0.5 }),
-    svgEl('rect', { x: 50, y: 32, width: 8, height: 14, rx: 2, fill: 'currentColor', opacity: 0.5 }),
+    // Ground line
+    svgEl('line', { x1: 5, y1: 48, x2: 75, y2: 48, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Head
+    svgEl('circle', { cx: 38, cy: 10, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso (upright)
+    svgEl('line', { x1: 38, y1: 15, x2: 38, y2: 28, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Front leg (bent forward, thigh and calf)
+    svgEl('line', { x1: 38, y1: 28, x2: 52, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    svgEl('line', { x1: 52, y1: 36, x2: 52, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Back leg (extended back, knee bent)
+    svgEl('line', { x1: 38, y1: 28, x2: 24, y2: 38, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    svgEl('line', { x1: 24, y1: 38, x2: 22, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Arms (on hips)
+    svgEl('line', { x1: 38, y1: 20, x2: 30, y2: 24, stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0.5 }),
+    svgEl('line', { x1: 38, y1: 20, x2: 46, y2: 24, stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0.5 }),
   ],
+  // DIPS: person on parallel bars, body between bars, arms straight
   dip: [
-    // Person on parallel bars
-    svgEl('rect', { x: 15, y: 10, width: 3, height: 35, fill: 'currentColor', opacity: 0.4 }),
-    svgEl('rect', { x: 62, y: 10, width: 3, height: 35, fill: 'currentColor', opacity: 0.4 }),
-    svgEl('circle', { cx: 40, cy: 18, r: 5, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 37, y: 23, width: 6, height: 14, rx: 2, fill: 'currentColor', opacity: 0.7 }),
-    svgEl('path', { d: 'M37 37 l-20 -5 M43 37 l20 -5', stroke: 'currentColor', 'stroke-width': 3, opacity: 0.5 }),
+    // Two parallel bars
+    svgEl('line', { x1: 18, y1: 10, x2: 18, y2: 46, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    svgEl('line', { x1: 62, y1: 10, x2: 62, y2: 46, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Head
+    svgEl('circle', { cx: 40, cy: 16, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 21, x2: 40, y2: 34, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Arms (straight, hands on bars)
+    svgEl('line', { x1: 40, y1: 23, x2: 20, y2: 12, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 40, y1: 23, x2: 60, y2: 12, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Legs (hanging down, bent)
+    svgEl('line', { x1: 40, y1: 34, x2: 35, y2: 42, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 40, y1: 34, x2: 45, y2: 42, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Down arrow (dip down)
+    svgEl('path', { d: 'M70 20 v8 M67 25 l3 3 l3 -3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
   ],
+  // INVERTED ROW: person under bar, body horizontal, pulling up
   row: [
-    // Person doing inverted row (horizontal, pulling)
-    svgEl('rect', { x: 10, y: 8, width: 60, height: 3, rx: 1.5, fill: 'currentColor', opacity: 0.6 }),
-    svgEl('circle', { cx: 20, cy: 28, r: 5, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 25, y: 25, width: 35, height: 5, rx: 2.5, fill: 'currentColor', opacity: 0.7 }),
-    svgEl('path', { d: 'M25 28 l-12 -18 M60 28 l12 -18', stroke: 'currentColor', 'stroke-width': 2, opacity: 0.5 }),
-    // Arrow up
-    svgEl('path', { d: 'M40 38 v-6 M37 35 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.4 }),
+    // Bar at top
+    svgEl('line', { x1: 8, y1: 8, x2: 72, y2: 8, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Arms (reaching up to bar)
+    svgEl('line', { x1: 28, y1: 28, x2: 28, y2: 10, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 52, y1: 28, x2: 52, y2: 10, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Body (horizontal, head to feet)
+    svgEl('line', { x1: 25, y1: 30, x2: 60, y2: 34, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Head
+    svgEl('circle', { cx: 23, cy: 30, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Legs (extending down to ground)
+    svgEl('line', { x1: 58, y1: 34, x2: 62, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Heels on ground
+    svgEl('line', { x1: 58, y1: 46, x2: 66, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Ground line
+    svgEl('line', { x1: 50, y1: 47, x2: 72, y2: 47, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Up arrow (pulling chest to bar)
+    svgEl('path', { d: 'M40 44 v-8 M37 39 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
   ],
+  // PIKE PUSH-UP: inverted V, hands on ground, hips high, head down
   pike: [
-    // Pike push-up (inverted V)
-    svgEl('circle', { cx: 45, cy: 12, r: 5, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 42, y: 17, width: 5, height: 12, rx: 2, fill: 'currentColor', opacity: 0.7, transform: 'rotate(35 44 23)' }),
-    svgEl('rect', { x: 25, y: 30, width: 20, height: 5, rx: 2, fill: 'currentColor', opacity: 0.6, transform: 'rotate(-35 35 32)' }),
-    svgEl('rect', { x: 18, y: 35, width: 8, height: 12, rx: 2, fill: 'currentColor', opacity: 0.5 }),
+    // Ground line
+    svgEl('line', { x1: 5, y1: 46, x2: 75, y2: 46, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Body (inverted V - from hands up to hips then down to feet)
+    svgEl('line', { x1: 22, y1: 44, x2: 40, y2: 14, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 40, y1: 14, x2: 58, y2: 44, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Head (down near hands)
+    svgEl('circle', { cx: 28, cy: 38, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Arms (hands on ground)
+    svgEl('line', { x1: 30, y1: 36, x2: 22, y2: 44, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Down arrow (head goes down toward ground)
+    svgEl('path', { d: 'M40 28 v8 M37 33 l3 3 l3 -3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
   ],
+  // BICEP CURL: arm with dumbbell, curling up
   curl: [
-    // Bicep curl (arm with dumbbell)
-    svgEl('circle', { cx: 20, cy: 40, r: 4, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 18, y: 20, width: 4, height: 22, rx: 2, fill: 'currentColor', opacity: 0.7 }),
-    svgEl('rect', { x: 14, y: 15, width: 12, height: 4, rx: 2, fill: 'currentColor', opacity: 0.8 }),
+    // Shoulder/torso
+    svgEl('line', { x1: 15, y1: 15, x2: 15, y2: 40, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.6 }),
+    // Upper arm (hanging down)
+    svgEl('line', { x1: 15, y1: 18, x2: 15, y2: 32, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Forearm (curled up toward shoulder)
+    svgEl('line', { x1: 15, y1: 32, x2: 35, y2: 22, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Dumbbell
+    svgEl('rect', { x: 33, y: 18, width: 6, height: 10, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    svgEl('circle', { cx: 36, cy: 19, r: 3, fill: 'currentColor', opacity: 0.8 }),
+    svgEl('circle', { cx: 36, cy: 27, r: 3, fill: 'currentColor', opacity: 0.8 }),
     // Bicep bulge
-    svgEl('circle', { cx: 30, cy: 28, r: 6, fill: 'currentColor', opacity: 0.5 }),
-    // Arrow showing curl motion
-    svgEl('path', { d: 'M35 15 a10 10 0 0 1 0 20', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.3 }),
+    svgEl('circle', { cx: 20, cy: 28, r: 5, fill: 'currentColor', opacity: 0.3 }),
+    // Curved arrow showing curl motion
+    svgEl('path', { d: 'M45 35 Q35 40 25 35', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.3 }),
+    svgEl('path', { d: 'M27 34 l-2 1 l1 2', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.3 }),
   ],
+  // DEADLIFT: person bent over, barbell on ground, lifting
   deadlift: [
-    // Deadlift (person bending, barbell)
-    svgEl('circle', { cx: 45, cy: 10, r: 5, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 42, y: 15, width: 6, height: 15, rx: 2, fill: 'currentColor', opacity: 0.7, transform: 'rotate(25 45 22)' }),
-    // Barbell
-    svgEl('rect', { x: 10, y: 42, width: 60, height: 3, rx: 1.5, fill: 'currentColor', opacity: 0.8 }),
-    svgEl('circle', { cx: 12, cy: 43, r: 5, fill: 'currentColor', opacity: 0.6 }),
-    svgEl('circle', { cx: 68, cy: 43, r: 5, fill: 'currentColor', opacity: 0.6 }),
-    // Arms
-    svgEl('path', { d: 'M42 20 l-25 22 M48 20 l25 22', stroke: 'currentColor', 'stroke-width': 2, opacity: 0.5 }),
+    // Ground line
+    svgEl('line', { x1: 5, y1: 47, x2: 75, y2: 47, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Barbell on ground
+    svgEl('line', { x1: 12, y1: 45, x2: 68, y2: 45, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('circle', { cx: 12, cy: 43, r: 4, fill: 'currentColor', opacity: 0.7 }),
+    svgEl('circle', { cx: 68, cy: 43, r: 4, fill: 'currentColor', opacity: 0.7 }),
+    // Head
+    svgEl('circle', { cx: 52, cy: 12, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso (bent forward at angle)
+    svgEl('line', { x1: 52, y1: 17, x2: 40, y2: 32, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Arms (reaching down to bar)
+    svgEl('line', { x1: 44, y1: 24, x2: 35, y2: 44, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 46, y1: 26, x2: 45, y2: 44, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Legs (bent, knees over bar)
+    svgEl('line', { x1: 40, y1: 32, x2: 38, y2: 40, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    svgEl('line', { x1: 38, y1: 40, x2: 38, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Up arrow (lift up)
+    svgEl('path', { d: 'M60 38 v-8 M57 33 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
   ],
+  // BENCH PRESS: person lying on bench, barbell above chest
   bench: [
-    // Bench press (lying, barbell above)
-    svgEl('circle', { cx: 35, cy: 35, r: 5, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 32, y: 38, width: 30, height: 4, rx: 2, fill: 'currentColor', opacity: 0.6 }),
-    // Barbell
-    svgEl('rect', { x: 10, y: 20, width: 60, height: 3, rx: 1.5, fill: 'currentColor', opacity: 0.8 }),
-    svgEl('circle', { cx: 12, cy: 21, r: 5, fill: 'currentColor', opacity: 0.6 }),
-    svgEl('circle', { cx: 68, cy: 21, r: 5, fill: 'currentColor', opacity: 0.6 }),
-    // Arms reaching up
-    svgEl('path', { d: 'M35 35 v-12 M50 35 v-12', stroke: 'currentColor', 'stroke-width': 2, opacity: 0.5 }),
+    // Bench (horizontal line)
+    svgEl('line', { x1: 15, y1: 40, x2: 65, y2: 40, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Bench legs
+    svgEl('line', { x1: 20, y1: 40, x2: 20, y2: 47, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    svgEl('line', { x1: 60, y1: 40, x2: 60, y2: 47, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    // Ground line
+    svgEl('line', { x1: 5, y1: 48, x2: 75, y2: 48, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Head (on bench)
+    svgEl('circle', { cx: 22, cy: 37, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Body (lying on bench)
+    svgEl('line', { x1: 27, y1: 38, x2: 58, y2: 38, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Arms (reaching up to bar)
+    svgEl('line', { x1: 32, y1: 38, x2: 32, y2: 24, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 48, y1: 38, x2: 48, y2: 24, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Barbell above chest
+    svgEl('line', { x1: 18, y1: 22, x2: 62, y2: 22, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('circle', { cx: 18, cy: 22, r: 4, fill: 'currentColor', opacity: 0.7 }),
+    svgEl('circle', { cx: 62, cy: 22, r: 4, fill: 'currentColor', opacity: 0.7 }),
+    // Legs (bent, feet on ground)
+    svgEl('line', { x1: 56, y1: 38, x2: 58, y2: 44, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.6 }),
+    svgEl('line', { x1: 58, y1: 44, x2: 62, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.6 }),
   ],
+  // OVERHEAD PRESS: standing, barbell pressed overhead
   ohp: [
-    // Overhead press (pressing barbell up)
-    svgEl('circle', { cx: 40, cy: 30, r: 5, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 37, y: 35, width: 6, height: 15, rx: 2, fill: 'currentColor', opacity: 0.7 }),
+    // Ground line
+    svgEl('line', { x1: 5, y1: 48, x2: 75, y2: 48, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
     // Barbell overhead
-    svgEl('rect', { x: 10, y: 8, width: 60, height: 3, rx: 1.5, fill: 'currentColor', opacity: 0.8 }),
-    svgEl('circle', { cx: 12, cy: 9, r: 5, fill: 'currentColor', opacity: 0.6 }),
-    svgEl('circle', { cx: 68, cy: 9, r: 5, fill: 'currentColor', opacity: 0.6 }),
-    // Arms
-    svgEl('path', { d: 'M40 30 l-15 -18 M40 30 l15 -18', stroke: 'currentColor', 'stroke-width': 2, opacity: 0.5 }),
+    svgEl('line', { x1: 15, y1: 8, x2: 65, y2: 8, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('circle', { cx: 15, cy: 8, r: 4, fill: 'currentColor', opacity: 0.7 }),
+    svgEl('circle', { cx: 65, cy: 8, r: 4, fill: 'currentColor', opacity: 0.7 }),
+    // Arms (straight up to bar)
+    svgEl('line', { x1: 35, y1: 22, x2: 28, y2: 10, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 45, y1: 22, x2: 52, y2: 10, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Head
+    svgEl('circle', { cx: 40, cy: 18, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 23, x2: 40, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs (standing)
+    svgEl('line', { x1: 40, y1: 36, x2: 34, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 40, y1: 36, x2: 46, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Up arrow (press up)
+    svgEl('path', { d: 'M70 30 v-8 M67 25 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
   ],
+  // BARBELL ROW: bent over, pulling barbell to chest
   row_barbell: [
-    // Barbell row (bent over, pulling bar)
-    svgEl('circle', { cx: 50, cy: 12, r: 5, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 47, y: 17, width: 5, height: 15, rx: 2, fill: 'currentColor', opacity: 0.7, transform: 'rotate(20 50 24)' }),
+    // Head
+    svgEl('circle', { cx: 55, cy: 12, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso (bent forward at 45°)
+    svgEl('line', { x1: 55, y1: 17, x2: 35, y2: 32, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Arms (hanging down to bar)
+    svgEl('line', { x1: 40, y1: 24, x2: 35, y2: 42, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 44, y1: 26, x2: 45, y2: 42, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
     // Barbell
-    svgEl('rect', { x: 10, y: 40, width: 60, height: 3, rx: 1.5, fill: 'currentColor', opacity: 0.8 }),
-    svgEl('circle', { cx: 12, cy: 41, r: 5, fill: 'currentColor', opacity: 0.6 }),
-    svgEl('circle', { cx: 68, cy: 41, r: 5, fill: 'currentColor', opacity: 0.6 }),
-    // Arms pulling
-    svgEl('path', { d: 'M47 22 l-15 18 M52 22 l15 18', stroke: 'currentColor', 'stroke-width': 2, opacity: 0.5 }),
+    svgEl('line', { x1: 15, y1: 43, x2: 60, y2: 43, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('circle', { cx: 15, cy: 43, r: 4, fill: 'currentColor', opacity: 0.7 }),
+    svgEl('circle', { cx: 60, cy: 43, r: 4, fill: 'currentColor', opacity: 0.7 }),
+    // Legs (slightly bent)
+    svgEl('line', { x1: 35, y1: 32, x2: 33, y2: 42, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    svgEl('line', { x1: 33, y1: 42, x2: 33, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Ground line
+    svgEl('line', { x1: 5, y1: 48, x2: 75, y2: 48, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Up arrow (pull bar to chest)
+    svgEl('path', { d: 'M68 35 v-8 M65 30 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
   ],
+  // LEG PRESS: seated, pushing platform with feet
   legpress: [
-    // Leg press (seated, pushing platform)
-    svgEl('circle', { cx: 15, cy: 15, r: 5, fill: 'currentColor', opacity: 0.9 }),
-    svgEl('rect', { x: 12, y: 20, width: 6, height: 12, rx: 2, fill: 'currentColor', opacity: 0.7 }),
-    // Legs extended
-    svgEl('rect', { x: 18, y: 25, width: 25, height: 5, rx: 2, fill: 'currentColor', opacity: 0.6 }),
+    // Seat back (angled)
+    svgEl('line', { x1: 12, y1: 10, x2: 18, y2: 30, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Seat bottom
+    svgEl('line', { x1: 18, y1: 30, x2: 30, y2: 30, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Head (seated)
+    svgEl('circle', { cx: 15, cy: 14, r: 4, fill: 'currentColor', opacity: 0.9 }),
+    // Torso (against seat back)
+    svgEl('line', { x1: 16, y1: 18, x2: 20, y2: 28, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Legs (extended toward platform)
+    svgEl('line', { x1: 28, y1: 28, x2: 48, y2: 28, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Feet (on platform)
+    svgEl('line', { x1: 48, y1: 25, x2: 48, y2: 32, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.8 }),
     // Platform
-    svgEl('rect', { x: 55, y: 15, width: 5, height: 25, rx: 2, fill: 'currentColor', opacity: 0.8 }),
-    // Arrow
-    svgEl('path', { d: 'M48 27 l8 0 M53 24 l3 3 l-3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.4 }),
+    svgEl('line', { x1: 52, y1: 15, x2: 52, y2: 42, stroke: 'currentColor', 'stroke-width': 4, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Arrow (push direction)
+    svgEl('path', { d: 'M60 28 h8 M65 25 l3 3 l-3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
   ],
 };
 

@@ -3,7 +3,7 @@
 // Network-first for app code, cache-first for static assets.
 // ============================================================
 
-const CACHE = 'lifeos-v4.0';
+const CACHE = 'lifeos-v4.1';
 const ASSETS = [
   './',
   './index.html',
