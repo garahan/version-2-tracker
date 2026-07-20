@@ -72,7 +72,7 @@ export function streakRisk() {
   // Losses loom ~2x larger than gains. Frame as potential loss, not potential gain.
   const streakLoss = streak >= 3 ? ` You're about to lose your ${streak}-day streak.` : '';
   if (h >= 21 && done === 0) return { level: 'high', message: `Don't lose this day. Do the Floor now — it takes 2 minutes.${streakLoss}` };
-  if (h >= 18 && done <= 1) return { level: 'high', message: `The day is slipping. Pick one habit or lose momentum.${streakLoss}` };
+  if (h >= 18 && done <= 1) return { level: 'high', message: `The day is slipping. Pick one protocol or lose momentum.${streakLoss}` };
   if (h >= 14 && done === 0) return { level: 'medium', message: `Half the day is gone with nothing done. Don't waste it.${streakLoss}` };
   if (h >= 12 && done < progress.due / 2) return { level: 'medium', message: `Behind pace. Your future self is counting on you.` };
   return { level: 'low', message: 'On track. Protect your streak.' };
@@ -100,7 +100,7 @@ export function insights() {
   if (worst) {
     const dom = Object.values(s.domains).find((d) => d.actions?.some((a) => a.id === worst));
     const act = dom?.actions.find((a) => a.id === worst);
-    if (act) out.push({ type: 'skip', icon: '⚠️', text: `Most-skipped (30d): ${act.name} — ${worstCount} misses` });
+    if (act) out.push({ type: 'skip', icon: '⚠️', text: `Most-skipped protocol (30d): ${act.name} — ${worstCount} misses` });
   }
   // Best day of week
   const dayScores = {};

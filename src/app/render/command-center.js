@@ -54,7 +54,7 @@ export function renderCommandCenter() {
       el('div', { class: 'flex items-center gap-2' }, [
         el('span', {}, ['⚠️']),
         el('span', { class: 'text-sm font-semibold' }, ['You lost yesterday.']),
-        el('span', { class: 'text-sm text-mute' }, ['Don\'t lose twice in a row — do the Floor now. Two missed days become a habit.']),
+        el('span', { class: 'text-sm text-mute' }, ['Don\'t lose twice in a row — do the Floor now. Two missed days become a pattern.']),
       ]),
     ]),
 

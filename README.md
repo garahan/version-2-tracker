@@ -42,16 +42,16 @@ Life OS v2 is a single-user, local-first PWA. No accounts, no server, no databas
 
 ## Core Concepts
 
-### Levels (not spheres)
-Life is not divided into "work" and "life" — it's built bottom-up in 5 levels, like a house:
+### Three-Layer Architecture (not 5 flat levels)
+Life is not divided into "work" and "life" — it's built in 3 layers, like an operating system:
 
-| Level | Name | Icon | What it means |
-|-------|------|------|---------------|
-| L1 | Foundation | 🌱 | Body, Psyche, Environment — the base. If these fail, nothing above matters. |
-| L2 | Executive | 🧠 | Executive Function, Attention Management, Decision System — how you direct your mind. |
-| L3 | Capital | 💎 | 7 forms of capital you accumulate: Biological, Intellectual, Financial, Social, Family, Product, Reputational. |
-| L4 | Strategy | 🎯 | Where you're going and how you'll get there. |
-| L5 | Legacy | 🏛️ | What outlives you. |
+| Layer | Icon | What it means | Domains |
+|-------|------|---------------|---------|
+| **Operating** | ⚙️ | Foundation + Executive + Capital — the daily work. What runs every day. | Body, Psyche, Environment, Executive Function, Attention, Decisions, 7 Capital domains (13 total) |
+| **Strategic** | 🎯 | Direction, resource allocation, game selection. Manages the Operating layer. | Strategy |
+| **Legacy** | �️ | Principles, long-term impact, what outlives you. Defines why the system exists. | Legacy |
+
+Strategy manages the Operating System. Legacy defines why it exists.
 
 ### Management Cards
 Every domain has the same universal schema — a "Management Card" — like aviation, medicine, or fund management checklists:
@@ -184,7 +184,25 @@ Hub for 8 secondary sections (see below).
 
 ---
 
-## The 8 More-Hub Sections
+## The 9 More-Hub Sections
+
+### System Health 🩺
+Health of the OS itself — not your health, the system's health.
+- **OS Health Score** (0-100) — weighted score across 6 checks
+- **6 health checks:**
+  - Inbox backlog (unprocessed items, aging >7d)
+  - Reviews overdue (weekly/monthly/quarterly/annual past due)
+  - Risk register staleness (>90d without update)
+  - Strategy last review (quarterly review age)
+  - Lessons logged (days since last lesson)
+  - Decisions pending review (reviewDate passed, no outcome)
+- **Entropy Monitor** (0-100, higher = less chaos):
+  - Overdue actions (past grace period)
+  - Stuck opportunities (open >90d)
+  - Unresolved errors (without fix)
+  - Aging inbox items (raw >7d)
+  - Commitments at risk (deadline today/past)
+- Click any check to navigate to the relevant section
 
 ### Inbox 📥
 GTD-style capture system. Nothing lives only in your head.
@@ -299,7 +317,7 @@ The app implements 5 mechanisms from peer-reviewed cognitive science research:
 ## Scoring & Progression
 
 ### Points
-- Full habit completion = 1 point
+- Full protocol completion = 1 point
 - Floor completion = 0.5 points
 - Rest day = 1 point (counts as full for streak)
 - Missed = 0 points
@@ -373,7 +391,7 @@ The app receives HealthKit data via an **Apple Shortcuts URL bridge** — no nat
 1. An Apple Shortcut reads HealthKit data (steps, sleep, HRV, weight, resting HR, active calories, mindful minutes, water, workout minutes, VO₂max, screen time)
 2. The Shortcut opens the app URL with data as query parameters: `?steps=8234&sleep=7.2&hrv=48&workoutMins=45`
 3. The app parses parameters, validates value ranges, and updates the metrics store
-4. Auto-toggles habits: 8000+ steps → Move = full, 20+ workout min → Move = full, 10+ mindful min → Wind Down = floor
+4. Auto-toggles protocols: 8000+ steps → Move = full, 20+ workout min → Move = full, 10+ mindful min → Wind Down = floor
 
 **Setup:** Create an Apple Shortcut that reads HealthKit and opens the app URL. Add it to your home screen or set up a Time of Day automation for zero-tap daily sync.
 
@@ -518,6 +536,7 @@ version-2-tracker/
 │       ├── spaced-repetition.js # SM-2 algorithm (add, review, schedule, stats)
 │       ├── temptation-bundling.js # Bundle logic (add, log, adherence)
 │       ├── commitments.js      # Commitment contracts (create, resolve, stats)
+│       ├── system-health.js    # OS health checks + entropy monitor
 │       │
 │       ├── data/
 │       │   └── domains.js      # Default Management Cards for all 15 domains + SOPs
@@ -535,6 +554,7 @@ version-2-tracker/
 │           ├── lessons.js            # Lessons learned + error log
 │           ├── spaced-repetition.js  # SR review UI (create, review, stats)
 │           ├── commitments.js        # Commitment UI (create, cancel, history)
+│           ├── system-health.js      # OS health + entropy monitor view
 │           ├── risks.js              # Risks + resilience + anti-goals + optionality
 │           └── settings.js           # Theme, sync, bundles, data, reset
 │

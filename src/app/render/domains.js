@@ -4,19 +4,20 @@
 
 import { el, div, span } from '../dom.js';
 import { getState, getDomain, updateDomain } from '../state.js';
-import { DOMAINS_BY_LEVEL, LEVELS, CADENCE } from '../data/domains.js';
+import { DOMAINS_BY_LAYER, DOMAINS_BY_LEVEL, LEVELS, LAYERS, CADENCE } from '../data/domains.js';
 import { openSheet, closeSheet, toast } from '../ui.js';
 
 export function renderDomains() {
   return el('div', { class: 'page' }, [
     el('header', { class: 'app-header' }, [
       el('div', { class: 'app-title' }, ['Domains']),
-      el('div', { class: 'app-subtitle' }, ['15 systems · 5 levels']),
+      el('div', { class: 'app-subtitle' }, ['15 systems · 3 layers']),
     ]),
-    ...DOMAINS_BY_LEVEL.map(({ level, domains }) =>
+    ...DOMAINS_BY_LAYER.map(({ layer, domains }) =>
       el('section', { class: 'page-section' }, [
         el('div', { class: 'section-head' }, [
-          el('div', { class: 'section-title' }, [`L${level.id} · ${level.name}`]),
+          el('div', { class: 'section-title' }, [`${layer.icon} ${layer.name}`]),
+          el('div', { class: 'text-xs text-mute', style: { fontWeight: 'normal' } }, [layer.desc]),
         ]),
         ...domains.map((d) => domainRow(d)),
       ])

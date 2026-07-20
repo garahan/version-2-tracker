@@ -15,6 +15,21 @@ export const LEVELS = {
   5: { id: 5, name: 'Legacy',         color: 'l5', icon: '🏛️' },
 };
 
+// ============================================================
+// Three-Layer Architecture
+// Strategy manages the Operating System.
+// Legacy defines why the system exists.
+// Operating is the daily work (Foundation + Executive + Capital).
+// ============================================================
+
+export const LAYERS = {
+  operating:  { id: 'operating',  name: 'Operating',  icon: '⚙️', desc: 'Foundation + Executive + Capital — daily work', levels: [1, 2, 3] },
+  strategic:  { id: 'strategic',  name: 'Strategic',  icon: '🎯', desc: 'Direction, resource allocation, game selection',  levels: [4] },
+  legacy:     { id: 'legacy',     name: 'Legacy',     icon: '🏛️', desc: 'Principles, long-term impact, what outlives you',  levels: [5] },
+};
+
+export const LAYER_ORDER = ['operating', 'strategic', 'legacy'];
+
 export const CADENCE = {
   daily:    'Daily',
   weekly:   'Weekly',
@@ -617,4 +632,10 @@ export const DOMAIN_LIST = Object.values(DEFAULT_DOMAINS).sort(
 export const DOMAINS_BY_LEVEL = [1, 2, 3, 4, 5].map((lvl) => ({
   level: LEVELS[lvl],
   domains: DOMAIN_LIST.filter((d) => d.level === lvl),
+}));
+
+/** Domains grouped by layer (3-layer architecture). */
+export const DOMAINS_BY_LAYER = LAYER_ORDER.map((layerId) => ({
+  layer: LAYERS[layerId],
+  domains: DOMAIN_LIST.filter((d) => LAYERS[layerId].levels.includes(d.level)),
 }));

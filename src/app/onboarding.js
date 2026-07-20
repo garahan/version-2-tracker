@@ -6,7 +6,7 @@
 
 import { el, clear, mount } from './dom.js';
 import { setSetting, getState } from './state.js';
-import { DOMAINS_BY_LEVEL, LEVELS } from './data/domains.js';
+import { DOMAINS_BY_LAYER, DOMAINS_BY_LEVEL, LEVELS, LAYERS } from './data/domains.js';
 
 export function renderOnboarding() {
   const root = document.getElementById('onboarding');
@@ -26,16 +26,16 @@ export function renderOnboarding() {
       ]),
       el('button', { class: 'btn btn--primary btn--lg btn--block', on: { click: next } }, ['Begin →']),
     ]),
-    // Step 1: The 5 levels
+    // Step 1: The 3 layers
     el('div', { class: 'onb-step' }, [
-      el('h2', { class: 'onb-title' }, ['Five levels']),
-      el('p', { class: 'onb-sub' }, ['Like any complex system, built bottom-up.']),
-      ...DOMAINS_BY_LEVEL.map(({ level, domains }) =>
+      el('h2', { class: 'onb-title' }, ['Three layers']),
+      el('p', { class: 'onb-sub' }, ['Strategy manages the Operating System. Legacy defines why it exists.']),
+      ...DOMAINS_BY_LAYER.map(({ layer, domains }) =>
         el('div', { class: 'card card--pad-sm mb-2' }, [
           el('div', { class: 'flex items-center gap-2' }, [
-            el('span', { style: { fontSize: '20px' } }, [level.icon]),
+            el('span', { style: { fontSize: '20px' } }, [layer.icon]),
             el('div', {}, [
-              el('div', { class: 'font-semibold' }, [`L${level.id} · ${level.name}`]),
+              el('div', { class: 'font-semibold' }, [layer.name]),
               el('div', { class: 'text-xs text-mute' }, [domains.map((d) => d.name).join(' · ')]),
             ]),
           ]),
@@ -59,7 +59,7 @@ export function renderOnboarding() {
       el('div', { class: 'onb-hero' }, ['🚀']),
       el('h2', { class: 'onb-title' }, ['Ready']),
       el('p', { class: 'onb-body' }, [
-        'Start with the Today tab. Tap habits to complete them. On bad days, tap Floor. Never miss twice.',
+        'Start with the Today tab. Tap protocols to complete them. On bad days, tap Floor. Never miss twice.',
       ]),
       el('p', { class: 'onb-body mt-4' }, [
         'Explore Domains to see all 15 systems. Run your first Weekly Review on Sunday.',

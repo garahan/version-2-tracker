@@ -15,7 +15,7 @@ const TEMPLATES = {
     questions: [
       'What did I ship this week?',
       'What did I learn?',
-      'Which habit was hardest to keep? Why?',
+      'Which protocol was hardest to keep? Why?',
       'What is the #1 priority for next week?',
       'What should I say NO to next week?',
       'Did I complete my weekly cadence actions? (Portfolio review, project review, inbox zero, plan next week)',

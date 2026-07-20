@@ -732,3 +732,20 @@
   line-height: var(--lh-loose);
   margin-bottom: var(--sp-4);
 }
+
+/* ---- Health bar (System Health) ---- */
+.health-bar {
+  height: 8px;
+  background: var(--c-bg-elev-3);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: var(--sp-3);
+}
+.health-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width var(--dur-slow) var(--ease-out);
+}
+.health-bar-fill--healthy { background: var(--c-success, #2ea043); }
+.health-bar-fill--warning { background: var(--c-warn, #d29922); }
+.health-bar-fill--critical { background: var(--c-danger, #f85149); }
