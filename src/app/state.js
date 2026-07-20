@@ -42,6 +42,7 @@ export function defaultState() {
     commitments: [],
     projects: [],           // v3 §20 — Leverage Engine
     blackSwans: [],         // v3 §16 — Black Swan Plans
+    trainingLog: {},        // { 'YYYY-MM-DD': { exercises: [], completed, startTime, endTime } }
     metrics: {
       weight: [], hrv: [], sleep: [], vo2max: [],
       screenTime: [], steps: [], restingHr: [], bodyFat: [],

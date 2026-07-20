@@ -20,6 +20,7 @@ import { toast } from '../ui.js';
 import { renderHeatmap } from './heatmap.js';
 import { enterFocusMode } from '../focus-mode.js';
 import { autoDeriveKPIs, autoCalcRunway } from '../automation.js';
+import { trainingLogSection } from '../training.js';
 
 export function renderToday() {
   const s = getState();
@@ -39,7 +40,6 @@ export function renderToday() {
     topBar(s, t, streak),
     heroRing(s, prog),
     kpiPanel(s),
-    financeCard(s),
     focusButton(),
     el('div', { class: 'section-head', style: { marginTop: 'var(--sp-8)' } }, [
       el('div', { class: 'section-title' }, ['Today']),
@@ -58,6 +58,7 @@ export function renderToday() {
         el('div', { class: 'list' }, items.map(a => actionRow(a, day, t))),
       ])
     ),
+    trainingLogSection(s, t),
     recallSection(s, t),
     commitmentSection(s, t),
     reflectionCard(day, t),
