@@ -67,7 +67,15 @@ export function boot() {
 
 // ---- Router ----
 export function go(tab) {
-  if (tab === currentTab) return;
+  // Navigating to the same tab: clear any active subroute (acts as "back")
+  if (tab === currentTab) {
+    if (currentSubroute != null) {
+      currentSubroute = null;
+      render();
+      window.scrollTo({ top: 0 });
+    }
+    return;
+  }
   currentTab = tab;
   currentSubroute = null;
   render();
