@@ -36,21 +36,21 @@
   --c-healthy:   #10b981;  /* Emerald — healthy / done (not sage) */
   --c-attention: #f97316;  /* Orange — attention / floor (saturated) */
   --c-danger:    #ef4444;  /* Red — danger / missed (clean, not coral) */
-  --c-strategy:  #8b5cf6;  /* Indigo — strategy / meta (not magenta) */
+  --c-strategy:  #a855f7;  /* Purple — strategy / meta (true purple, distinct from blue) */
 
   /* Semantic soft tints (14% — for chip backgrounds, subtle fills) */
   --c-info-soft:      rgba(59, 130, 246, 0.14);
   --c-healthy-soft:   rgba(16, 185, 129, 0.14);
   --c-attention-soft: rgba(249, 115, 22, 0.14);
   --c-danger-soft:    rgba(239, 68, 68, 0.14);
-  --c-strategy-soft:  rgba(139, 92, 246, 0.14);
+  --c-strategy-soft:  rgba(168, 85, 247, 0.14);
 
   /* Semantic borders (50% — for accented card borders) */
   --c-info-border:      rgba(59, 130, 246, 0.50);
   --c-healthy-border:   rgba(16, 185, 129, 0.50);
   --c-attention-border: rgba(249, 115, 22, 0.50);
   --c-danger-border:    rgba(239, 68, 68, 0.50);
-  --c-strategy-border:  rgba(139, 92, 246, 0.50);
+  --c-strategy-border:  rgba(168, 85, 247, 0.50);
 
   /* ---- Accent (identity — default cyan, NEW for v3) ----
      Used ONLY for: progress ring, primary action buttons, active
@@ -217,7 +217,7 @@
   --c-healthy-soft:   rgba(16, 185, 129, 0.10);
   --c-attention-soft: rgba(249, 115, 22, 0.10);
   --c-danger-soft:    rgba(239, 68, 68, 0.10);
-  --c-strategy-soft:  rgba(139, 92, 246, 0.10);
+  --c-strategy-soft:  rgba(168, 85, 247, 0.10);
 
   --sh-sm:    0 1px 2px rgba(0,0,0,0.06);
   --sh-md:    0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
@@ -250,7 +250,7 @@
 [data-accent="cyan"]   { --c-accent: #06b6d4; --c-accent-text: #22d3ee; --c-accent-soft: rgba(6,182,212,0.14); --c-accent-glow: rgba(6,182,212,0.32); --c-accent-border: rgba(6,182,212,0.50); }
 [data-accent="blue"]   { --c-accent: #3b82f6; --c-accent-text: #60a5fa; --c-accent-soft: rgba(59,130,246,0.14); --c-accent-glow: rgba(59,130,246,0.32); --c-accent-border: rgba(59,130,246,0.50); }
 [data-accent="green"]  { --c-accent: #10b981; --c-accent-text: #34d399; --c-accent-soft: rgba(16,185,129,0.14); --c-accent-glow: rgba(16,185,129,0.32); --c-accent-border: rgba(16,185,129,0.50); }
-[data-accent="violet"] { --c-accent: #8b5cf6; --c-accent-text: #a78bfa; --c-accent-soft: rgba(139,92,246,0.14); --c-accent-glow: rgba(139,92,246,0.32); --c-accent-border: rgba(139,92,246,0.50); }
+[data-accent="violet"] { --c-accent: #a855f7; --c-accent-text: #c084fc; --c-accent-soft: rgba(168,85,247,0.14); --c-accent-glow: rgba(168,85,247,0.32); --c-accent-border: rgba(168,85,247,0.50); }
 [data-accent="amber"]  { --c-accent: #f59e0b; --c-accent-text: #fbbf24; --c-accent-soft: rgba(245,158,11,0.14); --c-accent-glow: rgba(245,158,11,0.32); --c-accent-border: rgba(245,158,11,0.50); }
 [data-accent="rose"]   { --c-accent: #f43f5e; --c-accent-text: #fb7185; --c-accent-soft: rgba(244,63,94,0.14); --c-accent-glow: rgba(244,63,94,0.32); --c-accent-border: rgba(244,63,94,0.50); }
 

@@ -2,7 +2,7 @@
 // Life OS v3 — Service Worker (offline-first, v3 §26)
 // ============================================================
 
-const CACHE = 'lifeos-v3.1';
+const CACHE = 'lifeos-v3.2';
 const ASSETS = [
   './',
   './index.html',
