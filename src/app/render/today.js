@@ -89,11 +89,12 @@ function toggle(action, key) {
   setDayAction(key, action.id, next);
   if (next === 'full') {
     const prog = todayProgress();
-    if (prog.due > 0 && prog.done + prog.floor === prog.due) {
+    const allFull = prog.done === prog.due && prog.floor === 0;
+    const allDone = prog.done + prog.floor === prog.due;
+    if (prog.due > 0 && allDone) {
       confetti();
-      toast('Perfect day. 🎉', { icon: '⭐' });
-      // Check if this completed a perfect week → earn shield
-      if (checkShieldEarned()) {
+      toast(allFull ? 'Perfect day. 🎉' : 'All done! Great work.', { icon: allFull ? '⭐' : '✅' });
+      if (allFull && checkShieldEarned()) {
         setTimeout(() => toast('Shield earned! 🛡️', { icon: '🛡️' }), 800);
       }
     } else {

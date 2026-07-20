@@ -4,7 +4,7 @@
 // Single source of truth. All modules import from here.
 // ============================================================
 
-import { lsGet, lsSet, lsRemove, clone, uid, todayKey, addDays } from './util.js';
+import { lsGet, lsSet, lsRemove, clone, uid, todayKey, addDays, daysBetween, lastNDays } from './util.js';
 import { DEFAULT_DOMAINS } from './data/domains.js';
 
 const STORAGE_KEY = 'lifeos-v2-state';
@@ -199,6 +199,7 @@ function _migrateV1ToV2(v1) {
 
 let _state = null;
 let _listeners = new Set();
+let _setting = false; // re-entrancy guard
 
 export function getState() {
   if (!_state) _state = loadState();
@@ -210,11 +211,22 @@ export function setState(updater) {
   if (typeof updater === 'function') updater(s);
   else Object.assign(s, updater);
   persist();
-  notify();
+  if (_setting) return; // nested call — skip notify (will happen on outer)
+  _setting = true;
+  try { notify(); } finally { _setting = false; }
 }
 
 export function persist() {
-  lsSet(STORAGE_KEY, _state);
+  try {
+    lsSet(STORAGE_KEY, _state);
+  } catch (e) {
+    console.error('Life OS: persist failed', e);
+    // Show toast once per session to avoid spam
+    if (!window.__lifeosQuotaWarned) {
+      window.__lifeosQuotaWarned = true;
+      import('./ui.js').then(ui => ui.toast('Storage full — export your data', { icon: '⚠️', duration: 5000 })).catch(() => {});
+    }
+  }
 }
 
 export function resetState() {
@@ -313,13 +325,13 @@ export function recomputeScore() {
 
 export function checkShieldEarned() {
   const s = getState();
-  const keys = Object.keys(s.days).sort();
-  if (keys.length < 7) return false;
-  // Check last 7 days
-  const last7 = keys.slice(-7);
-  const allComplete = last7.every((k) => dayScore(k) > 0 || s.days[k].shielded);
+  // Check last 7 CONSECUTIVE days (not just 7 records)
+  const last7 = lastNDays(7);
+  const allComplete = last7.every((k) => {
+    const day = s.days[k];
+    return day && (dayScore(k) > 0 || day.shielded);
+  });
   if (allComplete) {
-    // Check if we already awarded a shield for this week
     const weekKey = last7[0];
     if (!s._shieldWeeksAwarded?.includes(weekKey)) {
       setState((st) => {
@@ -361,14 +373,17 @@ export function currentStreak() {
 
 export function bestStreak() {
   const keys = Object.keys(getState().days).sort();
-  let best = 0, cur = 0;
+  let best = 0, cur = 0, prevKey = null;
   for (const k of keys) {
+    // Reset on gap (missing day breaks streak)
+    if (prevKey && daysBetween(prevKey, k) !== 1) cur = 0;
     if (dayScore(k) > 0 || getState().days[k].shielded) {
       cur++;
       best = Math.max(best, cur);
     } else {
       cur = 0;
     }
+    prevKey = k;
   }
   return best;
 }

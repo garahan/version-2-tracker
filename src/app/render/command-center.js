@@ -65,10 +65,10 @@ export function renderCommandCenter() {
     el('div', { class: 'bento' }, [
       kpi('🔥', 'Streak', `${streak}d`, null),
       kpi('⭐', 'Points', fmtNum(s.totalPoints), null),
-      kpi('📅', 'v2.00 ETA', f.date || '—', f.days ? `${f.days}d` : null),
+      kpi('📅', 'v2.00 ETA', f.insufficient ? '—' : (f.date || '—'), f.insufficient ? 'need 7d' : (f.days ? `${f.days}d` : null)),
       kpi('🛡️', 'Shields', String(s.shields), null),
       kpi('✅', 'Today', `${prog.done}/${prog.due}`, prog.floor ? `${prog.floor} floor` : null),
-      kpi('📈', 'Pace', f.pace ? `${f.pace}/d` : '—', null),
+      kpi('📈', 'Pace', f.insufficient ? '—' : (f.pace ? `${f.pace}/d` : '—'), null),
       kpi('😴', 'Sleep', sleep != null ? `${sleep}h` : '—', null),
       kpi('❤️', 'HRV', hrv != null ? `${hrv}` : '—', 'ms'),
       kpi('👟', 'Steps', steps != null ? fmtNum(steps) : '—', null),

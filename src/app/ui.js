@@ -30,6 +30,10 @@ export function toast(message, opts = {}) {
   const { duration = 2400, icon = '' } = opts;
   haptic(10);
   const wrap = ensureToastWrap();
+  if (!wrap) return;
+  // Limit to 3 toasts
+  const existing = wrap.querySelectorAll('.toast');
+  if (existing.length >= 3) existing[0].remove();
   const t = el('div', { class: 'toast' }, [icon ? `${icon} ` : '', message]);
   wrap.appendChild(t);
   setTimeout(() => {
@@ -121,6 +125,7 @@ export function confetti(count = 80) {
   haptic([10, 30, 10]);
   const host = $('#confetti');
   if (!host) return;
+  clear(host); // remove any existing pieces
   host.classList.remove('hidden');
   for (let i = 0; i < count; i++) {
     const piece = el('div', { class: 'confetti-piece', style: {

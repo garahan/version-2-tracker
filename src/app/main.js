@@ -7,6 +7,7 @@ import { el, clear, mount, $ } from './dom.js';
 import { getState, applySettings, subscribe } from './state.js';
 import { renderOnboarding } from './onboarding.js';
 import { ingestHealthFromURL } from './health.js';
+import { todayKey } from './util.js';
 
 const TABS = [
   { id: 'today',   label: 'Today',   icon: '✅', render: () => import('./render/today.js').then(m => m.renderToday()) },
@@ -40,6 +41,17 @@ export function boot() {
     raf = requestAnimationFrame(() => { render(); });
   });
   window.__lifeosRerender = () => render();
+
+  // Midnight rollover: re-render when day changes (app kept open past midnight)
+  let lastTodayKey = todayKey();
+  setInterval(() => {
+    const current = todayKey();
+    if (current !== lastTodayKey) {
+      lastTodayKey = current;
+      render();
+      import('./ui.js').then(ui => ui.toast('New day — fresh start 🌅'));
+    }
+  }, 60000);
 }
 
 // ---- Router ----
@@ -60,9 +72,12 @@ export function setSubroute(id) {
 
 // ---- Render shell ----
 
+let _renderToken = 0; // race condition guard
+
 function render() {
   const app = $('#app');
   if (!app) return;
+  const token = ++_renderToken;
   clear(app);
 
   const tab = TABS.find((t) => t.id === currentTab) || TABS[0];
@@ -76,11 +91,13 @@ function render() {
     : tab.render();
 
   renderPromise.then((node) => {
+    if (token !== _renderToken) return; // a newer render superseded us
     if (!node) { currentSubroute = null; render(); return; }
     clear(contentHost);
     mount(contentHost, [node]);
     updateNavActive();
   }).catch((err) => {
+    if (token !== _renderToken) return;
     clear(contentHost);
     mount(contentHost, [el('div', { class: 'empty' }, [
       el('div', { class: 'empty-icon' }, ['⚠️']),

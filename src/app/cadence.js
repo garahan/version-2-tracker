@@ -5,7 +5,7 @@
 // ============================================================
 
 import { getState } from './state.js';
-import { todayKey, parseKey, dow, weekNumber, startOfWeek, startOfMonth, startOfQuarter, addDays } from './util.js';
+import { todayKey, parseKey, dow, weekNumber, startOfWeek, startOfMonth, startOfQuarter, addDays, daysBetween } from './util.js';
 
 /**
  * Determine if a given action (with cadence) is due on a given date key.
@@ -30,7 +30,7 @@ export function isDueOn(key, action) {
       const isStart = m === 0 || m === 6;
       return isStart && dt <= 7 && wd === 0;
     }
-    case 'annual':    return m === 11 && dt >= 25; // last week of December
+    case 'annual':    return (m === 11 && dt >= 25) || (m === 0 && dt <= 7); // Dec 25–31 or Jan 1–7
     case 'event':     return false;
     default:          return false;
   }
@@ -96,13 +96,19 @@ export function overdue() {
   const s = getState();
   const t = todayKey();
   const out = [];
+  // Grace periods: how many days after due date before marking overdue
+  const GRACE = { weekly: 7, monthly: 14, quarterly: 21, semiannual: 30, annual: 30 };
   for (const dom of Object.values(s.domains)) {
     for (const action of dom.actions || []) {
       if (action.cadence === 'daily' || action.cadence === 'event') continue;
       if (!isCompletedThisCycle(action, t)) {
-        // Check if due date has passed
         const dueKey = lastDueDate(action.cadence, t);
-        if (dueKey && dueKey < t) out.push({ domain: dom, action, dueKey });
+        if (dueKey && dueKey < t) {
+          const grace = GRACE[action.cadence] || 7;
+          if (daysBetween(dueKey, t) > grace) {
+            out.push({ domain: dom, action, dueKey });
+          }
+        }
       }
     }
   }
@@ -123,7 +129,7 @@ export function lastDueDate(cadence, key) {
       case 'monthly':    if (dt <= 7 && wd === 0) return testKey; break;
       case 'quarterly':  if ((m === 0 || m === 3 || m === 6 || m === 9) && dt <= 7 && wd === 0) return testKey; break;
       case 'semiannual': if ((m === 0 || m === 6) && dt <= 7 && wd === 0) return testKey; break;
-      case 'annual':     if (m === 11 && dt >= 25) return testKey; break;
+      case 'annual':     if ((m === 11 && dt >= 25) || (m === 0 && dt <= 7)) return testKey; break;
     }
   }
   return null;

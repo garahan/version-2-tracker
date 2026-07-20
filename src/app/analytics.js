@@ -50,9 +50,10 @@ export function forecast() {
   const s = getState();
   const remaining = Math.max(0, 400 - s.totalPoints);
   if (remaining <= 0) return { date: null, days: 0, remaining: 0, pace: 0 };
-  // Use last 14 days avg points/day
   const keys = lastNDays(14);
   const pts = keys.map((k) => dayScore(k));
+  const validDays = pts.filter((p) => p > 0).length;
+  if (validDays < 7) return { date: null, days: null, remaining, pace: null, insufficient: true };
   const avg = pts.reduce((x, y) => x + y, 0) / 14;
   if (avg <= 0) return { date: null, days: Infinity, remaining, pace: 0 };
   const days = Math.ceil(remaining / avg);

@@ -62,8 +62,13 @@ export async function pullFromGist() {
   const data = await res.json();
   const file = data.files?.[FILENAME];
   if (!file) throw new Error('Gist has no lifeos-state.json file.');
-  const json = file.content;
-  importJSON(json);
+  let parsed;
+  try { parsed = JSON.parse(file.content); }
+  catch (e) { throw new Error('Gist content is not valid JSON.'); }
+  if (!parsed || typeof parsed !== 'object' || !parsed.schemaVersion) {
+    throw new Error('Gist content is not a valid Life OS state.');
+  }
+  importJSON(parsed);
   lsSet('lifeos-last-sync', { at: new Date().toISOString(), gistId, pulled: true });
 }
 

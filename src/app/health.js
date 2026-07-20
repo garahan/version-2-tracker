@@ -29,6 +29,12 @@ export function ingestHealthFromURL() {
   const params = url.searchParams;
   if (![...params.keys()].some((k) => PARAM_MAP[k])) return false;
 
+  // Value ranges for validation (reject impossible/malicious values)
+  const RANGES = {
+    steps: [0, 200000], sleep: [0, 24], hrv: [0, 500], workoutMins: [0, 1440],
+    mindful: [0, 1440], vo2max: [10, 100], weight: [20, 500], rhr: [20, 250],
+  };
+
   const t = todayKey();
   const updates = {};
   for (const [param, def] of Object.entries(PARAM_MAP)) {
@@ -36,8 +42,9 @@ export function ingestHealthFromURL() {
     if (raw == null || raw === '') continue;
     const val = Number(raw);
     if (Number.isNaN(val)) continue;
+    const range = RANGES[def.metric];
+    if (range && (val < range[0] || val > range[1])) continue; // skip invalid
     updates[def.metric] = val;
-    // Auto-toggle habits based on health data
     if (param === 'steps' && val >= 8000) maybeAutoMove('full');
     if (param === 'workoutMins' && val >= 20) maybeAutoMove('full');
     if (param === 'mindful' && val >= 10) maybeAutoWind('floor');
