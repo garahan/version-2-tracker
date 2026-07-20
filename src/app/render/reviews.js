@@ -89,7 +89,7 @@ export function renderReviews() {
 
   return el('div', { class: 'page' }, [
     el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title', style: { fontSize: 'var(--fs-page)' } }, ['Review']),
+      el('div', { class: 'app-title' }, ['Review']),
       el('div', { class: 'app-subtitle' }, ['Weekly · monthly · quarterly · annual']),
     ]),
 
@@ -98,7 +98,7 @@ export function renderReviews() {
 
     // History
     el('div', { class: 'section-head' }, [
-      el('div', { class: 'section-title', style: { fontSize: 'var(--fs-section)' } }, ['History']),
+      el('div', { class: 'section-title' }, ['History']),
     ]),
     reviewHistory(s),
   ]);

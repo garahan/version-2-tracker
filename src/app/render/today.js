@@ -59,8 +59,8 @@ export function renderToday() {
 
     // ---- OPERATE: today's actions ----
     el('div', { class: 'section-head', style: { marginTop: 'var(--sp-8)' } }, [
-      el('div', { class: 'section-title', style: { fontSize: 'var(--fs-section)' } }, ['Today']),
-      el('span', { class: 'text-mute', style: { fontSize: 'var(--fs-meta)' } }, [`${prog.done}/${prog.due} done`]),
+      el('div', { class: 'section-title' }, ['Today']),
+      el('span', { class: 'text-mute', style: { fontSize: 'var(--fs-meta)' } }, [prog.done + '/' + prog.due + ' done']),
     ]),
 
     // Loss aversion nudge (only if streak at risk)
@@ -101,22 +101,23 @@ export function renderToday() {
   ]);
 }
 
-// ---- Top bar: version left, date right, streak/shields below ----
+// ---- Top bar: version left, date right, streak/shields as row ----
 function topBar(s, t, streak) {
   const d = new Date();
   const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
-  return el('div', { class: 'flex items-center justify-between', style: { padding: 'var(--sp-4) 0 var(--sp-2)' } }, [
-    el('div', {}, [
-      el('div', { style: { fontSize: 'var(--fs-page)', fontWeight: 'var(--fw-bold)', letterSpacing: 'var(--ls-tight)', fontVariantNumeric: 'tabular-nums' } }, [`v${s.version.toFixed(2)}`]),
+  return el('div', { style: { padding: 'var(--sp-4) 0 var(--sp-2)' } }, [
+    // Row 1: version + date
+    el('div', { class: 'flex items-center justify-between' }, [
+      el('div', { style: { fontSize: 'var(--fs-page)', fontWeight: 'var(--fw-bold)', letterSpacing: 'var(--ls-tight)', fontVariantNumeric: 'tabular-nums' } }, ['v' + s.version.toFixed(2)]),
+      el('div', { style: { textAlign: 'right' } }, [
+        el('div', { style: { fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-semibold)' } }, [dayName]),
+        el('div', { style: { fontSize: 'var(--fs-meta)', color: 'var(--c-text-mute)' } }, [fmtDate(t)]),
+      ]),
     ]),
-    el('div', { style: { textAlign: 'right' } }, [
-      el('div', { style: { fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-semibold)' } }, [dayName]),
-      el('div', { style: { fontSize: 'var(--fs-meta)', color: 'var(--c-text-mute)' } }, [fmtDate(t)]),
-    ]),
-    // Streak + shields top-right
-    el('div', { class: 'flex items-center gap-2', style: { position: 'absolute', top: 'var(--sp-2)', right: 'var(--sp-4)' } }, [
-      streak > 0 && el('span', { class: 'chip', style: { fontSize: 'var(--fs-meta)' } }, [`🔥 ${streak}`]),
-      s.shields > 0 && el('span', { class: 'chip', style: { fontSize: 'var(--fs-meta)', background: 'rgba(255,209,102,0.15)' } }, [`🛡️ ${s.shields}`]),
+    // Row 2: streak + shields (only if > 0)
+    (streak > 0 || s.shields > 0) && el('div', { class: 'flex items-center gap-2', style: { marginTop: 'var(--sp-2)' } }, [
+      streak > 0 && el('span', { class: 'chip', style: { fontSize: 'var(--fs-meta)', background: 'rgba(255,159,67,0.12)', color: 'var(--c-attention)' } }, ['🔥 ' + streak + 'd streak']),
+      s.shields > 0 && el('span', { class: 'chip', style: { fontSize: 'var(--fs-meta)', background: 'rgba(255,209,102,0.12)', color: 'var(--c-shield)' } }, ['🛡️ ' + s.shields + ' shields']),
     ]),
   ]);
 }

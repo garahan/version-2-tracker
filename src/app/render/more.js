@@ -42,7 +42,7 @@ export function renderMore() {
 
   return el('div', { class: 'page' }, [
     el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title', style: { fontSize: 'var(--fs-page)' } }, ['More']),
+      el('div', { class: 'app-title' }, ['More']),
       el('div', { class: 'app-subtitle' }, ['Inbox · decisions · risks · settings']),
     ]),
 

@@ -131,7 +131,7 @@ export function renderSettings() {
       ]),
     ]),
 
-    el('div', { class: 'text-center text-mute mt-6', style: { fontSize: 'var(--fs-xs)' } }, [
+    el('div', { class: 'text-center text-mute mt-6', style: { fontSize: 'var(--fs-meta)' } }, [
       'Life OS v2 · schema v2 · ', `v${s.version.toFixed(2)}`,
     ]),
   ]);

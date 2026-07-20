@@ -11,7 +11,7 @@ import { openSheet, closeSheet, toast } from '../ui.js';
 export function renderDomains() {
   return el('div', { class: 'page' }, [
     el('header', { class: 'app-header' }, [
-      el('div', { class: 'app-title', style: { fontSize: 'var(--fs-page)' } }, ['Domains']),
+      el('div', { class: 'app-title' }, ['Domains']),
       el('div', { class: 'app-subtitle' }, ['15 systems · 3 layers']),
     ]),
     ...DOMAINS_BY_LAYER.map(({ layer, domains }) =>

@@ -112,7 +112,7 @@ function reviewModal(item) {
         if (!area) return;
         while (area.firstChild) area.removeChild(area.firstChild);
         area.appendChild(el('div', { class: 'text-xs text-mute uppercase mb-2' }, ['Answer']));
-        area.appendChild(el('div', { class: 'card card--pad-sm mb-3', style: { fontSize: 'var(--fs-md)' } }, [item.answer]));
+        area.appendChild(el('div', { class: 'card card--pad-sm mb-3', style: { fontSize: 'var(--fs-sec)' } }, [item.answer]));
         area.appendChild(el('div', { class: 'text-xs text-mute uppercase mb-2' }, ['How well did you recall?']));
         area.appendChild(el('div', { class: 'flex gap-2 flex-wrap' }, QUALITY.map((q) =>
           el('button', {
@@ -130,7 +130,7 @@ function reviewModal(item) {
   ]);
   const content = el('div', { style: { minWidth: '320px' } }, [
     el('div', { class: 'text-xs text-mute uppercase mb-2' }, ['Question']),
-    el('div', { class: 'card card--pad-sm mb-3', style: { fontSize: 'var(--fs-md)' } }, [item.question]),
+    el('div', { class: 'card card--pad-sm mb-3', style: { fontSize: 'var(--fs-sec)' } }, [item.question]),
     answerArea,
   ]);
   openModal(content, { title: 'Review' });

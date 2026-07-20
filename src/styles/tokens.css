@@ -40,6 +40,7 @@
   --c-rest:    #5b9bd5;
   --c-shield:  #ffd166;
   --c-warning: #ff9f43;
+  --c-warn:    #ff9f43;  /* alias */
   --c-danger:  #e85d75;
   --c-success: #4caf85;
 
@@ -164,8 +165,8 @@
 [data-theme="light"] {
   --c-bg:           #f5f6f8;
   --c-bg-elev-1:    #ffffff;
-  --c-bg-elev-2:    #ffffff;
-  --c-bg-elev-3:    #ffffff;
+  --c-bg-elev-2:    #eef0f4;
+  --c-bg-elev-3:    #e4e7ed;
   --c-bg-glass:     rgba(255, 255, 255, 0.82);
   --c-border:       rgba(0, 0, 0, 0.08);
   --c-border-strong:rgba(0, 0, 0, 0.14);
