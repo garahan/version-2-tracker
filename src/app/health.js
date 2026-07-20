@@ -5,7 +5,7 @@
 // This module parses those params and updates state.
 // ============================================================
 
-import { setState, getState, setDayField } from './state.js';
+import { setState, getState, setDayAction, setDayField } from './state.js';
 import { todayKey } from './util.js';
 import { toast } from './ui.js';
 
@@ -70,7 +70,7 @@ function maybeAutoMove(level) {
   const t = todayKey();
   const day = s.days[t];
   if (day && day.habits?.body_move) return; // don't override manual
-  setDayField(t, 'habits', { ...(day?.habits || {}), body_move: level });
+  setDayAction(t, 'body_move', level);
 }
 
 function maybeAutoWind(level) {
@@ -78,7 +78,7 @@ function maybeAutoWind(level) {
   const t = todayKey();
   const day = s.days[t];
   if (day && day.habits?.body_wind) return;
-  setDayField(t, 'habits', { ...(day?.habits || {}), body_wind: level });
+  setDayAction(t, 'body_wind', level);
 }
 
 function maybeAutoSleepNote(hours) {

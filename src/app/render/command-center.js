@@ -1,11 +1,11 @@
 // ============================================================
 // Life OS v2 — Command Center
-// The always-visible top dashboard. 10-15 KPIs visible in 60s.
+// The always-visible top dashboard. 12 KPIs visible in 60s.
 // ============================================================
 
 import { el, div, span, svg, svgEl } from '../dom.js';
 import { getState, currentStreak, dayScore } from '../state.js';
-import { todayKey, lastNDays, fmtNum, greeting, addDays } from '../util.js';
+import { todayKey, lastNDays, fmtNum, fmtMins, greeting, addDays } from '../util.js';
 import { todayProgress } from '../cadence.js';
 import { forecast, streakRisk } from '../analytics.js';
 
@@ -18,6 +18,18 @@ export function renderCommandCenter() {
   const risk = streakRisk();
   const yest = dayScore(addDays(t, -1));
   const yestMissed = yest === 0;
+
+  // Latest metrics (today or most recent)
+  const latestMetric = (key) => {
+    const arr = s.metrics?.[key] || [];
+    return arr.length ? arr[arr.length - 1].value : null;
+  };
+  const sleep = latestMetric('sleep');
+  const hrv = latestMetric('hrv');
+  const steps = latestMetric('steps');
+  const deepWork = s.days[t]?.deepWorkMins || 0;
+  const runway = s.optionality?.runwayMonths || 0;
+  const openOpps = (s.opportunities || []).filter(o => o.status === 'open' || o.status === 'pursuing').length;
 
   return el('section', { class: 'page-section' }, [
     // Greeting + version
@@ -46,7 +58,7 @@ export function renderCommandCenter() {
       ]),
     ]),
 
-    // KPI bento
+    // KPI bento — 12 KPIs
     el('div', { class: 'section-head' }, [
       el('div', { class: 'section-title' }, ['Command Center']),
     ]),
@@ -57,6 +69,12 @@ export function renderCommandCenter() {
       kpi('🛡️', 'Shields', String(s.shields), null),
       kpi('✅', 'Today', `${prog.done}/${prog.due}`, prog.floor ? `${prog.floor} floor` : null),
       kpi('📈', 'Pace', f.pace ? `${f.pace}/d` : '—', null),
+      kpi('😴', 'Sleep', sleep != null ? `${sleep}h` : '—', null),
+      kpi('❤️', 'HRV', hrv != null ? `${hrv}` : '—', 'ms'),
+      kpi('👟', 'Steps', steps != null ? fmtNum(steps) : '—', null),
+      kpi('🧠', 'Deep Work', deepWork ? fmtMins(deepWork) : '—', null),
+      kpi('💰', 'Runway', `${runway}m`, null),
+      kpi('🔮', 'Opps', String(openOpps), 'open'),
     ]),
   ]);
 }

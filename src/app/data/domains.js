@@ -505,6 +505,77 @@ export const DEFAULT_DOMAINS = {
   }),
 };
 
+// ---- Default SOPs for domains that don't have one ----
+const DEFAULT_SOPS = {
+  body: {
+    title: 'Morning Body Routine', when: 'Daily, morning', duration: '15 min',
+    steps: ['Weigh in (weekly)', 'Sunlight 5–15 min', 'Mobility 5–10 min', 'Skincare AM', 'Plan workout or do Floor', 'Log protein target'],
+  },
+  psyche: {
+    title: 'Evening Reflection', when: 'Daily, evening', duration: '5 min',
+    steps: ['Mood check-in (1–5)', 'One win today', 'One thing to improve', 'Name one emotion felt today', 'Gratitude: one sentence'],
+  },
+  environment: {
+    title: 'Workspace Reset', when: 'Sunday evening', duration: '10 min',
+    steps: ['Clear desk', 'Close all browser tabs not needed Monday', 'Inbox Zero', 'Notification audit (monthly)', 'Plan Monday top 3'],
+  },
+  executive: {
+    title: 'Daily Planning', when: 'Daily, morning', duration: '5 min',
+    steps: ['Review calendar', 'Pick top 3 tasks', 'Block 1–2 Deep Work sessions', 'Identify the #1 thing that matters most', 'Decline anything not on the plan'],
+  },
+  attention: {
+    title: 'Deep Work Session', when: 'Daily, pre-defined block', duration: '90 min',
+    steps: ['Phone in another room / DND', 'Single tab, single task', 'Timer: 90 min', 'No context switching until timer ends', 'Log minutes in Career Log'],
+  },
+  decisions: {
+    title: 'Pre-mortem', when: 'Before any decision with > 1 month consequences', duration: '20 min',
+    steps: ['Write the decision and expected outcome', 'Imagine it failed in 1 year — what went wrong?', 'List 3 ways it could fail', 'For each, what would prevent it?', 'Set review date', 'Log in Decision Journal'],
+  },
+  bioCapital: {
+    title: 'Quarterly Health Check', when: 'Quarterly', duration: '2 hours',
+    steps: ['Book blood panel', 'Book dermatology', 'Book dental', 'Review training plan', 'Update lagging indicators', 'Compare to last quarter'],
+  },
+  intelCapital: {
+    title: 'Weekly Learning Review', when: 'Sunday', duration: '20 min',
+    steps: ['What did I learn this week?', 'Capture 5 notes to second brain', 'Which skill needs deliberate practice?', 'Schedule practice block', 'Read 1 chapter / paper'],
+  },
+  finCapital: {
+    title: 'Portfolio Review', when: 'Every Sunday', duration: '15 min',
+    steps: ['Check total balance', 'Check cash position', 'Check allocation vs target', 'Review major news affecting holdings', 'Do NOT make emotional changes', 'Update Net Worth'],
+  },
+  socCapital: {
+    title: 'Weekly Reach-out', when: 'Sunday', duration: '10 min',
+    steps: ['Pick 2 contacts to reach out to', 'Send a message — give value first', 'Log new contacts this month', 'Audit contact list quarterly'],
+  },
+  familyCapital: {
+    title: 'Family Day', when: 'Monthly, 1st Sunday', duration: 'Full day',
+    steps: ['No work phone before noon', 'Plan one activity together', 'Quality conversation (no screens)', 'Photo / video for archive', 'Plan next month\'s family day'],
+  },
+  prodCapital: {
+    title: 'Project Review', when: 'Sunday', duration: '20 min',
+    steps: ['For each active project: what shipped?', 'What is blocked?', 'Check kill criteria — has it been met?', 'Decide: kill, continue, or scale', 'Plan next week\'s #1 priority per project'],
+  },
+  repCapital: {
+    title: 'Public Output Session', when: 'Monthly', duration: '2 hours',
+    steps: ['Pick one thing shipped this month', 'Write a post / record a demo', 'Update portfolio', 'Update LinkedIn if relevant', 'Schedule next public output'],
+  },
+  strategy: {
+    title: 'Quarterly Strategy Review', when: 'Quarter start (Jan/Apr/Jul/Oct)', duration: '3–4 hours',
+    steps: ['Am I playing the right game?', 'What one bet changes the next 5 years?', 'Which competencies are becoming scarce?', 'Which AI opportunities am I acting on?', 'What to kill? What to scale?', 'Write 3–5 goals for the quarter'],
+  },
+  legacy: {
+    title: 'Annual Legacy Review', when: 'December or birthday', duration: '6–8 hours',
+    steps: ['Values — have they changed?', 'Mission — do I still want this?', 'Capital audit (all 7 forms)', '3 / 5 / 10 year strategy', 'What could destroy the system?', 'Plan 3–5 main goals for the year', 'What did I build that outlives me?'],
+  },
+};
+
+// Fill in missing SOPs
+for (const [id, sop] of Object.entries(DEFAULT_SOPS)) {
+  if (DEFAULT_DOMAINS[id] && !DEFAULT_DOMAINS[id].sop) {
+    DEFAULT_DOMAINS[id].sop = sop;
+  }
+}
+
 /** Flat ordered list of domains by level. */
 export const DOMAIN_LIST = Object.values(DEFAULT_DOMAINS).sort(
   (a, b) => a.level - b.level || a.id.localeCompare(b.id)

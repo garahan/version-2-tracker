@@ -6,6 +6,17 @@
 import { el, clear, mount, $ } from './dom.js';
 import { uid } from './util.js';
 
+// ---- Haptics ----
+
+function haptic(ms = 10) {
+  try {
+    import('./state.js').then(({ getState }) => {
+      const s = getState();
+      if (s.settings.haptics && navigator.vibrate) navigator.vibrate(ms);
+    });
+  } catch {}
+}
+
 // ---- Toasts ----
 
 let toastWrap = null;
@@ -17,6 +28,7 @@ function ensureToastWrap() {
 
 export function toast(message, opts = {}) {
   const { duration = 2400, icon = '' } = opts;
+  haptic(10);
   const wrap = ensureToastWrap();
   const t = el('div', { class: 'toast' }, [icon ? `${icon} ` : '', message]);
   wrap.appendChild(t);
@@ -106,6 +118,7 @@ export function closeAll() {
 const COLORS = ['#007acc', '#4caf85', '#d4a543', '#e85d75', '#c262d4', '#ffd166'];
 
 export function confetti(count = 80) {
+  haptic([10, 30, 10]);
   const host = $('#confetti');
   if (!host) return;
   host.classList.remove('hidden');

@@ -139,6 +139,15 @@ function mergeDomains(defaults, existing) {
 // We map Big4 → domains.body.actions (preserving daily completion).
 
 export function migrateV1ToV2(v1) {
+  try {
+    return _migrateV1ToV2(v1);
+  } catch (e) {
+    console.error('v1→v2 migration failed, starting fresh', e);
+    return defaultState();
+  }
+}
+
+function _migrateV1ToV2(v1) {
   const s = defaultState();
   s.settings.onboarded = true; // already used v1
   s.createdAt = v1.createdAt || todayKey();
@@ -260,8 +269,12 @@ export function setDayAction(key, actionId, value) {
     if (!s.days[key]) s.days[key] = { habits: {}, mood: null, note: '', wins: '', anti: '', careerLog: '', deepWorkMins: 0, tasks: [], shielded: false };
     if (value === null || value === undefined) delete s.days[key].habits[actionId];
     else s.days[key].habits[actionId] = value;
+    // Recompute score in the same transaction (avoids double setState)
+    let total = 0;
+    for (const k of Object.keys(s.days)) total += dayScore(k);
+    s.totalPoints = total;
+    s.version = 1 + total / 400;
   });
-  recomputeScore();
 }
 
 export function setDayField(key, field, value) {
@@ -292,6 +305,43 @@ export function recomputeScore() {
     s.totalPoints = total;
     s.version = 1 + total / 400;
   });
+}
+
+// ---- Shields ----
+// Earned by perfect weeks (7 consecutive days with score > 0).
+// Auto-consumed when a day is missed to protect the streak.
+
+export function checkShieldEarned() {
+  const s = getState();
+  const keys = Object.keys(s.days).sort();
+  if (keys.length < 7) return false;
+  // Check last 7 days
+  const last7 = keys.slice(-7);
+  const allComplete = last7.every((k) => dayScore(k) > 0 || s.days[k].shielded);
+  if (allComplete) {
+    // Check if we already awarded a shield for this week
+    const weekKey = last7[0];
+    if (!s._shieldWeeksAwarded?.includes(weekKey)) {
+      setState((st) => {
+        st.shields = (st.shields || 0) + 1;
+        st._shieldWeeksAwarded = st._shieldWeeksAwarded || [];
+        st._shieldWeeksAwarded.push(weekKey);
+      });
+      return true;
+    }
+  }
+  return false;
+}
+
+export function useShield(key) {
+  const s = getState();
+  if (s.shields <= 0) return false;
+  setState((st) => {
+    st.shields--;
+    if (!st.days[key]) st.days[key] = { habits: {}, mood: null, note: '', wins: '', anti: '', careerLog: '', deepWorkMins: 0, tasks: [], shielded: false };
+    st.days[key].shielded = true;
+  });
+  return true;
 }
 
 // ---- Streak ----
@@ -371,6 +421,9 @@ export function exportJSON() {
 export function importJSON(json) {
   const parsed = typeof json === 'string' ? JSON.parse(json) : json;
   if (!parsed || typeof parsed !== 'object') throw new Error('Invalid JSON');
+  if (parsed.schemaVersion && parsed.schemaVersion > SCHEMA_VERSION) {
+    throw new Error(`Cannot import schema v${parsed.schemaVersion} (this app supports up to v${SCHEMA_VERSION}). Update the app first.`);
+  }
   _state = reconcile(parsed);
   persist();
   applySettings();

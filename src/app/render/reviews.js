@@ -4,7 +4,7 @@
 // ============================================================
 
 import { el } from '../dom.js';
-import { getState, addRecord } from '../state.js';
+import { getState, setState } from '../state.js';
 import { toast } from '../ui.js';
 import { todayKey, fmtDateLong, startOfWeek, startOfMonth, startOfQuarter } from '../util.js';
 
@@ -132,12 +132,8 @@ function startReview(type) {
         if (answered === 0) { toast('Answer at least one question'); return; }
         const qa = {};
         tmpl.questions.forEach((q, i) => { if (answers[i]) qa[q] = answers[i]; });
-        addRecord(`reviews.${type}`, { date: todayKey(), answers: qa, type });
-        // Persist into reviews collection
-        import('../state.js').then(({ setState }) => {
-          setState((s) => {
-            s.reviews[type].push({ id: `rev_${Date.now()}`, date: todayKey(), answers: qa, type });
-          });
+        setState((s) => {
+          s.reviews[type].push({ id: `rev_${Date.now()}`, date: todayKey(), answers: qa, type });
         });
         toast(`${tmpl.label} saved`);
         import('../ui.js').then(ui => ui.closeModal());

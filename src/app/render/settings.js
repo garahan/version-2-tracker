@@ -77,6 +77,7 @@ export function renderSettings() {
           catch (e) { toast(`Sync failed: ${e.message}`, { icon: '⚠️' }); }
         } } }, ['↑ Push to Gist']),
         el('button', { class: 'btn', style: { flex: 1 }, on: { click: async () => {
+          if (!(await confirmDialog({ title: 'Pull from Gist?', message: 'This will overwrite your local data with the version from the Gist. Continue?', confirmText: 'Pull & overwrite' }))) return;
           try { await pullFromGist(); toast('Pulled from Gist'); rerender(); }
           catch (e) { toast(`Pull failed: ${e.message}`, { icon: '⚠️' }); }
         } } }, ['↓ Pull from Gist']),

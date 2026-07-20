@@ -7,9 +7,7 @@ import { el, clear, mount, $ } from './dom.js';
 import { getState, applySettings, subscribe } from './state.js';
 import { renderOnboarding } from './onboarding.js';
 import { ingestHealthFromURL } from './health.js';
-import { todayProgress } from './cadence.js';
 
-// Render modules (lazy via dynamic import to keep initial bundle small)
 const TABS = [
   { id: 'today',   label: 'Today',   icon: '✅', render: () => import('./render/today.js').then(m => m.renderToday()) },
   { id: 'domains', label: 'Domains', icon: '🧩', render: () => import('./render/domains.js').then(m => m.renderDomains()) },
@@ -18,31 +16,29 @@ const TABS = [
 ];
 
 let currentTab = 'today';
+let currentSubroute = null;
 
 // ---- Boot ----
 
 export function boot() {
   applySettings();
-  // Ingest any health params from URL
   ingestHealthFromURL();
-  // Register service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./service-worker.js').catch(() => {});
   }
-  // Onboarding if needed
+  // Online/offline indicator
+  window.addEventListener('online', () => toast('Back online'));
+  window.addEventListener('offline', () => toast('Offline mode', { icon: '⚠️' }));
+
   const s = getState();
-  if (!s.settings.onboarded) {
-    renderOnboarding();
-  }
-  // Initial render
+  if (!s.settings.onboarded) renderOnboarding();
   render();
-  // Re-render on state changes (debounced)
+
   let raf = null;
   subscribe(() => {
     if (raf) cancelAnimationFrame(raf);
     raf = requestAnimationFrame(() => { render(); });
   });
-  // Expose rerender for modules
   window.__lifeosRerender = () => render();
 }
 
@@ -51,9 +47,14 @@ export function boot() {
 export function go(tab) {
   if (tab === currentTab) return;
   currentTab = tab;
+  currentSubroute = null;
   render();
-  // Scroll to top
-  document.getElementById('app')?.scrollTo?.({ top: 0 });
+  window.scrollTo({ top: 0 });
+}
+
+export function setSubroute(id) {
+  currentSubroute = id;
+  render();
   window.scrollTo({ top: 0 });
 }
 
@@ -65,17 +66,19 @@ function render() {
   clear(app);
 
   const tab = TABS.find((t) => t.id === currentTab) || TABS[0];
-  // Render is async (dynamic import) — show a placeholder first
   const contentHost = el('div', { id: 'content-host' });
   mount(app, [contentHost, renderNav()]);
 
-  // Show loading state
   mount(contentHost, [el('div', { class: 'empty' }, [el('div', { class: 'empty-icon' }, ['⋯'])])]);
 
-  tab.render().then((node) => {
+  const renderPromise = currentSubroute && currentTab === 'more'
+    ? import('./render/more.js').then(m => m.renderSubroute(currentSubroute))
+    : tab.render();
+
+  renderPromise.then((node) => {
+    if (!node) { currentSubroute = null; render(); return; }
     clear(contentHost);
     mount(contentHost, [node]);
-    // Update nav active state
     updateNavActive();
   }).catch((err) => {
     clear(contentHost);
@@ -111,7 +114,10 @@ function updateNavActive() {
   }
 }
 
-// ---- Start ----
+// Lazy toast import to avoid circular dep
+function toast(msg, opts) {
+  import('./ui.js').then(ui => ui.toast(msg, opts));
+}
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', boot);

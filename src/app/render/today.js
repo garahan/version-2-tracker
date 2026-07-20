@@ -4,12 +4,13 @@
 // ============================================================
 
 import { el, div, span } from '../dom.js';
-import { getState, getDay, setDayAction, setDayField } from '../state.js';
+import { getState, getDay, setDayAction, setDayField, checkShieldEarned } from '../state.js';
 import { todayKey, fmtDateLong, greeting } from '../util.js';
 import { dueToday, todayProgress } from '../cadence.js';
 import { toast } from '../ui.js';
 import { confetti } from '../ui.js';
 import { renderCommandCenter } from './command-center.js';
+import { renderHeatmap } from './heatmap.js';
 
 export function renderToday() {
   const s = getState();
@@ -53,6 +54,7 @@ export function renderToday() {
       el('div', { class: 'app-subtitle' }, [fmtDateLong(t)]),
     ]),
     renderCommandCenter(),
+    renderHeatmap(105),
     el('div', { class: 'section-head' }, [
       el('div', { class: 'section-title' }, [`Today's actions · ${prog.done}/${prog.due} done`]),
     ]),
@@ -90,6 +92,10 @@ function toggle(action, key) {
     if (prog.due > 0 && prog.done + prog.floor === prog.due) {
       confetti();
       toast('Perfect day. 🎉', { icon: '⭐' });
+      // Check if this completed a perfect week → earn shield
+      if (checkShieldEarned()) {
+        setTimeout(() => toast('Shield earned! 🛡️', { icon: '🛡️' }), 800);
+      }
     } else {
       toast(`${action.name} ✓`, { duration: 1200 });
     }

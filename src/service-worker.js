@@ -4,7 +4,7 @@
 // same-origin GETs with cache fallback.
 // ============================================================
 
-const CACHE_NAME = 'lifeos-v2-v1';
+const CACHE_NAME = 'lifeos-v2-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -35,6 +35,7 @@ const ASSETS = [
   './app/render/risks.js',
   './app/render/settings.js',
   './app/render/more.js',
+  './app/render/heatmap.js',
 ];
 
 self.addEventListener('install', (e) => {
