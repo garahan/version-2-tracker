@@ -1029,8 +1029,282 @@
 }
 
 /* ============================================================
-   REVIEW WIZARD (v3 §10)
+   TRAINING ENVIRONMENT (full-screen workout mode)
    ============================================================ */
+.training-env {
+  position: fixed;
+  inset: 0;
+  background: var(--c-bg);
+  z-index: var(--z-focus);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: calc(var(--sp-6) + var(--safe-top)) var(--sp-4) var(--sp-6);
+  animation: focus-in var(--dur-slow) var(--ease-out);
+  overflow-y: auto;
+}
+.training-env--rest {
+  justify-content: center;
+  gap: var(--sp-6);
+}
+.training-env--complete {
+  justify-content: center;
+  gap: var(--sp-4);
+}
+
+.training-env-header {
+  text-align: center;
+  margin-top: var(--sp-4);
+}
+.training-env-title {
+  font-size: var(--fs-page);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-tight);
+}
+
+/* Plan picker */
+.training-plans {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  width: 100%;
+  max-width: 400px;
+  margin-top: var(--sp-4);
+}
+.training-plan-card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  background: var(--c-bg-elev-1);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-fast), background var(--dur-fast);
+  position: relative;
+}
+.training-plan-card:active { transform: scale(0.98); }
+.training-plan-card--suggested {
+  border-color: var(--c-foundation);
+  background: linear-gradient(135deg, var(--c-bg-elev-1), var(--c-foundation-soft));
+}
+.training-plan-card-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.training-plan-card-body { flex: 1; }
+.training-plan-card-name {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+}
+.training-plan-card-desc {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  margin-top: 2px;
+}
+.training-plan-card-meta {
+  font-size: var(--fs-meta);
+  color: var(--c-text-faint);
+  margin-top: 4px;
+}
+.training-plan-card-badge {
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-3);
+  font-size: 10px;
+  font-weight: var(--fw-semibold);
+  color: var(--c-foundation);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+}
+
+/* Progress bar */
+.training-progress-bar {
+  width: 100%;
+  max-width: 400px;
+  height: 4px;
+  background: var(--c-bg-elev-3);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.training-progress-fill {
+  height: 100%;
+  background: var(--c-gradient-accent);
+  border-radius: var(--r-pill);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+.training-progress-text {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  letter-spacing: var(--ls-wide);
+}
+
+/* Exercise visual */
+.training-visual-wrap {
+  margin: var(--sp-4) 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.training-ex-name {
+  font-size: var(--fs-section);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+.training-ex-muscle {
+  font-size: var(--fs-sub);
+  font-weight: var(--fw-semibold);
+  text-align: center;
+  margin-top: 2px;
+}
+
+/* Instructions */
+.training-instructions {
+  font-size: var(--fs-sub);
+  color: var(--c-text-soft);
+  text-align: center;
+  max-width: 360px;
+  line-height: var(--lh-normal);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--c-bg-elev-1);
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-border);
+}
+
+/* Target */
+.training-target {
+  font-size: var(--fs-body);
+}
+.training-target-label { color: var(--c-text-mute); }
+.training-target-value {
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Set dots */
+.training-set-dots {
+  display: flex;
+  gap: var(--sp-2);
+  margin: var(--sp-2) 0;
+}
+.training-set-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--c-bg-elev-3);
+  transition: all var(--dur-base) var(--ease-out);
+}
+.training-set-dot--done {
+  background: var(--c-healthy);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+}
+.training-set-dot--current {
+  background: var(--c-accent);
+  box-shadow: 0 0 12px var(--c-accent-glow);
+  transform: scale(1.3);
+}
+
+/* Big log set button */
+.training-big-btn {
+  width: 100%;
+  max-width: 400px;
+  height: 64px;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  border-radius: var(--r-lg);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: transform var(--dur-fast);
+  margin-top: var(--sp-3);
+}
+.training-big-btn:active { transform: scale(0.96); }
+
+/* Custom reps row */
+.training-custom-row {
+  display: flex;
+  gap: var(--sp-2);
+  width: 100%;
+  max-width: 400px;
+  margin-top: var(--sp-2);
+}
+.training-input {
+  flex: 1;
+  background: var(--c-bg-elev-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  padding: var(--sp-2) var(--sp-3);
+  color: var(--c-text);
+  font-size: var(--fs-body);
+  text-align: center;
+}
+.training-input:focus { border-color: var(--c-accent); outline: none; }
+
+/* Skip button */
+.training-skip-btn {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  padding: var(--sp-2) var(--sp-4);
+  margin-top: var(--sp-2);
+}
+
+/* Rest timer */
+.training-rest-label {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  letter-spacing: var(--ls-xwide);
+  text-transform: uppercase;
+}
+.training-rest-time {
+  font-size: 64px;
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ls-tight);
+  line-height: 1;
+}
+.training-rest-controls {
+  display: flex;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+
+/* Complete screen */
+.training-complete-icon {
+  font-size: 64px;
+}
+.training-complete-title {
+  font-size: var(--fs-page);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+.training-complete-stats {
+  display: flex;
+  gap: var(--sp-6);
+  margin: var(--sp-4) 0;
+}
+.training-stat { text-align: center; }
+.training-stat-value {
+  font-size: var(--fs-display);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-accent-text);
+}
+.training-stat-label {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+}
+.training-complete-muscles {
+  text-align: center;
+  max-width: 360px;
+}
+.training-complete-muscles-label {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+}
 .wizard {
   display: flex;
   flex-direction: column;

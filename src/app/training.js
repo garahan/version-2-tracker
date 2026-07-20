@@ -15,7 +15,7 @@ import { toast, sheet, closeAll } from './ui.js';
 
 // ---- Exercise library with visuals ----
 // Each exercise has: name, muscle group, SVG visual, default sets/reps
-const EXERCISES = {
+export const EXERCISES = {
   pushup: {
     name: 'Push-up',
     muscle: 'Chest',
@@ -104,7 +104,7 @@ const EXERCISES = {
 };
 
 // ---- Muscle group colors ----
-const MUSCLE_COLORS = {
+export const MUSCLE_COLORS = {
   'Chest':           '#ef4444',
   'Legs':            '#22c55e',
   'Back':            '#3b82f6',
@@ -116,7 +116,7 @@ const MUSCLE_COLORS = {
 };
 
 // ---- Exercise SVG visuals (simple body diagrams) ----
-const VISUALS = {
+export const VISUALS = {
   pushup: [
     // Person doing push-up (horizontal body)
     svgEl('circle', { cx: 20, cy: 28, r: 6, fill: 'currentColor', opacity: 0.9 }),
@@ -253,13 +253,13 @@ const VISUALS = {
 };
 
 // ---- Render exercise visual ----
-function exerciseVisual(visualKey, size = 48, color = 'var(--c-accent-text)') {
+export function exerciseVisual(visualKey, size = 48, color = 'var(--c-accent-text)') {
   const elements = VISUALS[visualKey] || VISUALS.pushup;
   return svg({ viewBox: '0 0 80 50', width: size, height: size * 0.625, style: { color } }, elements);
 }
 
 // ---- Get today's training log ----
-function getTodayLog(state, dateKey) {
+export function getTodayLog(state, dateKey) {
   if (!state.trainingLog) state.trainingLog = {};
   if (!state.trainingLog[dateKey]) {
     state.trainingLog[dateKey] = { exercises: [], completed: false, startTime: null };

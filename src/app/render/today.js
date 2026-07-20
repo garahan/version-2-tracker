@@ -21,6 +21,7 @@ import { renderHeatmap } from './heatmap.js';
 import { enterFocusMode } from '../focus-mode.js';
 import { autoDeriveKPIs, autoCalcRunway } from '../automation.js';
 import { trainingLogSection } from '../training.js';
+import { enterTraining } from '../training-env.js';
 
 export function renderToday() {
   const s = getState();
@@ -188,13 +189,19 @@ function financeCard(s) {
   ]);
 }
 
-// ---- Focus button ----
+// ---- Focus + Training buttons ----
 function focusButton() {
   return el('div', { class: 'flex gap-2', style: { marginTop: 'var(--sp-4)' } }, [
     el('button', {
-      class: 'btn btn--ghost btn--block',
+      class: 'btn btn--ghost',
+      style: { flex: 1 },
       on: { click: enterFocusMode }
     }, ['🎯 Focus']),
+    el('button', {
+      class: 'btn btn--primary',
+      style: { flex: 1, background: 'var(--c-gradient-healthy)' },
+      on: { click: enterTraining }
+    }, ['🏋️ Train']),
   ]);
 }
 
