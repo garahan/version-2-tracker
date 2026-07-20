@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="midnight" data-accent="blue">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#0b0d12" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Life OS" />
+  <meta name="description" content="Operating System for Human Optimization. Levels, capitals, cadences, feedback loops." />
+  <title>Life OS — v2</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230b0d12'/%3E%3Ctext x='256' y='340' font-size='280' text-anchor='middle' fill='%23007acc'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230b0d12'/%3E%3Ctext x='256' y='340' font-size='280' text-anchor='middle' fill='%23007acc'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles/tokens.css" />
+  <link rel="stylesheet" href="./styles/base.css" />
+  <link rel="stylesheet" href="./styles/components.css" />
+</head>
+<body>
+  <div id="app" class="app"></div>
+
+  <!-- Onboarding (shown on first run) -->
+  <div id="onboarding" class="hidden"></div>
+
+  <!-- Modal / Sheet hosts -->
+  <div id="overlay" class="overlay"></div>
+  <div id="sheet" class="sheet"></div>
+  <div id="modal" class="modal"></div>
+
+  <!-- Toast host -->
+  <div id="toast-wrap" class="toast-wrap"></div>
+
+  <!-- Confetti host -->
+  <div id="confetti" class="confetti hidden"></div>
+
+  <script type="module" src="./app/main.js"></script>
+</body>
+</html>
