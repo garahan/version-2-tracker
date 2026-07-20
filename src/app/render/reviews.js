@@ -15,6 +15,9 @@ export function renderReviews() {
   return el('div', { class: 'page' }, [
     el('div', { class: 'app-title' }, ['Reviews']),
     el('div', { class: 'app-subtitle' }, ['Weekly · monthly · quarterly · annual']),
+    el('div', { style: { marginTop: 'var(--sp-2)' } }, [
+      el('span', { class: 'cog-mode cog-mode--reflect' }, ['Reflect mode · 30–60 min']),
+    ]),
     el('div', { style: { marginTop: 'var(--sp-4)' } }, REVIEW_ORDER.map(id => renderReviewButton(id, s))),
     el('div', { class: 'section-head', style: { marginTop: 'var(--sp-8)' } }, [
       el('div', { class: 'section-title' }, ['History']),

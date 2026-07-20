@@ -73,9 +73,15 @@ function topBar(s, t, streak) {
         el('div', { style: { fontSize: 'var(--fs-meta)', color: 'var(--c-text-mute)' } }, [fmtDate(t)]),
       ]),
     ]),
-    (streak > 0 || s.shields > 0) && el('div', { class: 'flex items-center gap-2', style: { marginTop: 'var(--sp-2)' } }, [
-      streak > 0 && el('span', { class: 'chip chip--attention' }, ['🔥 ' + streak + 'd streak']),
-      s.shields > 0 && el('span', { class: 'chip chip--shield' }, ['🛡️ ' + s.shields + ' shields']),
+    // Cognitive mode indicator — Glance (3s) → Operate (30s)
+    el('div', { class: 'flex items-center gap-2', style: { marginTop: 'var(--sp-2)' } }, [
+      el('span', { class: 'cog-mode cog-mode--glance' }, ['Glance']),
+      el('span', { class: 'text-mute text-meta' }, ['→']),
+      el('span', { class: 'cog-mode cog-mode--operate' }, ['Operate']),
+      (streak > 0 || s.shields > 0) && el('span', { style: { marginLeft: 'auto' } }, [
+        streak > 0 && el('span', { class: 'chip chip--attention' }, ['🔥 ' + streak + 'd streak']),
+        s.shields > 0 && el('span', { class: 'chip chip--shield' }, ['🛡️ ' + s.shields + ' shields']),
+      ]),
     ]),
   ]);
 }
@@ -183,7 +189,21 @@ function actionRow(action, day, t) {
     else if (newSt === 'floor') toggleBtn.textContent = '½';
     else if (newSt === 'rest') toggleBtn.textContent = 'R';
     else toggleBtn.textContent = '';
-    if (newSt === 'full' || newSt === 'rest') toast(`${action.name} ✓`, { icon: action.icon });
+    // Completion animation: card shrinks, checkmark draws, next rises
+    if (newSt === 'full' || newSt === 'rest') {
+      const row = toggleBtn.closest('.action-row');
+      if (row) {
+        row.classList.add('action-row--completing');
+        setTimeout(() => row.classList.remove('action-row--completing'), 500);
+        // Rise the next action
+        const next = row.nextElementSibling;
+        if (next && next.classList.contains('action-row')) {
+          next.classList.add('action-row--next');
+          setTimeout(() => next.classList.remove('action-row--next'), 400);
+        }
+      }
+      toast(`${action.name} ✓`, { icon: action.icon });
+    }
   });
   return el('div', { class: 'action-row' }, [
     el('div', { class: 'action-row-head' }, [

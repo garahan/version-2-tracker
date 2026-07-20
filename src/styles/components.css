@@ -1475,3 +1475,106 @@
 
 .hidden { display: none !important; }
 .w-full { width: 100%; }
+
+/* ============================================================
+   Cognitive interface — 3 attention levels (v3 design philosophy)
+   Glance (3s): see system state instantly
+   Operate (30s): mark actions, start deep work
+   Reflect (30-60m): reviews, analytics, graphs
+   ============================================================ */
+
+/* Cognitive mode indicator — subtle pill at top of page */
+.cog-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 2px var(--sp-2);
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  background: var(--c-accent-soft);
+  color: var(--c-accent-text);
+}
+.cog-mode--glance   { background: var(--c-info-soft); color: var(--c-info); }
+.cog-mode--operate  { background: var(--c-healthy-soft); color: var(--c-healthy); }
+.cog-mode--reflect  { background: var(--c-strategy-soft); color: var(--c-strategy); }
+
+/* ============================================================
+   Completion animation — checkmark draws, card shrinks, next rises
+   ============================================================ */
+
+@keyframes checkmark-draw {
+  0%   { stroke-dashoffset: 24; opacity: 0; }
+  40%  { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+@keyframes action-complete {
+  0%   { transform: scale(1); opacity: 1; }
+  50%  { transform: scale(0.96); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes next-action-rise {
+  0%   { transform: translateY(8px); opacity: 0.6; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.action-row--completing {
+  animation: action-complete 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-row--completing .check {
+  position: relative;
+}
+
+.action-row--completing .check::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4L19 7' stroke-dasharray='24' /%3E%3C/svg%3E") no-repeat center;
+  background-size: contain;
+  animation: checkmark-draw 0.4s ease-out forwards;
+}
+
+.action-row--next {
+  animation: next-action-rise 0.3s ease-out;
+}
+
+/* SF Symbols-style icons — minimal line icons */
+.sf-icon {
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+  vertical-align: middle;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Domain tree icons use SF style */
+.domain-tree-domain-icon .sf-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* More tile icons use SF style */
+.more-tile-icon .sf-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* Card icons use SF style */
+.card-icon .sf-icon {
+  width: 22px;
+  height: 22px;
+}
+

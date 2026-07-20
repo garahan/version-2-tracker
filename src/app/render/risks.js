@@ -14,6 +14,7 @@ export function renderRisks() {
   const risks = s.risks || [];
   const antiGoals = s.antiGoals || [];
   const protocols = s.resilienceProtocols || [];
+  const blackSwans = s.blackSwans || [];
   const opt = s.optionality || {};
 
   return el('div', { class: 'page' }, [
@@ -71,6 +72,25 @@ export function renderRisks() {
         ]))
     ),
 
+    // Black Swan Plans (v3 §16)
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
+      el('div', { class: 'section-title' }, [`Black swan plans (${blackSwans.length})`]),
+      el('button', { class: 'btn btn--ghost btn--sm', on: { click: addBlackSwan } }, ['+']),
+    ]),
+    el('div', { class: 'card' }, blackSwans.length === 0
+      ? [el('div', { class: 'empty' }, [el('div', { class: 'empty-icon' }, ['🦢']), el('div', { class: 'empty-title' }, ['No black swan plans']), el('div', { class: 'text-mute text-meta', style: { marginTop: 'var(--sp-2)' } }, ['Low-probability, high-impact events with pre-written response plans'])])]
+      : blackSwans.map(bs => el('div', { class: 'list-item' }, [
+          el('div', { class: 'list-item-body' }, [
+            el('div', { class: 'list-item-title' }, [bs.event]),
+            el('div', { class: 'list-item-sub' }, [bs.plan || '']),
+            el('div', { class: 'text-meta', style: { marginTop: 'var(--sp-1)' } }, [
+              `Trigger: ${bs.trigger || '—'} · Reviewed: ${bs.lastReviewed || 'never'}`,
+            ]),
+          ]),
+          el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => update(st => { st.blackSwans = st.blackSwans.filter(x => x.id !== bs.id); }) } }, ['×']),
+        ]))
+    ),
+
     // Optionality (v3 §16)
     el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
       el('div', { class: 'section-title' }, ['Optionality']),
@@ -118,4 +138,16 @@ async function addProtocol() {
   const steps = await prompt({ title: 'Steps', label: 'Pre-written steps', placeholder: '...' });
   update(st => { st.resilienceProtocols.push({ id: uid('rp'), name, steps: steps || '' }); });
   toast('Protocol added');
+}
+
+async function addBlackSwan() {
+  const event = await prompt({ title: 'Black swan event', label: 'What low-probability, high-impact event?', placeholder: 'e.g. Pandemic, market crash, health crisis' });
+  if (!event) return;
+  const trigger = await prompt({ title: 'Trigger', label: 'What signal tells you it\'s happening?', placeholder: 'e.g. S&P drops 10% in a day' });
+  const plan = await prompt({ title: 'Response plan', label: 'Pre-written steps you\'d take', placeholder: '...' });
+  update(st => {
+    if (!st.blackSwans) st.blackSwans = [];
+    st.blackSwans.push({ id: uid('bs'), event, trigger: trigger || '', plan: plan || '', lastReviewed: todayKey() });
+  });
+  toast('Black swan plan added');
 }

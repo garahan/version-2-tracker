@@ -5,9 +5,11 @@
 
 import { el } from '../dom.js';
 import { getState, update, applySettings, exportJSON, importJSON, resetAll } from '../state.js';
-import { toast, confirm } from '../ui.js';
-import { todayKey } from '../util.js';
+import { toast, confirm, prompt } from '../ui.js';
+import { todayKey, fmtDate } from '../util.js';
 import { go } from '../main.js';
+import { isConfigured, createBackup, pushBackup, pullBackup, testToken } from '../gist-sync.js';
+import { isEncrypted, enableEncryption, disableEncryption } from '../crypto.js';
 
 const THEMES = [
   { id: 'midnight', label: 'Midnight', desc: 'Dark, low-glare' },
@@ -81,6 +83,53 @@ export function renderSettings() {
       el('button', { class: 'btn btn--danger btn--block mt-2', on: { click: doReset } }, ['Reset all data']),
     ]),
 
+    // Sync — GitHub Gist backup (v3 §26)
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
+      el('div', { class: 'section-title' }, ['Sync · GitHub Gist']),
+    ]),
+    el('div', { class: 'card' }, [
+      el('div', { class: 'list-item' }, [
+        el('div', { class: 'list-item-body' }, [
+          el('div', { class: 'list-item-title' }, ['Status']),
+          el('div', { class: 'list-item-sub' }, [
+            isConfigured()
+              ? `Connected · Gist: ${s.settings.gistId?.substring(0, 8)}…`
+              : 'Not configured',
+            s.settings.lastSync ? ` · Last: ${fmtDate(s.settings.lastSync)}` : '',
+          ]),
+        ]),
+        isConfigured()
+          ? el('span', { class: 'chip chip--healthy' }, ['✓'])
+          : el('span', { class: 'chip chip--attention' }, ['Off']),
+      ]),
+      el('button', { class: 'btn btn--ghost btn--block mt-2', on: { click: setupSync } }, [isConfigured() ? 'Reconfigure token' : 'Connect GitHub']),
+      isConfigured() && el('button', { class: 'btn btn--primary btn--block mt-2', on: { click: doPush } }, ['Push backup now']),
+      isConfigured() && el('button', { class: 'btn btn--ghost btn--block mt-2', on: { click: doPull } }, ['Pull from gist']),
+    ]),
+
+    // Encryption (v3 §26 — encryption-ready)
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
+      el('div', { class: 'section-title' }, ['Encryption']),
+    ]),
+    el('div', { class: 'card' }, [
+      el('div', { class: 'list-item' }, [
+        el('div', { class: 'list-item-body' }, [
+          el('div', { class: 'list-item-title' }, ['At-rest encryption']),
+          el('div', { class: 'list-item-sub' }, [
+            isEncrypted()
+              ? 'AES-256-GCM · PBKDF2 (100k iterations)'
+              : 'Plain JSON · enable to encrypt your data with a passphrase',
+          ]),
+        ]),
+        isEncrypted()
+          ? el('span', { class: 'chip chip--healthy' }, ['🔒'])
+          : el('span', { class: 'chip' }, ['Off']),
+      ]),
+      !isEncrypted()
+        ? el('button', { class: 'btn btn--ghost btn--block mt-2', on: { click: enableEnc } }, ['Enable encryption'])
+        : el('button', { class: 'btn btn--danger btn--block mt-2', on: { click: disableEnc } }, ['Disable encryption']),
+    ]),
+
     // About
     el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
       el('div', { class: 'section-title' }, ['About']),
@@ -143,4 +192,74 @@ async function doReset() {
   resetAll();
   toast('All data reset');
   location.reload();
+}
+
+// ---- Gist sync handlers ----
+async function setupSync() {
+  const token = await prompt({
+    title: 'GitHub Gist sync',
+    label: 'Paste a personal access token (classic) with "gist" scope',
+    placeholder: 'ghp_…',
+  });
+  if (!token) return;
+  toast('Testing token…');
+  try {
+    const username = await testToken(token);
+    if (!username) { toast('Invalid token', { icon: '⚠️' }); return; }
+    update(st => { st.settings.gistToken = token.trim(); });
+    toast(`Connected as @${username}`);
+    // Create initial backup if no gist ID
+    if (!getState().settings.gistId) {
+      toast('Creating initial backup…');
+      const id = await createBackup();
+      toast(`Backup created (gist ${id.substring(0, 8)}…)`);
+    }
+  } catch (e) {
+    toast('Sync setup failed: ' + e.message, { icon: '⚠️' });
+  }
+}
+
+async function doPush() {
+  toast('Pushing backup…');
+  try {
+    await pushBackup();
+    toast('Backup pushed ✓');
+  } catch (e) {
+    toast('Push failed: ' + e.message, { icon: '⚠️' });
+  }
+}
+
+async function doPull() {
+  const ok = await confirm({ title: 'Pull from gist?', message: 'This replaces your local data with the gist version.', danger: true });
+  if (!ok) return;
+  toast('Pulling…');
+  try {
+    await pullBackup();
+    toast('Pulled ✓ — reloading');
+    setTimeout(() => location.reload(), 800);
+  } catch (e) {
+    toast('Pull failed: ' + e.message, { icon: '⚠️' });
+  }
+}
+
+// ---- Encryption handlers ----
+async function enableEnc() {
+  const pass = await prompt({ title: 'Set passphrase', label: 'Choose a passphrase to encrypt your data at rest', placeholder: '••••••••' });
+  if (!pass) return;
+  const confirm2 = await prompt({ title: 'Confirm passphrase', label: 'Re-enter to confirm', placeholder: '••••••••' });
+  if (pass !== confirm2) { toast('Passphrases do not match', { icon: '⚠️' }); return; }
+  try {
+    const data = exportJSON();
+    await enableEncryption(pass, data);
+    toast('Encryption enabled 🔒');
+  } catch (e) {
+    toast('Encryption failed: ' + e.message, { icon: '⚠️' });
+  }
+}
+
+async function disableEnc() {
+  const ok = await confirm({ title: 'Disable encryption?', message: 'Your data will be stored as plain JSON again.', danger: true });
+  if (!ok) return;
+  disableEncryption();
+  toast('Encryption disabled');
 }

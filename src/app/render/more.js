@@ -20,7 +20,8 @@ const TILES = [
   { id: 'lessons',       icon: '🎓', label: 'Lessons',       desc: 'Lessons · error log', badge: 'lessons' },
   { id: 'recall',        icon: '🧠', label: 'Recall',        desc: 'Spaced repetition · SM-2', badge: 'recall' },
   { id: 'commitments',   icon: '🔒', label: 'Commitments',   desc: 'Stake points on actions', badge: 'commitments' },
-  { id: 'risks',         icon: '🛡️', label: 'Risks',         desc: 'Register · protocols · anti-goals', badge: 'risks' },
+  { id: 'risks',         icon: '🛡️', label: 'Risks',         desc: 'Register · protocols · anti-goals · black swan', badge: 'risks' },
+  { id: 'leverage',      icon: '⚡', label: 'Leverage',      desc: 'Score projects on 5 dimensions', badge: 'leverage' },
   { id: 'settings',      icon: '⚙️', label: 'Settings',      desc: 'Theme · sync · data', badge: null },
 ];
 
@@ -39,6 +40,7 @@ export function renderMore() {
     recall: { value: (s.spacedRepetition || []).filter(c => c.nextDue && c.nextDue <= t).length, cls: 'more-tile-badge--accent' },
     commitments: { value: (s.commitments || []).filter(c => c.status === 'active').length, cls: '' },
     risks: { value: s.risks.length, cls: '' },
+    leverage: { value: (s.projects || []).length, cls: '' },
   };
 
   return el('div', { class: 'page' }, [
@@ -69,6 +71,7 @@ export async function renderSubroute(id) {
     'recall':        () => import('./recall.js').then(m => m.renderRecall()),
     'commitments':   () => import('./commitments.js').then(m => m.renderCommitments()),
     'risks':         () => import('./risks.js').then(m => m.renderRisks()),
+    'leverage':      () => import('./leverage.js').then(m => m.renderLeverage()),
     'settings':      () => import('./settings.js').then(m => m.renderSettings()),
   };
   const fn = map[id];
