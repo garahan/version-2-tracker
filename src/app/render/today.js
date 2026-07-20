@@ -14,6 +14,7 @@ import { activeBundles } from '../temptation-bundling.js';
 import { activeCommitments } from '../commitments.js';
 import { systemHealth } from '../system-health.js';
 import { enterFocusMode } from '../focus-mode.js';
+import { generateSuggestions } from '../suggestions.js';
 
 export function renderToday() {
   const s = getState();
@@ -39,12 +40,22 @@ export function renderToday() {
     // ---- GLANCE: 6-metric command panel ----
     metricPanel(s),
 
-    // Focus Mode button (strips to next action + timer)
-    el('button', {
-      class: 'btn btn--ghost',
-      style: { width: '100%', marginTop: 'var(--sp-4)', fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-semibold)' },
-      on: { click: enterFocusMode }
-    }, ['🎯 Focus Mode']),
+    // Focus Mode + Suggestions buttons
+    el('div', { class: 'flex gap-2', style: { marginTop: 'var(--sp-4)' } }, [
+      el('button', {
+        class: 'btn btn--ghost',
+        style: { flex: 1, fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-semibold)' },
+        on: { click: enterFocusMode }
+      }, ['🎯 Focus']),
+      el('button', {
+        class: 'btn btn--ghost',
+        style: { flex: 1, fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-semibold)' },
+        on: { click: () => showSuggestions() }
+      }, ['💡 Suggest']),
+    ]),
+
+    // Suggestion container (populated on click)
+    el('div', { id: 'suggestion-container' }),
 
     // ---- OPERATE: today's actions ----
     el('div', { class: 'section-head', style: { marginTop: 'var(--sp-8)' } }, [
@@ -321,4 +332,55 @@ function noteRow(day, key) {
       on: { input: (e) => setDayField(key, 'note', e.target.value) }
     }, [day.note || '']),
   ]);
+}
+
+// ---- Suggestions (fresh each time) ----
+function showSuggestions() {
+  const container = document.getElementById('suggestion-container');
+  if (!container) return;
+  const { todos, notTodos } = generateSuggestions(3);
+
+  // Clear and rebuild
+  while (container.firstChild) container.removeChild(container.firstChild);
+
+  const node = el('div', { style: { marginTop: 'var(--sp-4)' } }, [
+    // TO DO
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-2)' } }, [
+      el('div', { class: 'section-title', style: { fontSize: 'var(--fs-body)', color: 'var(--c-success)' } }, ['✅ To Do']),
+    ]),
+    el('div', { class: 'list' }, todos.map((item) =>
+      el('div', { class: 'list-item', style: { alignItems: 'flex-start' } }, [
+        el('span', { style: { fontSize: '20px', flexShrink: '0' } }, [item.icon]),
+        el('div', { class: 'list-item-body' }, [
+          el('div', { class: 'list-item-title', style: { fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-medium)' } }, [item.text]),
+          el('div', { class: 'list-item-sub' }, [item.source]),
+        ]),
+      ])
+    )),
+
+    // NOT TO DO
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-4)' } }, [
+      el('div', { class: 'section-title', style: { fontSize: 'var(--fs-body)', color: 'var(--c-danger)' } }, ['🚫 Not To Do']),
+    ]),
+    el('div', { class: 'list' }, notTodos.map((item) =>
+      el('div', { class: 'list-item', style: { alignItems: 'flex-start' } }, [
+        el('span', { style: { fontSize: '20px', flexShrink: '0' } }, [item.icon]),
+        el('div', { class: 'list-item-body' }, [
+          el('div', { class: 'list-item-title', style: { fontSize: 'var(--fs-body)', fontWeight: 'var(--fw-medium)' } }, [item.text]),
+          el('div', { class: 'list-item-sub' }, [item.source]),
+        ]),
+      ])
+    )),
+
+    // Refresh button
+    el('button', {
+      class: 'btn btn--ghost',
+      style: { width: '100%', marginTop: 'var(--sp-3)', fontSize: 'var(--fs-meta)' },
+      on: { click: showSuggestions }
+    }, ['🔄 New suggestions']),
+  ]);
+
+  container.appendChild(node);
+  // Scroll to suggestions
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }

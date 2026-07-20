@@ -4,7 +4,7 @@
 // same-origin GETs with cache fallback.
 // ============================================================
 
-const CACHE_NAME = 'lifeos-v2-v5';
+const CACHE_NAME = 'lifeos-v2-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -29,6 +29,7 @@ const ASSETS = [
   './app/commitments.js',
   './app/system-health.js',
   './app/focus-mode.js',
+  './app/suggestions.js',
   './app/render/command-center.js',
   './app/render/today.js',
   './app/render/domains.js',
