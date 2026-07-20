@@ -23,7 +23,7 @@ function renderLayer(layerId, s) {
   const layer = LAYERS[layerId];
   const domains = domainsByLayer(layerId);
   return el('div', { class: 'domain-tree-layer', style: { marginTop: 'var(--sp-4)' } }, [
-    el('div', { class: 'domain-tree-head', dataset: { layer: layerId }, on: { click: (e) => toggleLayer(e) } }, [
+    el('div', { class: `domain-tree-head domain-tree-head--${layerId}`, dataset: { layer: layerId }, on: { click: (e) => toggleLayer(e) } }, [
       el('span', {}, [layer.icon]),
       el('div', { class: 'domain-tree-layer-name' }, [layer.name]),
       el('span', { class: 'domain-tree-layer-count' }, [`${domains.length} domains`]),

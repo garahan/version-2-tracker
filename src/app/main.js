@@ -5,9 +5,10 @@
 // ============================================================
 
 import { el, clear, mount, $ } from './dom.js';
-import { getState, applySettings, subscribe } from './state.js';
+import { getState, applySettings, subscribe, update } from './state.js';
 import { todayKey } from './util.js';
 import { toast } from './ui.js';
+import { seedSampleData, runAutomation } from './automation.js';
 
 const TABS = [
   { id: 'today',     label: 'Today',     icon: '✅', render: () => import('./render/today.js').then(m => m.renderToday()) },
@@ -29,9 +30,20 @@ export function boot() {
   window.addEventListener('offline', () => toast('Offline mode', { icon: '⚠️' }));
 
   const s = getState();
+  // Auto-seed sample data on first run (no manual entry needed)
   if (!s.settings.onboarded) {
     import('./onboarding.js').then(m => m.renderOnboarding());
   }
+  // Run automation: seed data if empty, derive KPIs
+  if (!s.settings.seeded) {
+    update(st => {
+      const seeded = seedSampleData(st);
+      Object.assign(st, seeded);
+      st.settings.seeded = true;
+    });
+  }
+  // Always run automation to derive today's KPIs
+  update(st => { runAutomation(st); });
   render();
 
   let raf = null;

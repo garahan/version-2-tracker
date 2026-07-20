@@ -46,6 +46,13 @@ export function addDays(key, n) {
   return todayKey(d);
 }
 
+// ---- Days ago key (0 = today, 1 = yesterday, -1 = tomorrow) ----
+export function daysAgoKey(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return todayKey(d);
+}
+
 // ---- ID generator ----
 export function uid(prefix = 'id') {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;

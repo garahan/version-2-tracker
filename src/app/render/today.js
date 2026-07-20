@@ -13,12 +13,13 @@
 // ============================================================
 
 import { el, div, span, toggle, svg, svgEl } from '../dom.js';
-import { getState, getDay, setDayAction, setDayField, currentStreak } from '../state.js';
+import { getState, getDay, setDayAction, setDayField, currentStreak, updateSilent } from '../state.js';
 import { todayKey, fmtDate, dayName, fmtNum } from '../util.js';
 import { dueToday, todayProgress } from '../cadence.js';
 import { toast } from '../ui.js';
 import { renderHeatmap } from './heatmap.js';
 import { enterFocusMode } from '../focus-mode.js';
+import { autoDeriveKPIs, autoCalcRunway } from '../automation.js';
 
 export function renderToday() {
   const s = getState();
@@ -38,6 +39,7 @@ export function renderToday() {
     topBar(s, t, streak),
     heroRing(s, prog),
     kpiPanel(s),
+    financeCard(s),
     focusButton(),
     el('div', { class: 'section-head', style: { marginTop: 'var(--sp-8)' } }, [
       el('div', { class: 'section-title' }, ['Today']),
@@ -150,6 +152,41 @@ function kpiCell(label, value, sub, unit) {
   ]);
 }
 
+// ---- Finance summary card (auto-calculated) ----
+function financeCard(s) {
+  const ns = s.northStar || {};
+  const netWorth = ns.netWorth || 0;
+  const monthlyExpenses = ns.monthlyExpenses || 0;
+  const runway = s.optionality?.runwayMonths || (monthlyExpenses > 0 ? Math.round(netWorth / monthlyExpenses) : 0);
+  const savingsRate = ns.savingsRate || 0;
+  const incomeSources = s.optionality?.incomeSources || 0;
+
+  return el('div', { class: 'card card--accent', style: { marginTop: 'var(--sp-4)' } }, [
+    el('div', { class: 'flex items-center justify-between' }, [
+      el('div', { class: 'overline', style: { color: 'var(--c-accent-text)' } }, ['💰 Financial Capital']),
+      el('span', { class: 'chip chip--accent' }, ['Auto']),
+    ]),
+    el('div', { class: 'flex gap-6 mt-2', style: { gap: 'var(--sp-6)' } }, [
+      el('div', {}, [
+        el('div', { class: 'text-mute text-meta' }, ['Net worth']),
+        el('div', { style: { fontSize: 'var(--fs-section)', fontWeight: 'var(--fw-bold)', fontVariantNumeric: 'tabular-nums', color: 'var(--c-accent-text)' } }, ['$' + fmtNum(netWorth)]),
+      ]),
+      el('div', {}, [
+        el('div', { class: 'text-mute text-meta' }, ['Runway']),
+        el('div', { style: { fontSize: 'var(--fs-section)', fontWeight: 'var(--fw-bold)', fontVariantNumeric: 'tabular-nums', color: runway >= 6 ? 'var(--c-healthy)' : 'var(--c-attention)' } }, [runway + 'm']),
+      ]),
+      el('div', {}, [
+        el('div', { class: 'text-mute text-meta' }, ['Savings']),
+        el('div', { style: { fontSize: 'var(--fs-section)', fontWeight: 'var(--fw-bold)', fontVariantNumeric: 'tabular-nums', color: savingsRate >= 20 ? 'var(--c-healthy)' : 'var(--c-attention)' } }, [savingsRate + '%']),
+      ]),
+      el('div', {}, [
+        el('div', { class: 'text-mute text-meta' }, ['Sources']),
+        el('div', { style: { fontSize: 'var(--fs-section)', fontWeight: 'var(--fw-bold)', fontVariantNumeric: 'tabular-nums' } }, [String(incomeSources)]),
+      ]),
+    ]),
+  ]);
+}
+
 // ---- Focus button ----
 function focusButton() {
   return el('div', { class: 'flex gap-2', style: { marginTop: 'var(--sp-4)' } }, [
@@ -182,6 +219,8 @@ function actionRow(action, day, t) {
   const toggleBtn = toggle(st, (e) => {
     e.stopPropagation();
     setDayAction(t, action.id, null);
+    // Auto-derive KPIs from this action completion
+    updateSilent(st => { autoDeriveKPIs(st); autoCalcRunway(st); });
     const newSt = getState().days[t]?.actions[action.id];
     // Update toggle button in-place (avoid full re-render replacing it)
     toggleBtn.className = `check check--${newSt || ''}`;
@@ -195,7 +234,6 @@ function actionRow(action, day, t) {
       if (row) {
         row.classList.add('action-row--completing');
         setTimeout(() => row.classList.remove('action-row--completing'), 500);
-        // Rise the next action
         const next = row.nextElementSibling;
         if (next && next.classList.contains('action-row')) {
           next.classList.add('action-row--next');

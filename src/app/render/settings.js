@@ -18,6 +18,7 @@ const THEMES = [
 ];
 
 const ACCENTS = [
+  { id: 'indigo', label: 'Indigo' },
   { id: 'blue', label: 'Blue' },
   { id: 'green', label: 'Green' },
   { id: 'violet', label: 'Violet' },

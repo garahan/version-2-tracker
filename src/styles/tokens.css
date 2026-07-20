@@ -1,43 +1,59 @@
 /* ============================================================
-   Life OS v3 — Design Tokens (v2 — refined + compact)
-   Inspired by Linear + Bloomberg Terminal + Apple HIG.
-   Philosophy: maximum information density, minimum visual noise.
+   Life OS v3 — Design Tokens (v3 — vibrant + effective)
+   Rich, saturated colors that make the UI feel alive.
+   Each domain level gets its own color for instant recognition.
    ============================================================ */
 
 :root {
   /* ============================================================
-     COLOR — 5 semantic + 1 accent
-     Blue=Info, Green=Healthy, Orange=Attention, Red=Danger,
-     Purple=Strategy. Accent=identity (ring + primary).
+     COLOR — 5 semantic + 1 accent (vibrant, saturated)
      ============================================================ */
+  --c-info:      #3b82f6;
+  --c-healthy:   #22c55e;
+  --c-attention: #f97316;
+  --c-danger:    #ef4444;
+  --c-strategy:  #a855f7;
 
-  /* Semantic — refined, slightly desaturated for sophistication */
-  --c-info:      #5b8def;
-  --c-healthy:   #34d399;
-  --c-attention: #fb923c;
-  --c-danger:    #f87171;
-  --c-strategy:  #c084fc;
+  /* Vibrant soft tints (16% — richer than before) */
+  --c-info-soft:      rgba(59, 130, 246, 0.16);
+  --c-healthy-soft:   rgba(34, 197, 94, 0.16);
+  --c-attention-soft: rgba(249, 115, 22, 0.16);
+  --c-danger-soft:    rgba(239, 68, 68, 0.16);
+  --c-strategy-soft:  rgba(168, 85, 247, 0.16);
 
-  /* Soft tints (10% — subtler than before) */
-  --c-info-soft:      rgba(91, 141, 239, 0.10);
-  --c-healthy-soft:   rgba(52, 211, 153, 0.10);
-  --c-attention-soft: rgba(251, 146, 60, 0.10);
-  --c-danger-soft:    rgba(248, 113, 113, 0.10);
-  --c-strategy-soft:  rgba(192, 132, 252, 0.10);
+  /* Borders (55% — more visible) */
+  --c-info-border:      rgba(59, 130, 246, 0.55);
+  --c-healthy-border:   rgba(34, 197, 94, 0.55);
+  --c-attention-border: rgba(249, 115, 22, 0.55);
+  --c-danger-border:    rgba(239, 68, 68, 0.55);
+  --c-strategy-border:  rgba(168, 85, 247, 0.55);
 
-  /* Borders (40%) */
-  --c-info-border:      rgba(91, 141, 239, 0.40);
-  --c-healthy-border:   rgba(52, 211, 153, 0.40);
-  --c-attention-border: rgba(251, 146, 60, 0.40);
-  --c-danger-border:    rgba(248, 113, 113, 0.40);
-  --c-strategy-border:  rgba(192, 132, 252, 0.40);
+  /* Accent — vibrant indigo-blue with gradient */
+  --c-accent:        #6366f1;
+  --c-accent-text:   #818cf8;
+  --c-accent-soft:   rgba(99, 102, 241, 0.16);
+  --c-accent-glow:   rgba(99, 102, 241, 0.35);
+  --c-accent-border: rgba(99, 102, 241, 0.50);
+  --c-accent-2:      #8b5cf6;
+  --c-gradient-accent: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --c-gradient-healthy: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  --c-gradient-attention: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  --c-gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --c-gradient-info: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --c-gradient-strategy: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
 
-  /* Accent — refined teal-blue (sophisticated, not techy) */
-  --c-accent:        #3b82f6;
-  --c-accent-text:   #60a5fa;
-  --c-accent-soft:   rgba(59, 130, 246, 0.12);
-  --c-accent-glow:   rgba(59, 130, 246, 0.28);
-  --c-accent-border: rgba(59, 130, 246, 0.45);
+  /* Domain level colors — instant recognition */
+  --c-foundation:   #22c55e;  /* green — foundation (body, health) */
+  --c-executive:    #3b82f6;  /* blue — executive (mind, decisions) */
+  --c-capital:      #f97316;  /* orange — capital (money, resources) */
+  --c-strategy-lvl: #a855f7;  /* purple — strategy (vision, goals) */
+  --c-legacy:       #ec4899;  /* pink — legacy (family, teaching) */
+
+  --c-foundation-soft:   rgba(34, 197, 94, 0.14);
+  --c-executive-soft:    rgba(59, 130, 246, 0.14);
+  --c-capital-soft:      rgba(249, 115, 22, 0.14);
+  --c-strategy-lvl-soft: rgba(168, 85, 247, 0.14);
+  --c-legacy-soft:       rgba(236, 72, 153, 0.14);
 
   /* State mapping */
   --c-done:    var(--c-healthy);
@@ -46,34 +62,33 @@
   --c-rest:    var(--c-info);
   --c-shield:  #fbbf24;
 
-  /* Heatmap ramp (uses accent) */
-  --c-heat-0: rgba(255, 255, 255, 0.03);
-  --c-heat-1: rgba(59, 130, 246, 0.20);
-  --c-heat-2: rgba(59, 130, 246, 0.40);
-  --c-heat-3: rgba(59, 130, 246, 0.65);
-  --c-heat-4: rgba(59, 130, 246, 0.90);
+  /* Heatmap ramp (vibrant accent gradient) */
+  --c-heat-0: rgba(255, 255, 255, 0.04);
+  --c-heat-1: rgba(99, 102, 241, 0.25);
+  --c-heat-2: rgba(99, 102, 241, 0.50);
+  --c-heat-3: rgba(99, 102, 241, 0.75);
+  --c-heat-4: rgba(139, 92, 246, 0.95);
 
   /* ============================================================
-     SURFACES — Midnight (refined: blue-tinted, deeper hierarchy)
+     SURFACES — Midnight (richer blacks with blue tint)
      ============================================================ */
-  --c-bg:           #0a0b0f;
-  --c-bg-elev-1:    #11131a;
-  --c-bg-elev-2:    #181b24;
-  --c-bg-elev-3:    #212531;
-  --c-bg-glass:     rgba(17, 19, 26, 0.82);
+  --c-bg:           #0a0b14;
+  --c-bg-elev-1:    #12131f;
+  --c-bg-elev-2:    #1a1c2e;
+  --c-bg-elev-3:    #252840;
+  --c-bg-glass:     rgba(18, 19, 31, 0.85);
 
-  --c-border:        rgba(255, 255, 255, 0.05);
-  --c-border-strong: rgba(255, 255, 255, 0.10);
+  --c-border:        rgba(255, 255, 255, 0.07);
+  --c-border-strong: rgba(255, 255, 255, 0.14);
 
-  --c-text:        #e8ecf4;
-  --c-text-soft:   #a0a8b8;
-  --c-text-mute:   #5c6478;
-  --c-text-faint:  #363d50;
+  --c-text:        #f0f3ff;
+  --c-text-soft:   #b4bdd4;
+  --c-text-mute:   #6b7494;
+  --c-text-faint:  #3e4666;
   --c-on-accent:   #ffffff;
 
   /* ============================================================
-     TYPOGRAPHY — compact scale (15-20% smaller than before)
-     Dense but readable. Bloomberg-meets-Apple.
+     TYPOGRAPHY — compact
      ============================================================ */
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
@@ -102,7 +117,7 @@
   --ls-xwide:  0.10em;
 
   /* ============================================================
-     SPACING — compact 4pt grid (tighter than 8pt)
+     SPACING — compact 4pt grid
      ============================================================ */
   --sp-1:  3px;
   --sp-2:  6px;
@@ -117,7 +132,7 @@
   --sp-24: 88px;
 
   /* ============================================================
-     RADII — tighter, more precise
+     RADII
      ============================================================ */
   --r-xs:    3px;
   --r-sm:    6px;
@@ -129,14 +144,14 @@
   --r-circle: 50%;
 
   /* ============================================================
-     SHADOWS — subtler, more refined
+     SHADOWS — with color glow
      ============================================================ */
   --sh-sm:    0 1px 2px rgba(0,0,0,0.4);
   --sh-md:    0 2px 8px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.4);
   --sh-lg:    0 8px 24px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.3);
   --sh-xl:    0 16px 48px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.35);
-  --sh-glow:  0 0 20px var(--c-accent-glow);
-  --sh-inner: inset 0 1px 0 rgba(255,255,255,0.04);
+  --sh-glow:  0 0 24px var(--c-accent-glow);
+  --sh-inner: inset 0 1px 0 rgba(255,255,255,0.06);
 
   /* ============================================================
      MOTION
@@ -153,7 +168,7 @@
   --dur-page:    480ms;
 
   /* ============================================================
-     LAYOUT — compact
+     LAYOUT
      ============================================================ */
   --nav-h:    52px;
   --max-w:    680px;
@@ -173,63 +188,64 @@
 }
 
 /* ============================================================
-   THEME — Light (refined)
+   THEME — Light (vibrant)
    ============================================================ */
 [data-theme="light"] {
-  --c-bg:           #f4f5f8;
+  --c-bg:           #f0f2f8;
   --c-bg-elev-1:    #ffffff;
-  --c-bg-elev-2:    #eceef3;
-  --c-bg-elev-3:    #e0e3eb;
-  --c-bg-glass:     rgba(255, 255, 255, 0.88);
+  --c-bg-elev-2:    #e8ebf5;
+  --c-bg-elev-3:    #dde1ee;
+  --c-bg-glass:     rgba(255, 255, 255, 0.90);
 
-  --c-border:        rgba(0, 0, 0, 0.06);
-  --c-border-strong: rgba(0, 0, 0, 0.11);
+  --c-border:        rgba(0, 0, 0, 0.07);
+  --c-border-strong: rgba(0, 0, 0, 0.13);
 
-  --c-text:        #0d0f15;
+  --c-text:        #0d0f1a;
   --c-text-soft:   #3f4654;
   --c-text-mute:   #6a7184;
   --c-text-faint:  #9ca3b5;
   --c-on-accent:   #ffffff;
 
-  --c-info-soft:      rgba(91, 141, 239, 0.08);
-  --c-healthy-soft:   rgba(52, 211, 153, 0.08);
-  --c-attention-soft: rgba(251, 146, 60, 0.08);
-  --c-danger-soft:    rgba(248, 113, 113, 0.08);
-  --c-strategy-soft:  rgba(192, 132, 252, 0.08);
+  --c-info-soft:      rgba(59, 130, 246, 0.10);
+  --c-healthy-soft:   rgba(34, 197, 94, 0.10);
+  --c-attention-soft: rgba(249, 115, 22, 0.10);
+  --c-danger-soft:    rgba(239, 68, 68, 0.10);
+  --c-strategy-soft:  rgba(168, 85, 247, 0.10);
 
   --sh-sm:    0 1px 2px rgba(0,0,0,0.05);
   --sh-md:    0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   --sh-lg:    0 8px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
   --sh-xl:    0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
-  --sh-inner: inset 0 1px 0 rgba(255,255,255,0.6);
+  --sh-inner: inset 0 1px 0 rgba(255,255,255,0.7);
 
-  --c-heat-0: rgba(0,0,0,0.03);
-  --c-heat-1: rgba(59, 130, 246, 0.18);
-  --c-heat-2: rgba(59, 130, 246, 0.36);
-  --c-heat-3: rgba(59, 130, 246, 0.60);
-  --c-heat-4: rgba(59, 130, 246, 0.88);
+  --c-heat-0: rgba(0,0,0,0.04);
+  --c-heat-1: rgba(99, 102, 241, 0.22);
+  --c-heat-2: rgba(99, 102, 241, 0.44);
+  --c-heat-3: rgba(99, 102, 241, 0.70);
+  --c-heat-4: rgba(139, 92, 246, 0.90);
 }
 
 /* ============================================================
-   THEME — OLED (pure black)
+   THEME — OLED
    ============================================================ */
 [data-theme="oled"] {
   --c-bg:           #000000;
-  --c-bg-elev-1:    #08090d;
+  --c-bg-elev-1:    #08090f;
   --c-bg-elev-2:    #101218;
-  --c-bg-elev-3:    #181c26;
-  --c-bg-glass:     rgba(8, 9, 13, 0.85);
+  --c-bg-elev-3:    #181c2a;
+  --c-bg-glass:     rgba(8, 9, 15, 0.88);
 
-  --c-border:        rgba(255, 255, 255, 0.04);
-  --c-border-strong: rgba(255, 255, 255, 0.08);
+  --c-border:        rgba(255, 255, 255, 0.05);
+  --c-border-strong: rgba(255, 255, 255, 0.10);
 }
 
 /* ============================================================
-   ACCENT OPTIONS (user-selectable, one at a time)
+   ACCENT OPTIONS (vibrant)
    ============================================================ */
-[data-accent="blue"]   { --c-accent: #3b82f6; --c-accent-text: #60a5fa; --c-accent-soft: rgba(59,130,246,0.12);  --c-accent-glow: rgba(59,130,246,0.28); --c-accent-border: rgba(59,130,246,0.45); }
-[data-accent="green"]  { --c-accent: #10b981; --c-accent-text: #34d399; --c-accent-soft: rgba(16,185,129,0.12); --c-accent-glow: rgba(16,185,129,0.28); --c-accent-border: rgba(16,185,129,0.45); }
-[data-accent="violet"] { --c-accent: #a855f7; --c-accent-text: #c084fc; --c-accent-soft: rgba(168,85,247,0.12); --c-accent-glow: rgba(168,85,247,0.28); --c-accent-border: rgba(168,85,247,0.45); }
-[data-accent="amber"]  { --c-accent: #f59e0b; --c-accent-text: #fbbf24; --c-accent-soft: rgba(245,158,11,0.12); --c-accent-glow: rgba(245,158,11,0.28); --c-accent-border: rgba(245,158,11,0.45); }
-[data-accent="rose"]   { --c-accent: #f43f5e; --c-accent-text: #fb7185; --c-accent-soft: rgba(244,63,94,0.12);  --c-accent-glow: rgba(244,63,94,0.28);  --c-accent-border: rgba(244,63,94,0.45); }
-[data-accent="cyan"]   { --c-accent: #06b6d4; --c-accent-text: #22d3ee; --c-accent-soft: rgba(6,182,212,0.12);  --c-accent-glow: rgba(6,182,212,0.28);  --c-accent-border: rgba(6,182,212,0.45); }
+[data-accent="blue"]   { --c-accent: #3b82f6; --c-accent-text: #60a5fa; --c-accent-soft: rgba(59,130,246,0.16);  --c-accent-glow: rgba(59,130,246,0.35); --c-accent-border: rgba(59,130,246,0.50); --c-gradient-accent: linear-gradient(135deg, #3b82f6, #2563eb); }
+[data-accent="green"]  { --c-accent: #22c55e; --c-accent-text: #4ade80; --c-accent-soft: rgba(34,197,94,0.16);  --c-accent-glow: rgba(34,197,94,0.35); --c-accent-border: rgba(34,197,94,0.50); --c-gradient-accent: linear-gradient(135deg, #22c55e, #16a34a); }
+[data-accent="violet"] { --c-accent: #a855f7; --c-accent-text: #c084fc; --c-accent-soft: rgba(168,85,247,0.16); --c-accent-glow: rgba(168,85,247,0.35); --c-accent-border: rgba(168,85,247,0.50); --c-gradient-accent: linear-gradient(135deg, #a855f7, #9333ea); }
+[data-accent="amber"]  { --c-accent: #f59e0b; --c-accent-text: #fbbf24; --c-accent-soft: rgba(245,158,11,0.16); --c-accent-glow: rgba(245,158,11,0.35); --c-accent-border: rgba(245,158,11,0.50); --c-gradient-accent: linear-gradient(135deg, #f59e0b, #d97706); }
+[data-accent="rose"]   { --c-accent: #f43f5e; --c-accent-text: #fb7185; --c-accent-soft: rgba(244,63,94,0.16);  --c-accent-glow: rgba(244,63,94,0.35); --c-accent-border: rgba(244,63,94,0.50); --c-gradient-accent: linear-gradient(135deg, #f43f5e, #e11d48); }
+[data-accent="cyan"]   { --c-accent: #06b6d4; --c-accent-text: #22d3ee; --c-accent-soft: rgba(6,182,212,0.16);  --c-accent-glow: rgba(6,182,212,0.35); --c-accent-border: rgba(6,182,212,0.50); --c-gradient-accent: linear-gradient(135deg, #06b6d4, #0891b2); }
+[data-accent="indigo"] { --c-accent: #6366f1; --c-accent-text: #818cf8; --c-accent-soft: rgba(99,102,241,0.16); --c-accent-glow: rgba(99,102,241,0.35); --c-accent-border: rgba(99,102,241,0.50); --c-gradient-accent: linear-gradient(135deg, #6366f1, #8b5cf6); }

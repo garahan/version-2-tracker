@@ -60,9 +60,9 @@ export function defaultState() {
     },
     shields: 0,
     settings: {
-      theme: 'midnight', accent: 'cyan',
+      theme: 'midnight', accent: 'indigo',
       sync: 'none', gistId: '', gistToken: '',
-      onboarded: false, haptics: true, sounds: false, notifications: false,
+      onboarded: false, seeded: false, haptics: true, sounds: false, notifications: false,
     },
   };
 }
@@ -154,8 +154,8 @@ export function applySettings() {
   root.dataset.accent = s.settings.accent;
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    const colors = { midnight: '#0a0b0f', light: '#f4f5f8', oled: '#000000' };
-    meta.content = colors[s.settings.theme] || '#0a0b0f';
+    const colors = { midnight: '#0a0b14', light: '#f0f2f8', oled: '#000000' };
+    meta.content = colors[s.settings.theme] || '#0a0b14';
   }
 }
 
