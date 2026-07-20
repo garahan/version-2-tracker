@@ -173,13 +173,21 @@ function actionRow(action, day, t) {
   const st = day.actions[action.id];
   const isDone = st === 'full' || st === 'rest';
   const isFloor = st === 'floor';
+  const toggleBtn = toggle(st, (e) => {
+    e.stopPropagation();
+    setDayAction(t, action.id, null);
+    const newSt = getState().days[t]?.actions[action.id];
+    // Update toggle button in-place (avoid full re-render replacing it)
+    toggleBtn.className = `check check--${newSt || ''}`;
+    if (newSt === 'full' || newSt === 'done') toggleBtn.textContent = '✓';
+    else if (newSt === 'floor') toggleBtn.textContent = '½';
+    else if (newSt === 'rest') toggleBtn.textContent = 'R';
+    else toggleBtn.textContent = '';
+    if (newSt === 'full' || newSt === 'rest') toast(`${action.name} ✓`, { icon: action.icon });
+  });
   return el('div', { class: 'action-row' }, [
     el('div', { class: 'action-row-head' }, [
-      toggle(st, () => {
-        setDayAction(t, action.id, null);
-        const newSt = getState().days[t]?.actions[action.id];
-        if (newSt === 'full' || newSt === 'rest') toast(`${action.name} ✓`, { icon: action.icon });
-      }),
+      toggleBtn,
       el('div', { class: 'action-row-body' }, [
         el('div', { class: 'action-row-title', style: isDone ? { color: 'var(--c-healthy)' } : {} }, [action.name]),
         action.cue && !isDone && el('div', { class: 'action-row-trigger' }, ['🔗 ', action.cue, ' → ', action.response]),
@@ -237,14 +245,19 @@ function reflectionCard(day, t) {
 
 function moodRow(day, t) {
   const emojis = ['😞', '😕', '😐', '🙂', '😄'];
+  const buttons = emojis.map((e, i) =>
+    el('button', {
+      class: `reflect-mood-btn ${day.mood === i + 1 ? 'reflect-mood-btn--selected' : ''}`,
+      on: { click: () => {
+        setDayField(t, 'mood', i + 1);
+        // Update in-place to avoid full re-render
+        buttons.forEach((b, j) => b.classList.toggle('reflect-mood-btn--selected', j === i));
+      } }
+    }, [e])
+  );
   return el('div', {}, [
     el('div', { class: 'field-label mb-2' }, ['Mood']),
-    el('div', { class: 'reflect-mood' }, emojis.map((e, i) =>
-      el('button', {
-        class: `reflect-mood-btn ${day.mood === i + 1 ? 'reflect-mood-btn--selected' : ''}`,
-        on: { click: () => setDayField(t, 'mood', i + 1) }
-      }, [e])
-    )),
+    el('div', { class: 'reflect-mood' }, buttons),
   ]);
 }
 

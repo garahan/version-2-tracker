@@ -110,6 +110,16 @@ export function save() {
   notify();
 }
 
+// Save without triggering re-render (for in-place DOM updates)
+export function saveSilent() {
+  if (!_state) return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
+  } catch (e) {
+    console.warn('State save failed:', e);
+  }
+}
+
 export function subscribe(fn) {
   _subs.add(fn);
   return () => _subs.delete(fn);
@@ -128,6 +138,13 @@ export function update(mutator) {
   save();
 }
 
+// Silent mutation — save without re-render (for in-place DOM updates)
+export function updateSilent(mutator) {
+  const s = getState();
+  mutator(s);
+  saveSilent();
+}
+
 export function applySettings() {
   const s = getState();
   const root = document.documentElement;
@@ -135,8 +152,8 @@ export function applySettings() {
   root.dataset.accent = s.settings.accent;
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    const colors = { midnight: '#0b0d12', light: '#f5f6f8', oled: '#000000' };
-    meta.content = colors[s.settings.theme] || '#0b0d12';
+    const colors = { midnight: '#08090d', light: '#f7f8fa', oled: '#000000' };
+    meta.content = colors[s.settings.theme] || '#08090d';
   }
 }
 
@@ -150,7 +167,7 @@ export function getDay(key) {
 }
 
 export function setDayAction(key, actionId, state) {
-  update(st => {
+  updateSilent(st => {
     if (!st.days[key]) st.days[key] = blankDay();
     const day = st.days[key];
     const cur = day.actions[actionId];
@@ -171,7 +188,7 @@ export function cycleState(cur) {
 }
 
 export function setDayField(key, field, value) {
-  update(st => {
+  updateSilent(st => {
     if (!st.days[key]) st.days[key] = blankDay();
     st.days[key][field] = value;
   });

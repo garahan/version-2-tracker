@@ -30,9 +30,10 @@ export function mount(parent, children) {
   if (children == null) return;
   if (!Array.isArray(children)) children = [children];
   for (const c of children) {
-    if (c == null || c === false) continue;
+    if (c == null || c === false || c === true) continue;
     if (typeof c === 'string' || typeof c === 'number') parent.appendChild(document.createTextNode(String(c)));
-    else parent.appendChild(c);
+    else if (c instanceof Node) parent.appendChild(c);
+    // Silently skip non-Node objects (e.g. from `condition && el(...)` returning the condition)
   }
 }
 

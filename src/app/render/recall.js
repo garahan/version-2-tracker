@@ -88,7 +88,7 @@ function reviewSession(dueCards) {
             )));
             revealed = true;
           }
-        } }, ['Show answer']),
+        } } }, ['Show answer']),
       ]),
     ]);
     modal({ title: 'Recall', body });
