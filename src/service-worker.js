@@ -3,7 +3,7 @@
 // Network-first for app code, cache-first for static assets.
 // ============================================================
 
-const CACHE = 'lifeos-v3.9';
+const CACHE = 'lifeos-v4.0';
 const ASSETS = [
   './',
   './index.html',
@@ -15,8 +15,9 @@ const ASSETS = [
 ];
 
 // App code files — always fetch fresh from network first
+// ALL JS and CSS files must be network-first so updates are picked up
+// immediately. ES modules are dynamically imported, so any file could change.
 const NETWORK_FIRST = [
-  '/app/main.js',
   '/service-worker.js',
   '/index.html',
 ];
@@ -37,8 +38,11 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   
-  // Network-first for app code (so updates are picked up immediately)
-  const isNetworkFirst = NETWORK_FIRST.some(path => url.pathname.endsWith(path));
+  // Network-first for ALL JS and CSS files (so updates are picked up immediately)
+  const isNetworkFirst = NETWORK_FIRST.some(path => url.pathname.endsWith(path)) ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname.endsWith('.mjs');
   
   if (isNetworkFirst) {
     e.respondWith(
