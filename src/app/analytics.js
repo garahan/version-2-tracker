@@ -4,7 +4,7 @@
 // correlations, streak risk, insights.
 // ============================================================
 
-import { getState, dayScore } from './state.js';
+import { getState, dayScore, currentStreak } from './state.js';
 import { lastNDays, ewma, slope, round, todayKey, addDays, hour, parseKey, dow } from './util.js';
 import { dueToday, dueOn, todayProgress } from './cadence.js';
 export { todayProgress } from './cadence.js';
@@ -67,11 +67,15 @@ export function streakRisk() {
   const h = hour();
   const progress = todayProgress();
   const done = progress.done + progress.floor;
-  if (h >= 21 && done === 0) return { level: 'high', message: '9pm+ and nothing done. Do the Floor now.' };
-  if (h >= 18 && done <= 1) return { level: 'high', message: 'Evening and barely started. Pick one habit.' };
-  if (h >= 14 && done === 0) return { level: 'medium', message: 'Afternoon with nothing done. Start small.' };
-  if (h >= 12 && done < progress.due / 2) return { level: 'medium', message: 'Behind pace for the day.' };
-  return { level: 'low', message: 'On track.' };
+  const streak = currentStreak();
+  // Loss aversion framing (Kahneman & Tversky, 1992):
+  // Losses loom ~2x larger than gains. Frame as potential loss, not potential gain.
+  const streakLoss = streak >= 3 ? ` You're about to lose your ${streak}-day streak.` : '';
+  if (h >= 21 && done === 0) return { level: 'high', message: `Don't lose this day. Do the Floor now — it takes 2 minutes.${streakLoss}` };
+  if (h >= 18 && done <= 1) return { level: 'high', message: `The day is slipping. Pick one habit or lose momentum.${streakLoss}` };
+  if (h >= 14 && done === 0) return { level: 'medium', message: `Half the day is gone with nothing done. Don't waste it.${streakLoss}` };
+  if (h >= 12 && done < progress.due / 2) return { level: 'medium', message: `Behind pace. Your future self is counting on you.` };
+  return { level: 'low', message: 'On track. Protect your streak.' };
 }
 
 // ---- Insights ----

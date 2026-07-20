@@ -24,6 +24,8 @@ let currentSubroute = null;
 export function boot() {
   applySettings();
   ingestHealthFromURL();
+  // Resolve past-due commitments on boot (Thaler commitment devices)
+  import('./commitments.js').then(m => m.resolveCommitments()).catch(() => {});
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./service-worker.js').catch(() => {});
   }

@@ -5,8 +5,10 @@
 
 import { el } from '../dom.js';
 import { getState, setSetting, exportJSON, importJSON, resetState, applySettings } from '../state.js';
-import { toast, confirmDialog } from '../ui.js';
+import { toast, confirmDialog, openModal, closeModal } from '../ui.js';
 import { syncToGist, pullFromGist } from '../sync.js';
+import { addBundle, deleteBundle, bundleAdherence } from '../temptation-bundling.js';
+import { DOMAIN_LIST } from '../data/domains.js';
 
 const THEMES = [
   { id: 'midnight', label: 'Midnight', swatch: '#0b0d12' },
@@ -106,6 +108,29 @@ export function renderSettings() {
       } } }, ['Reset all data']),
     ]),
 
+    // Temptation Bundling (Milkman et al.)
+    section('Temptation Bundling', [
+      el('div', { class: 'card' }, [
+        el('div', { class: 'card-head' }, [
+          el('div', { class: 'card-icon' }, ['🎧']),
+          el('div', {}, [
+            el('div', { class: 'card-title' }, ['Bundle wants with shoulds']),
+            el('div', { class: 'card-subtitle' }, ['Only allow yourself a "want" during a "should" — 10-14% behavior increase (Milkman 2013)']),
+          ]),
+        ]),
+        el('div', { class: 'list' }, (s.temptationBundles || []).map((b) =>
+          el('div', { class: 'list-item' }, [
+            el('div', { class: 'list-item-body' }, [
+              el('div', { class: 'list-item-title' }, [`🎧 Only ${b.want} during ${b.should}`]),
+              el('div', { class: 'list-item-sub' }, [`Adherence: ${Math.round(bundleAdherence(b.id) * 100)}%`]),
+            ]),
+            el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => { deleteBundle(b.id); toast('Bundle removed'); rerender(); } } }, ['🗑']),
+          ])
+        )),
+        el('button', { class: 'btn btn--ghost', style: { width: '100%', marginTop: '8px' }, on: { click: () => bundleModal(s) } }, ['+ New bundle']),
+      ]),
+    ]),
+
     el('div', { class: 'text-center text-mute mt-6', style: { fontSize: 'var(--fs-xs)' } }, [
       'Life OS v2 · schema v2 · ', `v${s.version.toFixed(2)}`,
     ]),
@@ -155,3 +180,42 @@ function importData() {
 }
 
 function rerender() { window.__lifeosRerender?.(); }
+
+function bundleModal(s) {
+  let want = '', should = '', actionId = null;
+  // Collect all daily actions for linking
+  const dailyActions = [];
+  for (const dom of DOMAIN_LIST) {
+    for (const a of (dom.actions || [])) {
+      if (a.cadence === 'daily') dailyActions.push({ id: a.id, label: `${dom.icon} ${a.name}`, domain: dom.name });
+    }
+  }
+  const content = el('div', { style: { minWidth: '320px' } }, [
+    el('div', { class: 'field' }, [
+      el('label', { class: 'field-label' }, ['Want (tempting activity)']),
+      el('input', { class: 'field-input', placeholder: 'Listen to favorite podcast', on: { input: (e) => { want = e.target.value; } } }),
+    ]),
+    el('div', { class: 'field' }, [
+      el('label', { class: 'field-label' }, ['Should (productive activity)']),
+      el('input', { class: 'field-input', placeholder: 'Deep Work block', on: { input: (e) => { should = e.target.value; } } }),
+    ]),
+    el('div', { class: 'field' }, [
+      el('label', { class: 'field-label' }, ['Link to action (optional)']),
+      el('select', { class: 'field-input', on: { change: (e) => { actionId = e.target.value || null; } } }, [
+        el('option', { value: '' }, ['— None —']),
+        ...dailyActions.map((a) => el('option', { value: a.id }, [a.label])),
+      ]),
+    ]),
+    el('div', { class: 'flex gap-2 justify-end' }, [
+      el('button', { class: 'btn btn--ghost', on: { click: () => closeModal() } }, ['Cancel']),
+      el('button', { class: 'btn btn--primary', on: { click: () => {
+        if (!want.trim() || !should.trim()) { toast('Fill in both fields'); return; }
+        addBundle({ want: want.trim(), should: should.trim(), actionId });
+        closeModal();
+        toast('Bundle created 🎧');
+        rerender();
+      } } }, ['Create']),
+    ]),
+  ]);
+  openModal(content, { title: 'New Temptation Bundle' });
+}

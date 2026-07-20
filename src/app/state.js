@@ -44,6 +44,9 @@ export function defaultState() {
     lessonsLearned: [],             // LessonRecord[]
     inbox: [],                      // InboxItem[]
     tasks: [],                      // Task[] (clarified inbox items)
+    spacedRepetition: [],           // SRItem[] — SM-2 algorithm (Cepeda et al.)
+    temptationBundles: [],          // TemptationBundle[] — Milkman et al.
+    commitments: [],                // Commitment[] — Thaler/Ashraf
     metrics: {
       weight: [], hrv: [], sleep: [], vo2max: [],
       screenTime: [], steps: [], restingHr: [], bodyFat: [],

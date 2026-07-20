@@ -49,12 +49,12 @@ export function renderCommandCenter() {
       ]),
     ]),
 
-    // Never-miss-twice warning
+    // Never-miss-twice warning (loss-framed: Kahneman)
     yestMissed && el('div', { class: 'card card--pad-sm mb-3' }, [
       el('div', { class: 'flex items-center gap-2' }, [
         el('span', {}, ['⚠️']),
-        el('span', { class: 'text-sm font-semibold' }, ['Yesterday was missed.']),
-        el('span', { class: 'text-sm text-mute' }, ['Never miss twice — do the Floor today.']),
+        el('span', { class: 'text-sm font-semibold' }, ['You lost yesterday.']),
+        el('span', { class: 'text-sm text-mute' }, ['Don\'t lose twice in a row — do the Floor now. Two missed days become a habit.']),
       ]),
     ]),
 
