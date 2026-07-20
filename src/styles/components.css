@@ -1039,7 +1039,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sp-4);
+  gap: var(--sp-3);
   padding: calc(var(--sp-6) + var(--safe-top)) var(--sp-4) var(--sp-6);
   animation: focus-in var(--dur-slow) var(--ease-out);
   overflow-y: auto;
@@ -1056,6 +1056,7 @@
 .training-env-header {
   text-align: center;
   margin-top: var(--sp-4);
+  margin-bottom: var(--sp-2);
 }
 .training-env-title {
   font-size: var(--fs-page);
@@ -1063,61 +1064,110 @@
   letter-spacing: var(--ls-tight);
 }
 
-/* Plan picker */
-.training-plans {
+/* Start screen cards */
+.training-start-card {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--sp-4);
+  background: var(--c-bg-elev-1);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--dur-fast), border-color var(--dur-fast);
+  margin-bottom: var(--sp-3);
+}
+.training-start-card:active { transform: scale(0.97); }
+.training-start-card--suggested {
+  border: 2px solid var(--c-foundation);
+  background: linear-gradient(135deg, var(--c-bg-elev-1), var(--c-foundation-soft));
+  box-shadow: 0 0 24px rgba(34, 197, 94, 0.15);
+}
+.training-start-card-top {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: var(--sp-3);
+}
+.training-start-card-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+.training-start-card-body { flex: 1; }
+.training-start-card-label {
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  color: var(--c-text-mute);
+  letter-spacing: var(--ls-xwide);
+  text-transform: uppercase;
+}
+.training-start-card-name {
+  font-size: var(--fs-section);
+  font-weight: var(--fw-bold);
+  margin-top: 2px;
+}
+.training-start-card-desc {
+  font-size: var(--fs-meta);
+  color: var(--c-text-soft);
+  margin-top: 2px;
+}
+.training-start-card-meta {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--c-border);
+}
+.training-start-card-cta {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  color: var(--c-foundation);
+  margin-top: var(--sp-2);
+}
+
+/* Other plan chips */
+.training-start-others {
   width: 100%;
   max-width: 400px;
   margin-top: var(--sp-4);
 }
-.training-plan-card {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-4);
-  background: var(--c-bg-elev-1);
-  border: 1px solid var(--c-border);
-  border-radius: var(--r-md);
-  text-align: left;
-  cursor: pointer;
-  transition: border-color var(--dur-fast), background var(--dur-fast);
-  position: relative;
-}
-.training-plan-card:active { transform: scale(0.98); }
-.training-plan-card--suggested {
-  border-color: var(--c-foundation);
-  background: linear-gradient(135deg, var(--c-bg-elev-1), var(--c-foundation-soft));
-}
-.training-plan-card-icon {
-  font-size: 28px;
-  flex-shrink: 0;
-}
-.training-plan-card-body { flex: 1; }
-.training-plan-card-name {
-  font-size: var(--fs-body);
-  font-weight: var(--fw-semibold);
-}
-.training-plan-card-desc {
+.training-start-others-label {
   font-size: var(--fs-meta);
   color: var(--c-text-mute);
-  margin-top: 2px;
+  margin-bottom: var(--sp-2);
 }
-.training-plan-card-meta {
+.training-start-others-row {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.training-start-chip {
+  padding: var(--sp-2) var(--sp-3);
+  background: transparent;
+  border: 1px solid;
+  border-radius: var(--r-pill);
   font-size: var(--fs-meta);
-  color: var(--c-text-faint);
-  margin-top: 4px;
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition: transform var(--dur-fast);
 }
-.training-plan-card-badge {
-  position: absolute;
-  top: var(--sp-2);
-  right: var(--sp-3);
-  font-size: 10px;
+.training-start-chip:active { transform: scale(0.95); }
+
+/* Top bar */
+.training-top-bar {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.training-top-bar-title {
+  font-size: var(--fs-sub);
   font-weight: var(--fw-semibold);
-  color: var(--c-foundation);
-  text-transform: uppercase;
-  letter-spacing: var(--ls-wide);
+}
+.training-top-bar-progress {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Progress bar */
@@ -1143,7 +1193,7 @@
 
 /* Exercise visual */
 .training-visual-wrap {
-  margin: var(--sp-4) 0;
+  margin: var(--sp-3) 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1158,22 +1208,40 @@
   font-weight: var(--fw-semibold);
   text-align: center;
   margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Instructions */
 .training-instructions {
   font-size: var(--fs-sub);
   color: var(--c-text-soft);
-  text-align: center;
+  text-align: left;
   max-width: 360px;
   line-height: var(--lh-normal);
   padding: var(--sp-3) var(--sp-4);
   background: var(--c-bg-elev-1);
   border-radius: var(--r-md);
   border: 1px solid var(--c-border);
+  display: flex;
+  gap: var(--sp-2);
+  align-items: flex-start;
+}
+.training-instructions-icon {
+  flex-shrink: 0;
+  font-size: var(--fs-body);
 }
 
-/* Target */
+/* Set info */
+.training-set-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 400px;
+  margin: var(--sp-2) 0;
+}
 .training-target {
   font-size: var(--fs-body);
 }
@@ -1187,7 +1255,6 @@
 .training-set-dots {
   display: flex;
   gap: var(--sp-2);
-  margin: var(--sp-2) 0;
 }
 .training-set-dot {
   width: 12px;
@@ -1197,20 +1264,17 @@
   transition: all var(--dur-base) var(--ease-out);
 }
 .training-set-dot--done {
-  background: var(--c-healthy);
-  box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+  transform: scale(1);
 }
 .training-set-dot--current {
-  background: var(--c-accent);
-  box-shadow: 0 0 12px var(--c-accent-glow);
-  transform: scale(1.3);
+  transform: scale(1.4);
 }
 
 /* Big log set button */
 .training-big-btn {
   width: 100%;
   max-width: 400px;
-  height: 64px;
+  min-height: 72px;
   font-size: var(--fs-body);
   font-weight: var(--fw-bold);
   border-radius: var(--r-lg);
@@ -1219,6 +1283,11 @@
   cursor: pointer;
   transition: transform var(--dur-fast);
   margin-top: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 .training-big-btn:active { transform: scale(0.96); }
 
@@ -1248,6 +1317,9 @@
   color: var(--c-text-mute);
   padding: var(--sp-2) var(--sp-4);
   margin-top: var(--sp-2);
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 /* Rest timer */
@@ -1258,7 +1330,7 @@
   text-transform: uppercase;
 }
 .training-rest-time {
-  font-size: 64px;
+  font-size: 72px;
   font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--ls-tight);
@@ -1279,6 +1351,11 @@
   font-weight: var(--fw-bold);
   text-align: center;
 }
+.training-complete-subtitle {
+  font-size: var(--fs-body);
+  color: var(--c-text-mute);
+  text-align: center;
+}
 .training-complete-stats {
   display: flex;
   gap: var(--sp-6);
@@ -1289,7 +1366,6 @@
   font-size: var(--fs-display);
   font-weight: var(--fw-bold);
   font-variant-numeric: tabular-nums;
-  color: var(--c-accent-text);
 }
 .training-stat-label {
   font-size: var(--fs-meta);
@@ -1304,6 +1380,38 @@
 .training-complete-muscles-label {
   font-size: var(--fs-meta);
   color: var(--c-text-mute);
+  margin-bottom: var(--sp-2);
+}
+.training-complete-muscles-tags {
+  display: flex;
+  gap: var(--sp-1);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.training-muscle-tag {
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: var(--fw-semibold);
+  border: 1px solid;
+}
+
+/* Training heatmap */
+.training-complete-heatmap {
+  margin-top: var(--sp-4);
+  text-align: center;
+}
+.training-heatmap-row {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  margin-top: var(--sp-2);
+}
+.training-heatmap-cell {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  transition: all var(--dur-fast);
 }
 .wizard {
   display: flex;
