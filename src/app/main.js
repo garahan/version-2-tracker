@@ -24,7 +24,14 @@ let currentSubroute = null;
 export function boot() {
   applySettings();
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    navigator.serviceWorker.register('./service-worker.js').then(reg => {
+      // Check for SW updates every 60s
+      setInterval(() => reg.update().catch(() => {}), 60000);
+      // When a new SW takes over, force reload to get fresh assets
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
+    }).catch(() => {});
   }
   window.addEventListener('online', () => toast('Back online'));
   window.addEventListener('offline', () => toast('Offline mode', { icon: '⚠️' }));

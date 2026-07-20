@@ -9,11 +9,15 @@ import { getState, update } from '../state.js';
 import { REVIEW_TEMPLATES, REVIEW_ORDER } from '../data/reviews.js';
 import { todayKey, fmtDate } from '../util.js';
 import { modal, closeAll, confetti, toast } from '../ui.js';
+import { go } from '../main.js';
 
 export function renderReviews() {
   const s = getState();
   return el('div', { class: 'page' }, [
-    el('div', { class: 'app-title' }, ['Reviews']),
+    el('div', { class: 'flex items-center gap-2' }, [
+      el('button', { class: 'btn btn--ghost btn--sm', on: { click: () => go('more') } }, ['‹ Back']),
+    ]),
+    el('div', { class: 'app-title', style: { marginTop: 'var(--sp-2)' } }, ['Reviews']),
     el('div', { class: 'app-subtitle' }, ['Weekly · monthly · quarterly · annual']),
     el('div', { style: { marginTop: 'var(--sp-2)' } }, [
       el('span', { class: 'cog-mode cog-mode--reflect' }, ['Reflect mode · 30–60 min']),

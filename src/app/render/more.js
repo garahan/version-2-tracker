@@ -22,6 +22,7 @@ const TILES = [
   { id: 'commitments',   icon: '🔒', label: 'Commitments',   desc: 'Stake points on actions', badge: 'commitments' },
   { id: 'risks',         icon: '🛡️', label: 'Risks',         desc: 'Register · protocols · anti-goals · black swan', badge: 'risks' },
   { id: 'leverage',      icon: '⚡', label: 'Leverage',      desc: 'Score projects on 5 dimensions', badge: 'leverage' },
+  { id: 'reviews',       icon: '📅', label: 'Reviews',       desc: 'Weekly · monthly · quarterly', badge: 'reviews' },
   { id: 'settings',      icon: '⚙️', label: 'Settings',      desc: 'Theme · sync · data', badge: null },
 ];
 
@@ -41,6 +42,7 @@ export function renderMore() {
     commitments: { value: (s.commitments || []).filter(c => c.status === 'active').length, cls: '' },
     risks: { value: s.risks.length, cls: '' },
     leverage: { value: (s.projects || []).length, cls: '' },
+    reviews: { value: (s.reviews?.weekly?.length || 0) + (s.reviews?.monthly?.length || 0), cls: '' },
   };
 
   return el('div', { class: 'page' }, [
@@ -72,6 +74,7 @@ export async function renderSubroute(id) {
     'commitments':   () => import('./commitments.js').then(m => m.renderCommitments()),
     'risks':         () => import('./risks.js').then(m => m.renderRisks()),
     'leverage':      () => import('./leverage.js').then(m => m.renderLeverage()),
+    'reviews':       () => import('./reviews.js').then(m => m.renderReviews()),
     'settings':      () => import('./settings.js').then(m => m.renderSettings()),
   };
   const fn = map[id];
