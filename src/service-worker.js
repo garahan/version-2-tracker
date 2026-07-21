@@ -31,6 +31,7 @@ const ASSETS = [
   './app/training-env.js',
   './app/gist-sync.js',
   './app/suggestions.js',
+  './app/health-sync.js',
   './app/data/domains.js',
   './app/data/reviews.js',
   './app/render/today.js',

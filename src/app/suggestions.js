@@ -27,6 +27,7 @@ export function buildSuggestions() {
     if (out.length < MAX_SUGGESTIONS && sug && !dismissed.has(sug.id) && !alreadyTasked(day, sug.id)) out.push(sug);
   };
 
+  push(busyDaySuggestion(day));
   push(skippedActionSuggestion(s, day));
   push(trainingSuggestion(s));
   push(deepWorkSuggestion(s, day));
@@ -41,6 +42,27 @@ export function buildSuggestions() {
 
 function alreadyTasked(day, sugId) {
   return (day.tasks || []).some(task => task.fromSuggestion === sugId);
+}
+
+// ---- 0. Calendar-aware: heavy meeting day → protect the floor ----
+function busyDaySuggestion(day) {
+  const events = day.calendar || [];
+  if (events.length < 3) return null;
+  let busyMins = 0;
+  for (const e of events) {
+    const [sh, sm] = (e.start || '').split(':').map(Number);
+    const [eh, em] = (e.end || '').split(':').map(Number);
+    if (isFinite(sh) && isFinite(eh)) busyMins += Math.max(0, (eh * 60 + em) - (sh * 60 + sm));
+  }
+  if (busyMins < 4 * 60) return null;
+  const h = (busyMins / 60).toFixed(1);
+  return {
+    id: 'sug-busy-day',
+    icon: '🗓',
+    title: 'Heavy schedule — plan floors, not fulls',
+    why: `Your calendar holds ~${h}h of events today. Do the 2-minute floors early so the streak survives regardless.`,
+    taskText: 'Do all floors before first meeting',
+  };
 }
 
 // ---- 1. Most-skipped daily action in the last 7 days ----

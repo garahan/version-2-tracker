@@ -16,13 +16,14 @@ import { el, div, span, toggle, svg, svgEl } from '../dom.js';
 import { getState, getDay, setDayAction, setDayField, currentStreak, updateSilent } from '../state.js';
 import { todayKey, fmtDate, dayName, fmtNum } from '../util.js';
 import { dueToday, todayProgress } from '../cadence.js';
-import { toast } from '../ui.js';
+import { toast, sheet } from '../ui.js';
 import { renderHeatmap } from './heatmap.js';
 import { enterFocusMode } from '../focus-mode.js';
 import { autoDeriveKPIs, autoCalcRunway } from '../automation.js';
 import { trainingLogSection } from '../training.js';
 import { enterTraining } from '../training-env.js';
 import { buildSuggestions, dismissSuggestion, acceptSuggestion, ensureCarryOver, addTask, toggleTask, deleteTask } from '../suggestions.js';
+import { importFromClipboard, payloadTemplate } from '../health-sync.js';
 
 export function renderToday() {
   const s = getState();
@@ -42,6 +43,7 @@ export function renderToday() {
   return el('div', { class: 'page' }, [
     topBar(s, t, streak),
     heroRing(s, prog),
+    scheduleSection(day),
     suggestionsSection(),
     todoSection(t),
     kpiPanel(s),
@@ -105,6 +107,82 @@ function heroRing(s, prog) {
       el('div', { class: 'ring-hero-progress' }, [`${prog.done}/${prog.due} done`]),
     ]),
   ]);
+}
+
+// ---- Today's schedule (from calendar sync, if any) ----
+function scheduleSection(day) {
+  const events = day.calendar || [];
+  if (!events.length) return null;
+  return el('div', { class: 'card card--pad-sm', style: { marginTop: 'var(--sp-4)' } }, [
+    el('div', { class: 'flex items-center gap-2', style: { marginBottom: 'var(--sp-2)' } }, [
+      el('span', {}, ['🗓']),
+      el('div', { class: 'card-title', style: { flex: 1 } }, ['Schedule']),
+      el('span', { class: 'text-mute text-meta' }, [`${events.length} event${events.length === 1 ? '' : 's'}`]),
+    ]),
+    el('div', {}, events.map(e =>
+      el('div', { class: 'flex items-center gap-2', style: { padding: '3px 0', fontSize: 'var(--fs-sub)' } }, [
+        el('span', { class: 'text-mute', style: { fontVariantNumeric: 'tabular-nums', minWidth: '84px' } }, [
+          e.start ? (e.end ? `${e.start}–${e.end}` : e.start) : '—',
+        ]),
+        el('span', { style: { flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, [e.title]),
+      ])
+    )),
+  ]);
+}
+
+// ---- Health sync sheet (Apple Shortcuts bridge) ----
+function openSyncSheet() {
+  const s = getState();
+  const last = s.settings.lastHealthSync;
+  const appUrl = window.location.origin + window.location.pathname;
+
+  const body = el('div', {}, [
+    el('div', { class: 'text-mute', style: { fontSize: 'var(--fs-sub)', lineHeight: 1.5 } }, [
+      'Apple Health, Calendar and Screen Time have no browser APIs — but the iOS Shortcuts app can read Health + Calendar and send everything here in one tap (or automatically every morning).',
+    ]),
+
+    last && el('div', { class: 'chip chip--healthy', style: { marginTop: 'var(--sp-3)' } }, [
+      '✓ Last sync: ' + new Date(last).toLocaleString(),
+    ]),
+
+    el('button', {
+      class: 'btn btn--primary btn--block', style: { marginTop: 'var(--sp-4)' },
+      on: { click: async () => {
+        try {
+          const { imported } = await importFromClipboard();
+          toast(`Synced: ${imported.join(', ') || 'nothing new'}`, { icon: '⌚', duration: 4000 });
+          window.__lifeosRerender && window.__lifeosRerender();
+        } catch (e) {
+          toast('Import failed: ' + e.message, { icon: '⚠️', duration: 4000 });
+        }
+      } }
+    }, ['📋 Import from clipboard']),
+
+    el('div', { class: 'overline', style: { marginTop: 'var(--sp-5)' } }, ['One-time setup (5 min)']),
+    el('ol', { style: { fontSize: 'var(--fs-sub)', color: 'var(--c-text-soft)', paddingLeft: '18px', lineHeight: 1.7, marginTop: 'var(--sp-2)' } }, [
+      el('li', {}, ['Open the Shortcuts app → new Shortcut']),
+      el('li', {}, ['Add "Find Health Samples" actions: sleep, steps, HRV, resting heart rate, weight']),
+      el('li', {}, ['Add "Get Upcoming Events" (today) for your calendar']),
+      el('li', {}, ['Add "Text" action shaped like the template below, inserting the health variables']),
+      el('li', {}, ['Add "URL" → ', el('code', { style: { fontSize: '11px', wordBreak: 'break-all' } }, [appUrl + '#sync=']), ' + URL-encoded Text, then "Open URL"']),
+      el('li', {}, ['Optional: Automations → "Time of Day, 7:00, daily" → run this Shortcut. Fully automatic from then on.']),
+    ]),
+    el('div', { class: 'text-mute text-meta', style: { marginTop: 'var(--sp-2)' } }, [
+      'Alternative: end the Shortcut with "Copy to Clipboard" and use the import button above. Screen Time has no API at all — add an "Ask for Input" step if you want it included.',
+    ]),
+
+    el('button', {
+      class: 'btn btn--ghost btn--block', style: { marginTop: 'var(--sp-3)' },
+      on: { click: async () => {
+        try {
+          await navigator.clipboard.writeText(payloadTemplate());
+          toast('Template copied — paste it into the Shortcut "Text" action', { icon: '📋', duration: 3500 });
+        } catch { toast('Copy failed', { icon: '⚠️' }); }
+      } }
+    }, ['Copy JSON template']),
+  ]);
+
+  sheet({ title: '⌚ Health & Calendar Sync', body });
 }
 
 // ---- Suggestions (personalized, max 3, dismissible) ----
@@ -333,7 +411,7 @@ function financeCard(s) {
   ]);
 }
 
-// ---- Focus + Training buttons ----
+// ---- Focus + Training + Sync buttons ----
 function focusButton() {
   return el('div', { class: 'flex gap-2', style: { marginTop: 'var(--sp-4)' } }, [
     el('button', {
@@ -346,6 +424,12 @@ function focusButton() {
       style: { flex: 1, background: 'var(--c-gradient-healthy)' },
       on: { click: enterTraining }
     }, ['🏋️ Train']),
+    el('button', {
+      class: 'btn btn--ghost',
+      style: { flex: '0 0 auto' },
+      'aria-label': 'Sync health and calendar data',
+      on: { click: openSyncSheet }
+    }, ['⌚']),
   ]);
 }
 

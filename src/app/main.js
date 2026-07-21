@@ -9,6 +9,7 @@ import { getState, applySettings, subscribe, update } from './state.js';
 import { todayKey } from './util.js';
 import { toast } from './ui.js';
 import { seedSampleData, runAutomation } from './automation.js';
+import { maybeImportFromURL } from './health-sync.js';
 
 const TABS = [
   { id: 'today',     label: 'Today',     icon: '✅', render: () => import('./render/today.js').then(m => m.renderToday()) },
@@ -57,6 +58,12 @@ export function boot() {
   }
   // Always run automation to derive today's KPIs
   update(st => { runAutomation(st); });
+  // Import Health/Calendar data if launched via a Shortcuts sync URL —
+  // also when the app is already open and only the hash changes
+  maybeImportFromURL();
+  window.addEventListener('hashchange', () => {
+    if (maybeImportFromURL()) render();
+  });
   render();
 
   let raf = null;
