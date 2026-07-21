@@ -25,6 +25,7 @@ import { enterTraining } from '../training-env.js';
 import { buildSuggestions, dismissSuggestion, acceptSuggestion, ensureCarryOver, addTask, toggleTask, deleteTask } from '../suggestions.js';
 import { importFromClipboard, payloadTemplate } from '../health-sync.js';
 import { buildDayPlan, fmtHour } from '../day-plan.js';
+import { homeWorkoutSection, isHomeExerciseTask, openHomeExerciseLogger } from '../home-workout.js';
 
 export function renderToday() {
   const s = getState();
@@ -41,15 +42,27 @@ export function renderToday() {
     (byDomain[domain.id] ||= { domain, items: [] }).items.push(action);
   }
 
+  // Reorganized layout for maximum effectiveness:
+  //   1. Top bar (version + date + streak) — context
+  //   2. Hero ring — today's progress at a glance
+  //   3. Action buttons (Focus / Train / Home / Sync) — primary actions up top
+  //   4. Schedule (if synced) — what's on today
+  //   5. Today's plan (timeline) — the main event
+  //   6. Home Workout — bodyweight exercises for home
+  //   7. Training Log — gym session tracking
+  //   8. Suggestions — personalized nudges
+  //   9. To-Do — tasks
+  //  10. KPIs — metrics (moved down, less critical moment-to-moment)
+  //  11. Recall — spaced repetition
+  //  12. Commitments — tracking
+  //  13. Reflection — mood + win + lesson
+  //  14. Heatmap — long-term view
   return el('div', { class: 'page' }, [
     topBar(s, t, streak),
     heroRing(s, prog),
+    actionButtons(s),
     scheduleSection(day),
-    suggestionsSection(),
-    todoSection(t),
-    kpiPanel(s),
-    focusButton(),
-    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-8)' } }, [
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
       el('div', { class: 'section-title' }, ['Today']),
       viewToggle(s),
       el('span', { class: 'text-mute text-meta' }, [`${prog.done}/${prog.due} done`]),
@@ -69,7 +82,11 @@ export function renderToday() {
           el('div', { class: 'list' }, items.map(a => actionRow(a, day, t))),
         ])
       )),
+    homeWorkoutSection(),
     trainingLogSection(s, t),
+    suggestionsSection(),
+    todoSection(t),
+    kpiPanel(s),
     recallSection(s, t),
     commitmentSection(s, t),
     reflectionCard(day, t),
@@ -371,6 +388,7 @@ function todoSection(t) {
 
 function todoRow(task) {
   if (!task) return null;
+  const isHomeEx = isHomeExerciseTask(task);
   const check = toggle(task.done ? 'done' : null, () => {
     toggleTask(task.id);
     const nowDone = getState().days[todayKey()]?.tasks?.find(x => x.id === task.id)?.done;
@@ -391,6 +409,11 @@ function todoRow(task) {
     el('div', { class: 'action-row-head', style: { alignItems: 'center' } }, [
       check,
       label,
+      // Home exercise: show a "Log" button to open the quick logger
+      isHomeEx && !task.done && el('button', {
+        class: 'btn btn--primary btn--sm',
+        on: { click: () => openHomeExerciseLogger(task.homeExercise, task.id) }
+      }, ['Log']),
       el('button', {
         class: 'btn btn--ghost btn--sm',
         'aria-label': 'Delete task',
@@ -505,25 +528,42 @@ function financeCard(s) {
   ]);
 }
 
-// ---- Focus + Training + Sync buttons ----
-function focusButton() {
-  return el('div', { class: 'flex gap-2', style: { marginTop: 'var(--sp-4)' } }, [
+// ---- Action buttons: Focus / Train / Home / Sync (primary actions up top) ----
+function actionButtons(s) {
+  return el('div', { class: 'action-buttons-row', style: { marginTop: 'var(--sp-4)' } }, [
     el('button', {
-      class: 'btn btn--ghost',
-      style: { flex: 1 },
+      class: 'action-btn action-btn--ghost',
       on: { click: enterFocusMode }
-    }, ['🎯 Focus']),
+    }, [
+      el('span', { class: 'action-btn-icon' }, ['🎯']),
+      el('span', { class: 'action-btn-label' }, ['Focus']),
+    ]),
     el('button', {
-      class: 'btn btn--primary',
-      style: { flex: 1, background: 'var(--c-gradient-healthy)' },
+      class: 'action-btn action-btn--primary',
+      style: { background: 'var(--c-gradient-healthy)' },
       on: { click: enterTraining }
-    }, ['🏋️ Train']),
+    }, [
+      el('span', { class: 'action-btn-icon' }, ['🏋️']),
+      el('span', { class: 'action-btn-label' }, ['Train']),
+    ]),
     el('button', {
-      class: 'btn btn--ghost',
-      style: { flex: '0 0 auto' },
+      class: 'action-btn action-btn--ghost',
+      on: { click: () => {
+        // Scroll to home workout section
+        const el = document.getElementById('home-workout-chips');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } }
+    }, [
+      el('span', { class: 'action-btn-icon' }, ['🏠']),
+      el('span', { class: 'action-btn-label' }, ['Home']),
+    ]),
+    el('button', {
+      class: 'action-btn action-btn--ghost action-btn--icon-only',
       'aria-label': 'Sync health and calendar data',
       on: { click: openSyncSheet }
-    }, ['⌚']),
+    }, [
+      el('span', { class: 'action-btn-icon' }, ['⌚']),
+    ]),
   ]);
 }
 

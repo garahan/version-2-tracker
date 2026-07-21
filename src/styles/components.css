@@ -2299,3 +2299,254 @@
   height: 22px;
 }
 
+/* ============================================================
+   ACTION BUTTONS ROW (Focus / Train / Home / Sync)
+   Primary actions at the top of Today — tappable, clear labels
+   ============================================================ */
+.action-buttons-row {
+  display: flex;
+  gap: var(--sp-2);
+  width: 100%;
+}
+.action-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: var(--sp-3) var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-bg-elev-1);
+  cursor: pointer;
+  transition: transform var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+  font-family: inherit;
+}
+.action-btn:active { transform: scale(0.96); }
+.action-btn--primary {
+  border-color: var(--c-healthy);
+  background: linear-gradient(135deg, var(--c-healthy-soft), var(--c-bg-elev-1));
+  box-shadow: 0 2px 12px rgba(34, 197, 94, 0.15);
+}
+.action-btn--ghost {
+  background: var(--c-bg-elev-1);
+}
+.action-btn--icon-only {
+  flex: 0 0 auto;
+  min-width: 52px;
+  padding: var(--sp-3);
+}
+.action-btn-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+.action-btn-label {
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-semibold);
+  color: var(--c-text);
+}
+
+/* ============================================================
+   SMART SUGGESTION CARD (in exercise sheet)
+   Shows suggested weight/reps + reason + delta
+   ============================================================ */
+.ex-suggestion-card {
+  padding: var(--sp-3);
+  border: 1px solid;
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-3);
+}
+.ex-suggestion-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+.ex-suggestion-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.ex-suggestion-body { flex: 1; min-width: 0; }
+.ex-suggestion-label {
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+  color: var(--c-text-mute);
+  letter-spacing: var(--ls-xwide);
+  text-transform: uppercase;
+}
+.ex-suggestion-value {
+  font-size: var(--fs-section);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+  line-height: 1.1;
+}
+.ex-suggestion-reason {
+  font-size: var(--fs-meta);
+  color: var(--c-text-soft);
+  margin-top: 4px;
+  line-height: 1.35;
+}
+.ex-suggestion-delta {
+  font-size: var(--fs-sub);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  background: var(--c-bg-elev-2);
+}
+
+/* Last session summary row */
+.ex-last-session {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--c-bg-elev-2);
+  border-radius: var(--r-sm);
+  margin-bottom: var(--sp-3);
+  flex-wrap: wrap;
+}
+.ex-last-session-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-meta);
+}
+.ex-last-session-label {
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+  color: var(--c-text-mute);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+}
+.ex-last-session-value {
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+.ex-last-session-when {
+  color: var(--c-text-mute);
+  font-size: 10px;
+}
+
+/* Progress chart (sparkline) */
+.ex-progress-chart {
+  margin-bottom: var(--sp-3);
+}
+.ex-progress-chart-label {
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  color: var(--c-text-mute);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.ex-progress-chart-axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--c-text-mute);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   TRAINING-ENV SUGGESTION BANNER (in full-screen workout mode)
+   ============================================================ */
+.training-suggestion-banner {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--sp-3);
+  border: 1px solid;
+  border-radius: var(--r-md);
+  margin-top: var(--sp-2);
+}
+.training-suggestion-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+.training-suggestion-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.training-suggestion-body { flex: 1; min-width: 0; }
+.training-suggestion-label {
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  color: var(--c-text-mute);
+  letter-spacing: var(--ls-xwide);
+  text-transform: uppercase;
+}
+.training-suggestion-value {
+  font-size: var(--fs-section);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+.training-suggestion-reason {
+  font-size: var(--fs-meta);
+  color: var(--c-text-soft);
+  margin-top: 4px;
+  line-height: 1.35;
+}
+.training-suggestion-delta {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  padding: 3px 8px;
+  border-radius: var(--r-sm);
+  background: var(--c-bg-elev-2);
+  flex-shrink: 0;
+}
+.training-suggestion-last {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--c-border);
+}
+.training-suggestion-spark {
+  margin-top: var(--sp-2);
+  display: flex;
+  justify-content: center;
+}
+
+/* ============================================================
+   HOME WORKOUT CHIPS (quick-add bodyweight exercises)
+   ============================================================ */
+.home-workout-chips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-2);
+}
+.home-workout-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--sp-2) var(--sp-1);
+  background: var(--c-bg-elev-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: transform var(--dur-fast), border-color var(--dur-fast);
+  font-family: inherit;
+}
+.home-workout-chip:active {
+  transform: scale(0.94);
+  border-color: var(--c-healthy);
+}
+.home-workout-chip-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.home-workout-chip-label {
+  font-size: 10px;
+  font-weight: var(--fw-semibold);
+  color: var(--c-text-soft);
+  text-align: center;
+  line-height: 1.1;
+}
+

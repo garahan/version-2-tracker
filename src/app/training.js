@@ -12,6 +12,7 @@ import { el, svg, svgEl } from './dom.js';
 import { getState, update, updateSilent } from './state.js';
 import { todayKey, fmtDate, uid } from './util.js';
 import { toast, sheet, closeAll } from './ui.js';
+import { getExerciseHistory, suggestNextWeight, progressSparkline, formatLastSession, getPR } from './training-progress.js';
 
 // ---- Exercise library with visuals ----
 // Each exercise has: name, muscle group, SVG visual, default sets/reps
@@ -1253,6 +1254,12 @@ function openExerciseSheet(exerciseId, dateKey) {
 
   const muscleColor = MUSCLE_COLORS[def.muscle] || 'var(--c-accent-text)';
 
+  // Smart suggestion + history
+  const suggestion = suggestNextWeight(exerciseId);
+  const lastSession = formatLastSession(exerciseId);
+  const history = getExerciseHistory(exerciseId, 8);
+  const pr = getPR(exerciseId);
+
   function renderSheet() {
     const body = el('div', {}, [
       // Visual + name
@@ -1262,6 +1269,62 @@ function openExerciseSheet(exerciseId, dateKey) {
           el('div', { style: { fontSize: 'var(--fs-section)', fontWeight: 'var(--fw-bold)' } }, [def.name]),
           el('div', { style: { color: muscleColor, fontSize: 'var(--fs-sub)' } }, [def.muscle]),
           el('div', { class: 'text-mute text-meta' }, [`Target: ${def.sets} × ${def.reps}${def.isTimed ? 's' : ''}`]),
+        ]),
+      ]),
+
+      // Smart suggestion card (progressive overload)
+      el('div', {
+        class: 'ex-suggestion-card',
+        style: { '--ex-color': muscleColor, borderColor: muscleColor + '44', background: muscleColor + '0d' },
+      }, [
+        el('div', { class: 'ex-suggestion-head' }, [
+          el('span', { class: 'ex-suggestion-icon' }, ['💡']),
+          el('div', { class: 'ex-suggestion-body' }, [
+            el('div', { class: 'ex-suggestion-label' }, ['SUGGESTED TODAY']),
+            el('div', { class: 'ex-suggestion-value', style: { color: muscleColor } }, [
+              suggestion.weight != null
+                ? `${suggestion.weight} kg × ${suggestion.reps} reps`
+                : `${suggestion.reps} reps (bodyweight)`,
+            ]),
+            el('div', { class: 'ex-suggestion-reason' }, [suggestion.reason]),
+          ]),
+          suggestion.delta > 0 && el('span', { class: 'ex-suggestion-delta', style: { color: 'var(--c-healthy)' } }, ['↑' + suggestion.delta + 'kg']),
+          suggestion.delta === 0 && lastSession && el('span', { class: 'ex-suggestion-delta', style: { color: 'var(--c-text-mute)' } }, ['=']),
+        ]),
+        // Quick-fill button
+        el('button', {
+          class: 'btn btn--ghost btn--sm',
+          style: { marginTop: 'var(--sp-2)', width: '100%' },
+          on: { click: () => {
+            const repsInput = document.getElementById('custom-reps-input');
+            const weightInput = document.getElementById('custom-weight-input');
+            if (repsInput) repsInput.value = String(suggestion.reps);
+            if (weightInput) weightInput.value = suggestion.weight != null ? String(suggestion.weight) : '';
+            toast('Filled — tap Log to record', { icon: '💡', duration: 2000 });
+          } }
+        }, ['Fill suggestion']),
+      ]),
+
+      // Last session + PR summary
+      lastSession && el('div', { class: 'ex-last-session' }, [
+        el('div', { class: 'ex-last-session-item' }, [
+          el('span', { class: 'ex-last-session-label' }, ['Last']),
+          el('span', { class: 'ex-last-session-value' }, [lastSession.summary]),
+          el('span', { class: 'ex-last-session-when' }, [lastSession.whenLabel]),
+        ]),
+        pr && pr.weight > 0 && el('div', { class: 'ex-last-session-item' }, [
+          el('span', { class: 'ex-last-session-label' }, ['PR']),
+          el('span', { class: 'ex-last-session-value' }, [`${pr.weight}kg · est 1RM ${pr.est1RM}kg`]),
+        ]),
+      ]),
+
+      // Progress sparkline (last 8 sessions)
+      history.length >= 2 && el('div', { class: 'ex-progress-chart' }, [
+        el('div', { class: 'ex-progress-chart-label' }, ['Progress (last ' + history.length + ' sessions)']),
+        progressSparkline(history, { width: 280, height: 56, metric: 'maxWeight', color: muscleColor }),
+        el('div', { class: 'ex-progress-chart-axis' }, [
+          el('span', {}, [history[0].maxWeight + 'kg']),
+          el('span', { style: { textAlign: 'right' } }, [history[history.length - 1].maxWeight + 'kg']),
         ]),
       ]),
 
@@ -1282,14 +1345,15 @@ function openExerciseSheet(exerciseId, dateKey) {
         ])
       )),
 
-      // Add set button
+      // Add set button (uses suggestion for first set, last set for subsequent)
       el('button', {
         class: 'btn btn--primary btn--block',
         style: { marginTop: 'var(--sp-3)' },
         on: { click: () => {
           const lastSet = exercise.sets[exercise.sets.length - 1];
-          const reps = lastSet ? lastSet.reps : def.reps;
-          const weight = lastSet ? lastSet.weight : null;
+          // First set: use smart suggestion. Subsequent: copy last set.
+          const reps = lastSet ? lastSet.reps : suggestion.reps;
+          const weight = lastSet ? lastSet.weight : suggestion.weight;
           exercise.sets.push({ reps, weight });
           // Save to state
           update(st => {
@@ -1303,13 +1367,14 @@ function openExerciseSheet(exerciseId, dateKey) {
           // Start rest timer
           startRestTimer(120, muscleColor);
         } }
-      }, [`+ Log Set (${exercise.sets.length + 1})`]),
+      }, [`+ Log Set (${exercise.sets.length + 1})` + (exercise.sets.length === 0 && suggestion.weight != null ? ` · ${suggestion.weight}kg` : '')]),
 
-      // Custom reps input
+      // Custom reps + weight input (pre-filled with suggestion)
       el('div', { class: 'flex gap-2', style: { marginTop: 'var(--sp-3)' } }, [
         el('input', {
           type: 'number',
-          placeholder: 'Custom reps',
+          placeholder: 'Reps',
+          value: exercise.sets.length === 0 ? String(suggestion.reps) : '',
           style: {
             flex: 1, background: 'var(--c-bg-elev-2)', border: '1px solid var(--c-border)',
             borderRadius: 'var(--r-sm)', padding: 'var(--sp-2) var(--sp-3)', color: 'var(--c-text)',
@@ -1319,7 +1384,8 @@ function openExerciseSheet(exerciseId, dateKey) {
         }),
         el('input', {
           type: 'number',
-          placeholder: 'kg (optional)',
+          placeholder: 'kg',
+          value: exercise.sets.length === 0 && suggestion.weight != null ? String(suggestion.weight) : '',
           style: {
             flex: 1, background: 'var(--c-bg-elev-2)', border: '1px solid var(--c-border)',
             borderRadius: 'var(--r-sm)', padding: 'var(--sp-2) var(--sp-3)', color: 'var(--c-text)',

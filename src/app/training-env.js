@@ -15,6 +15,7 @@ import { toast } from './ui.js';
 import { getState, updateSilent } from './state.js';
 import { todayKey, daysAgoKey } from './util.js';
 import { EXERCISES, MUSCLE_COLORS, exerciseVisual, getTodayLog } from './training.js';
+import { suggestNextWeight, formatLastSession, getExerciseHistory, progressSparkline } from './training-progress.js';
 
 // ============================================================
 // 14-16 Week Hypertrophy Split (5 sessions/wk, 60 min each)
@@ -333,6 +334,11 @@ function renderExercise() {
   const totalExercises = _plan.exercises.length;
   const overallProgress = ((_exIdx * totalSets + _setIdx) / (totalExercises * totalSets)) * 100;
 
+  // Smart suggestion + history for this exercise
+  const suggestion = suggestNextWeight(exId);
+  const lastSession = formatLastSession(exId);
+  const history = getExerciseHistory(exId, 6);
+
   const host = ensureHost();
   clear(host);
   mount(host, [
@@ -361,6 +367,34 @@ function renderExercise() {
         def.muscle,
       ]),
 
+      // Smart suggestion banner (progressive overload)
+      el('div', {
+        class: 'training-suggestion-banner',
+        style: { '--ex-color': muscleColor, borderColor: muscleColor + '44', background: muscleColor + '12' },
+      }, [
+        el('div', { class: 'training-suggestion-row' }, [
+          el('span', { class: 'training-suggestion-icon' }, ['💡']),
+          el('div', { class: 'training-suggestion-body' }, [
+            el('div', { class: 'training-suggestion-label' }, ['SUGGESTED']),
+            el('div', { class: 'training-suggestion-value', style: { color: muscleColor } }, [
+              suggestion.weight != null
+                ? `${suggestion.weight} kg × ${suggestion.reps} reps`
+                : `${suggestion.reps} reps`,
+            ]),
+            el('div', { class: 'training-suggestion-reason' }, [suggestion.reason]),
+          ]),
+          suggestion.delta > 0 && el('span', { class: 'training-suggestion-delta', style: { color: 'var(--c-healthy)' } }, ['↑' + suggestion.delta + 'kg']),
+        ]),
+        // Last session quick info
+        lastSession && el('div', { class: 'training-suggestion-last' }, [
+          'Last: ' + lastSession.summary + ' (' + lastSession.whenLabel + ')',
+        ]),
+        // Mini progress sparkline
+        history.length >= 2 && el('div', { class: 'training-suggestion-spark' }, [
+          progressSparkline(history, { width: 240, height: 36, metric: 'maxWeight', color: muscleColor }),
+        ]),
+      ]),
+
       // Instructions
       el('div', { class: 'training-instructions' }, [
         el('div', { class: 'training-instructions-icon' }, ['💡']),
@@ -382,29 +416,35 @@ function renderExercise() {
         )),
       ]),
 
-      // Big log set button
+      // Big log set button (uses suggestion for first set)
       el('button', {
         class: 'training-big-btn',
         style: { background: muscleColor, boxShadow: `0 4px 24px ${muscleColor}66` },
         on: { click: () => logSet(exId, def) }
       }, [
         el('div', { style: { fontSize: 'var(--fs-section)', fontWeight: 'var(--fw-bold)' } }, [`✓ Set ${currentSet} Done`]),
-        el('div', { style: { fontSize: 'var(--fs-meta)', opacity: 0.8 } }, [`Tap to log ${def.reps}${def.isTimed ? 's' : ' reps'} → rest`]),
+        el('div', { style: { fontSize: 'var(--fs-meta)', opacity: 0.8 } }, [
+          _setIdx === 0 && suggestion.weight != null
+            ? `Log ${suggestion.reps} reps @ ${suggestion.weight}kg → rest`
+            : `Tap to log ${def.reps}${def.isTimed ? 's' : ' reps'} → rest`,
+        ]),
       ]),
 
-      // Custom reps (optional)
+      // Custom reps + weight (pre-filled with suggestion on first set)
       el('div', { class: 'training-custom-row' }, [
         el('input', {
           type: 'number',
-          placeholder: 'Custom reps',
+          placeholder: 'Reps',
           class: 'training-input',
           id: 'training-custom-reps',
+          value: _setIdx === 0 ? String(suggestion.reps) : '',
         }),
         el('input', {
           type: 'number',
           placeholder: 'kg',
           class: 'training-input',
           id: 'training-custom-weight',
+          value: _setIdx === 0 && suggestion.weight != null ? String(suggestion.weight) : '',
         }),
         el('button', {
           class: 'btn btn--ghost btn--sm',
@@ -428,8 +468,19 @@ function renderExercise() {
 
 // ---- Log a set and start rest timer (uses updateSilent to avoid re-render) ----
 function logSet(exId, def, customReps, customWeight) {
-  const reps = customReps || def.reps;
-  const weight = customWeight || null;
+  // First set with no custom values: use smart suggestion
+  let reps, weight;
+  if (customReps) {
+    reps = customReps;
+    weight = customWeight;
+  } else if (_setIdx === 0) {
+    const sug = suggestNextWeight(exId);
+    reps = sug.reps;
+    weight = sug.weight;
+  } else {
+    reps = def.reps;
+    weight = null;
+  }
   _loggedSets.push({ exerciseId: exId, setNum: _setIdx + 1, reps, weight });
 
   // Save to state SILENTLY (no re-render, so training env stays open)
