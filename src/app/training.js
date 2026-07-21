@@ -387,7 +387,7 @@ export const VISUALS = {
 
 // ---- Render exercise visual ----
 export function exerciseVisual(visualKey, size = 48, color = 'var(--c-accent-text)') {
-  const elements = VISUALS[visualKey] || VISUALS.pushup;
+  const elements = (VISUALS[visualKey] || VISUALS.pushup).map(n => n.cloneNode(true));
   return svg({ viewBox: '0 0 80 50', width: size, height: size * 0.625, style: { color } }, elements);
 }
 

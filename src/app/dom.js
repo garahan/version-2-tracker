@@ -13,7 +13,6 @@ export function el(tag, attrs = {}, children = []) {
     else if (k === 'on') {
       for (const [evt, fn] of Object.entries(v)) node.addEventListener(evt, fn);
     }
-    else if (k === 'html') node.innerHTML = v;
     else if (k in node) {
       try { node[k] = v; } catch { node.setAttribute(k, v); }
     } else node.setAttribute(k, v);
@@ -45,10 +44,20 @@ export function $(sel, root = document) { return root.querySelector(sel); }
 export function $$(sel, root = document) { return Array.from(root.querySelectorAll(sel)); }
 
 // ---- SVG helpers ----
+// Accepts svg(viewBox, attrs, children) or svg(attrsObj, children)
 export function svg(viewBox, attrs, children = []) {
+  if (typeof viewBox === 'object' && viewBox !== null) {
+    children = attrs || [];
+    attrs = viewBox;
+    viewBox = attrs.viewBox;
+  }
   const node = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  node.setAttribute('viewBox', viewBox);
-  for (const [k, v] of Object.entries(attrs || {})) node.setAttribute(k, v);
+  if (viewBox) node.setAttribute('viewBox', viewBox);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || k === 'viewBox') continue;
+    if (k === 'style' && typeof v === 'object') Object.assign(node.style, v);
+    else node.setAttribute(k, v);
+  }
   mount(node, children);
   return node;
 }

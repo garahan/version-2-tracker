@@ -25,18 +25,18 @@ export function boot() {
   applySettings();
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./service-worker.js').then(reg => {
-      // Check for SW updates every 30s (aggressive so users get fixes fast)
-      setInterval(() => reg.update().catch(() => {}), 30000);
-      // When a new SW takes over, force reload to get fresh assets
+      // Check for SW updates every 5 minutes
+      setInterval(() => reg.update().catch(() => {}), 5 * 60 * 1000);
+      // When a new SW takes over, reload once to get fresh assets —
+      // but never mid-training/focus session (would lose the user's place)
+      let reloaded = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return;
+        const inSession = document.getElementById('training-host') || document.getElementById('focus-host');
+        if (inSession) return;
+        reloaded = true;
         window.location.reload();
       });
-      // If no controller yet (first load), wait for it then reload
-      if (!navigator.serviceWorker.controller) {
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          window.location.reload();
-        });
-      }
     }).catch(() => {});
   }
   window.addEventListener('online', () => toast('Back online'));
@@ -80,7 +80,6 @@ export function boot() {
 
 // ---- Router ----
 export function go(tab) {
-  console.log('GO called with:', tab, 'currentTab:', currentTab, 'subroute:', currentSubroute);
   // Navigating to the same tab: clear any active subroute (acts as "back")
   if (tab === currentTab) {
     if (currentSubroute != null) {

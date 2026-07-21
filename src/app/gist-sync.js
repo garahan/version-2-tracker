@@ -16,6 +16,16 @@ export function isConfigured() {
   return !!(s.settings.gistToken && s.settings.gistId);
 }
 
+// ---- Serialize state WITHOUT secrets (token must never leave device) ----
+export function serializeForBackup(s) {
+  const copy = JSON.parse(JSON.stringify(s));
+  if (copy.settings) {
+    delete copy.settings.gistToken;
+    delete copy.settings.gistId;
+  }
+  return JSON.stringify(copy, null, 2);
+}
+
 // ---- Create a new secret gist with the current state ----
 export async function createBackup() {
   const s = getState();
@@ -23,7 +33,7 @@ export async function createBackup() {
   const body = {
     description: 'Life OS v3 backup',
     public: false,
-    files: { [FILENAME]: { content: JSON.stringify(s, null, 2) } },
+    files: { [FILENAME]: { content: serializeForBackup(s) } },
   };
   const resp = await fetch(GIST_API, {
     method: 'POST',
@@ -52,7 +62,7 @@ export async function pushBackup() {
   if (!s.settings.gistToken) throw new Error('No GitHub token.');
   if (!s.settings.gistId) return createBackup();
   const body = {
-    files: { [FILENAME]: { content: JSON.stringify(s, null, 2) } },
+    files: { [FILENAME]: { content: serializeForBackup(s) } },
   };
   const resp = await fetch(`${GIST_API}/${s.settings.gistId}`, {
     method: 'PATCH',
@@ -86,10 +96,19 @@ export async function pullBackup() {
   const file = gist.files?.[FILENAME];
   if (!file) throw new Error('Backup file not found in gist.');
   const data = JSON.parse(file.content);
-  // Replace local state with pulled data
+  if (!data || typeof data !== 'object' || !data.schemaVersion) {
+    throw new Error('Backup file is not a valid Life OS state.');
+  }
+  // Safety net: snapshot local state before overwriting, so a bad pull is recoverable
+  try {
+    localStorage.setItem('lifeos.v3.prepull', JSON.stringify(getState()));
+  } catch { /* snapshot is best-effort */ }
+  // Replace local state with pulled data, but keep local sync credentials
   update(st => {
+    const localToken = st.settings.gistToken;
+    const localGistId = st.settings.gistId;
     Object.assign(st, data);
-    st.settings.lastSync = todayKey();
+    st.settings = { ...st.settings, gistToken: localToken, gistId: localGistId, lastSync: todayKey() };
   });
   return data;
 }

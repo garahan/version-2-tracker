@@ -22,12 +22,14 @@ import { enterFocusMode } from '../focus-mode.js';
 import { autoDeriveKPIs, autoCalcRunway } from '../automation.js';
 import { trainingLogSection } from '../training.js';
 import { enterTraining } from '../training-env.js';
+import { buildSuggestions, dismissSuggestion, acceptSuggestion, ensureCarryOver, addTask, toggleTask, deleteTask } from '../suggestions.js';
 
 export function renderToday() {
   const s = getState();
   const t = todayKey();
   const due = dueToday();
   const day = getDay(t);
+  ensureCarryOver();
   const prog = todayProgress(s);
   const streak = currentStreak();
 
@@ -40,6 +42,8 @@ export function renderToday() {
   return el('div', { class: 'page' }, [
     topBar(s, t, streak),
     heroRing(s, prog),
+    suggestionsSection(),
+    todoSection(t),
     kpiPanel(s),
     focusButton(),
     el('div', { class: 'section-head', style: { marginTop: 'var(--sp-8)' } }, [
@@ -77,15 +81,10 @@ function topBar(s, t, streak) {
         el('div', { style: { fontSize: 'var(--fs-meta)', color: 'var(--c-text-mute)' } }, [fmtDate(t)]),
       ]),
     ]),
-    // Cognitive mode indicator — Glance (3s) → Operate (30s)
-    el('div', { class: 'flex items-center gap-2', style: { marginTop: 'var(--sp-2)' } }, [
-      el('span', { class: 'cog-mode cog-mode--glance' }, ['Glance']),
-      el('span', { class: 'text-mute text-meta' }, ['→']),
-      el('span', { class: 'cog-mode cog-mode--operate' }, ['Operate']),
-      (streak > 0 || s.shields > 0) && el('span', { style: { marginLeft: 'auto' } }, [
-        streak > 0 && el('span', { class: 'chip chip--attention' }, ['🔥 ' + streak + 'd streak']),
-        s.shields > 0 && el('span', { class: 'chip chip--shield' }, ['🛡️ ' + s.shields + ' shields']),
-      ]),
+    // Streak + shields (only shown when they exist — keep the top calm)
+    (streak > 0 || s.shields > 0) && el('div', { class: 'flex items-center gap-2', style: { marginTop: 'var(--sp-2)' } }, [
+      streak > 0 && el('span', { class: 'chip chip--attention' }, ['🔥 ' + streak + 'd streak']),
+      s.shields > 0 && el('span', { class: 'chip chip--shield' }, ['🛡️ ' + s.shields + ' shields']),
     ]),
   ]);
 }
@@ -108,7 +107,129 @@ function heroRing(s, prog) {
   ]);
 }
 
-// ---- KPI panel (Command Center — v3 §8: 10-12 KPIs) ----
+// ---- Suggestions (personalized, max 3, dismissible) ----
+function suggestionsSection() {
+  const sugs = buildSuggestions();
+  if (!sugs.length) return null;
+  const host = el('div', { style: { marginTop: 'var(--sp-4)' } }, [
+    el('div', { class: 'section-head' }, [
+      el('div', { class: 'section-title' }, ['Suggested for you']),
+      el('span', { class: 'text-mute text-meta' }, ['based on your last 7 days']),
+    ]),
+    ...sugs.map(sug => suggestionCard(sug)),
+  ]);
+  return host;
+}
+
+function suggestionCard(sug) {
+  const card = el('div', { class: 'card card--pad-sm suggestion-card', style: { marginTop: 'var(--sp-2)' } }, [
+    el('div', { class: 'flex items-center gap-2' }, [
+      el('span', { style: { fontSize: '18px' } }, [sug.icon]),
+      el('div', { style: { flex: 1, minWidth: 0 } }, [
+        el('div', { style: { fontSize: 'var(--fs-sub)', fontWeight: 'var(--fw-semibold)' } }, [sug.title]),
+        el('div', { class: 'text-mute text-meta', style: { marginTop: '2px' } }, [sug.why]),
+      ]),
+    ]),
+    el('div', { class: 'flex gap-2', style: { marginTop: 'var(--sp-2)' } }, [
+      el('button', {
+        class: 'btn btn--primary btn--sm',
+        'aria-label': 'Add suggestion to to-do list',
+        on: { click: () => {
+          acceptSuggestion(sug);
+          toast('Added to to-do', { icon: sug.icon });
+          window.__lifeosRerender && window.__lifeosRerender();
+        } }
+      }, ['+ To-do']),
+      el('button', {
+        class: 'btn btn--ghost btn--sm',
+        'aria-label': 'Dismiss suggestion',
+        on: { click: () => {
+          dismissSuggestion(sug.id);
+          card.style.display = 'none';
+        } }
+      }, ['Dismiss']),
+    ]),
+  ]);
+  return card;
+}
+
+// ---- To-do list (day-scoped, carries over unfinished tasks) ----
+function todoSection(t) {
+  const day = getState().days[t] || { tasks: [] };
+  const tasks = day.tasks || [];
+  const open = tasks.filter(x => !x.done).length;
+
+  const list = el('div', { class: 'list', style: { marginTop: 'var(--sp-2)' } },
+    tasks.map(task => todoRow(task)));
+
+  const input = el('input', {
+    class: 'capture-input',
+    placeholder: 'Add a task…',
+    'aria-label': 'Add a task',
+    on: { keydown: (e) => {
+      if (e.key === 'Enter' && e.target.value.trim()) {
+        addTask(e.target.value.trim());
+        e.target.value = '';
+        const fresh = getState().days[t]?.tasks || [];
+        list.appendChild(todoRow(fresh[fresh.length - 1]));
+        countChip.textContent = countLabel(fresh);
+      }
+    } }
+  });
+
+  const countChip = el('span', { class: 'text-mute text-meta' }, [countLabel(tasks)]);
+
+  return el('div', { class: 'card', style: { marginTop: 'var(--sp-4)' } }, [
+    el('div', { class: 'card-head' }, [
+      el('div', { class: 'card-icon' }, ['📝']),
+      el('div', { style: { flex: 1 } }, [
+        el('div', { class: 'card-title' }, ['To-Do']),
+      ]),
+      countChip,
+    ]),
+    el('div', { class: 'capture', style: { marginTop: 'var(--sp-2)' } }, [input]),
+    list,
+  ]);
+
+  function countLabel(arr) {
+    const remaining = arr.filter(x => !x.done).length;
+    return arr.length === 0 ? 'nothing yet' : remaining === 0 ? 'all done ✓' : `${remaining} open`;
+  }
+}
+
+function todoRow(task) {
+  if (!task) return null;
+  const check = toggle(task.done ? 'done' : null, () => {
+    toggleTask(task.id);
+    const nowDone = getState().days[todayKey()]?.tasks?.find(x => x.id === task.id)?.done;
+    check.className = `check check--${nowDone ? 'done' : ''}`;
+    check.textContent = nowDone ? '✓' : '';
+    label.style.textDecoration = nowDone ? 'line-through' : '';
+    label.style.color = nowDone ? 'var(--c-text-mute)' : '';
+  });
+  const label = el('div', { style: {
+    flex: 1, fontSize: 'var(--fs-sub)',
+    textDecoration: task.done ? 'line-through' : '',
+    color: task.done ? 'var(--c-text-mute)' : '',
+  } }, [
+    task.text,
+    task.carried && el('span', { class: 'text-mute text-meta', style: { marginLeft: '6px' } }, ['↻ carried']),
+  ]);
+  const row = el('div', { class: 'action-row' }, [
+    el('div', { class: 'action-row-head', style: { alignItems: 'center' } }, [
+      check,
+      label,
+      el('button', {
+        class: 'btn btn--ghost btn--sm',
+        'aria-label': 'Delete task',
+        on: { click: () => { deleteTask(task.id); row.remove(); } }
+      }, ['×']),
+    ]),
+  ]);
+  return row;
+}
+
+// ---- KPI panel (compact by default: 6 essentials, expandable) ----
 function kpiPanel(s) {
   const t = todayKey();
   const last = (key) => {
@@ -129,21 +250,44 @@ function kpiPanel(s) {
   const energy = s.northStar?.energy;
   const opps = s.opportunities.filter(o => o.status === 'open' || o.status === 'exploring').length;
 
-  return el('div', { class: 'kpi-grid', style: { marginTop: 'var(--sp-6)' } }, [
+  // 6 essentials always visible; the rest behind a calm "More" toggle
+  const essentials = [
     kpiCell('Energy', energy != null ? String(energy) : '—', energy != null && energy < 3 ? 'low' : null),
     kpiCell('Sleep', sleep != null ? sleep + 'h' : '—', sleep != null && sleep < 6 ? 'low' : null),
-    kpiCell('HRV', hrv != null ? String(hrv) : '—', null, 'ms'),
-    kpiCell('Runway', runway + 'm', runway < 6 ? 'low' : null),
     kpiCell('Deep', deepWork ? (deepWork / 60).toFixed(1) + 'h' : '—', null),
     kpiCell('Mood', moodEmoji, null),
     kpiCell('Steps', stepsStr, null),
+    kpiCell('Runway', runway + 'm', runway < 6 ? 'low' : null),
+  ];
+  const extras = [
+    kpiCell('HRV', hrv != null ? String(hrv) : '—', null, 'ms'),
     kpiCell('Net', netWorth != null ? fmtNum(netWorth) : '—', null),
     kpiCell('Opps', String(opps), null),
     kpiCell('Health', String(Math.round((s.version - 1) * 100)), null),
-    kpiCell('System', '—', null),
     kpiCell('Sat', s.northStar?.lifeSatisfaction != null ? String(s.northStar.lifeSatisfaction) : '—', null),
+  ];
+
+  const extraGrid = el('div', { class: 'kpi-grid', style: { marginTop: 'var(--sp-2)', display: _kpiExpanded ? '' : 'none' } }, extras);
+  const toggleBtn = el('button', {
+    class: 'btn btn--ghost btn--sm',
+    style: { width: '100%', marginTop: 'var(--sp-1)' },
+    'aria-expanded': String(_kpiExpanded),
+    on: { click: () => {
+      _kpiExpanded = !_kpiExpanded;
+      extraGrid.style.display = _kpiExpanded ? '' : 'none';
+      toggleBtn.textContent = _kpiExpanded ? 'Less ▴' : 'More ▾';
+      toggleBtn.setAttribute('aria-expanded', String(_kpiExpanded));
+    } }
+  }, [_kpiExpanded ? 'Less ▴' : 'More ▾']);
+
+  return el('div', { style: { marginTop: 'var(--sp-4)' } }, [
+    el('div', { class: 'kpi-grid' }, essentials),
+    extraGrid,
+    toggleBtn,
   ]);
 }
+
+let _kpiExpanded = false;
 
 function kpiCell(label, value, sub, unit) {
   const isLow = sub === 'low';

@@ -3,7 +3,9 @@
 // Network-first for app code, cache-first for static assets.
 // ============================================================
 
-const CACHE = 'lifeos-v4.1';
+const CACHE = 'lifeos-v4.2';
+// Pre-cache EVERYTHING the app can lazily import, so offline works
+// even for tabs the user hasn't opened yet.
 const ASSETS = [
   './',
   './index.html',
@@ -12,6 +14,43 @@ const ASSETS = [
   './styles/base.css',
   './styles/components.css',
   './app/main.js',
+  './app/dom.js',
+  './app/state.js',
+  './app/util.js',
+  './app/ui.js',
+  './app/icons.js',
+  './app/cadence.js',
+  './app/crypto.js',
+  './app/analytics.js',
+  './app/automation.js',
+  './app/onboarding.js',
+  './app/system-health.js',
+  './app/leverage.js',
+  './app/focus-mode.js',
+  './app/training.js',
+  './app/training-env.js',
+  './app/gist-sync.js',
+  './app/suggestions.js',
+  './app/data/domains.js',
+  './app/data/reviews.js',
+  './app/render/today.js',
+  './app/render/northstar.js',
+  './app/render/domains.js',
+  './app/render/more.js',
+  './app/render/settings.js',
+  './app/render/analytics.js',
+  './app/render/reviews.js',
+  './app/render/decisions.js',
+  './app/render/risks.js',
+  './app/render/lessons.js',
+  './app/render/recall.js',
+  './app/render/inbox.js',
+  './app/render/commitments.js',
+  './app/render/opportunities.js',
+  './app/render/heatmap.js',
+  './app/render/system-health.js',
+  './app/render/dependencies.js',
+  './app/render/leverage.js',
 ];
 
 // App code files — always fetch fresh from network first
@@ -23,7 +62,12 @@ const NETWORK_FIRST = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {}));
+  // Cache each asset individually so one failure doesn't abort the rest
+  e.waitUntil(
+    caches.open(CACHE).then(c =>
+      Promise.all(ASSETS.map(a => c.add(a).catch(() => {})))
+    )
+  );
   self.skipWaiting();
 });
 

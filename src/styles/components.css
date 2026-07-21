@@ -113,6 +113,12 @@
 .card--pad-sm { padding: var(--sp-2); }
 .card--pad-lg { padding: var(--sp-4); }
 
+/* Daily suggestion cards — quiet accent, no glow */
+.suggestion-card {
+  border-left: 3px solid var(--c-accent);
+  padding: var(--sp-3);
+}
+
 .card-head {
   display: flex;
   align-items: center;

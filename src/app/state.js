@@ -76,7 +76,9 @@ export function blankDay() {
     win: '',         // one win (v3 §8)
     lesson: '',      // one lesson (v3 §8)
     deepWorkMins: 0,
-    tasks: [],
+    tasks: [],            // day to-do list: { id, text, done, carried?, fromSuggestion? }
+    dismissedSuggestions: [],
+    carriedOver: false,
     shielded: false,
   };
 }
@@ -103,24 +105,30 @@ function load() {
   }
 }
 
-export function save() {
+let _warnedSaveFail = false;
+function persist() {
   if (!_state) return;
   try {
+    _state.lastModified = Date.now();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
+    _warnedSaveFail = false;
   } catch (e) {
     console.warn('State save failed:', e);
+    if (!_warnedSaveFail) {
+      _warnedSaveFail = true;
+      import('./ui.js').then(m => m.toast('⚠️ Could not save — storage full. Export your data!', { icon: '⚠️' })).catch(() => {});
+    }
   }
+}
+
+export function save() {
+  persist();
   notify();
 }
 
 // Save without triggering re-render (for in-place DOM updates)
 export function saveSilent() {
-  if (!_state) return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
-  } catch (e) {
-    console.warn('State save failed:', e);
-  }
+  persist();
 }
 
 export function subscribe(fn) {
@@ -283,6 +291,8 @@ export function checkShieldEarned() {
 // ---- Migration ----
 function migrate(prev) {
   if (!prev.schemaVersion || prev.schemaVersion < SCHEMA_VERSION) {
+    // Safety net: snapshot pre-migration state so nothing is ever lost
+    try { localStorage.setItem(STORAGE_KEY + '.premigrate', JSON.stringify(prev)); } catch {}
     // Merge in any new default fields
     const next = defaultState();
     const merged = { ...next, ...prev };
@@ -292,8 +302,12 @@ function migrate(prev) {
     merged.northStar = { ...next.northStar, ...(prev.northStar || {}) };
     merged.reviews = { ...next.reviews, ...prev.reviews };
     merged.metrics = { ...next.metrics, ...prev.metrics };
-    // Domains: keep user data, but ensure all 22 exist
-    merged.domains = { ...next.domains, ...prev.domains };
+    // Domains: keep user data, but ensure all defaults exist and
+    // deep-merge so new default fields reach existing domains.
+    merged.domains = { ...next.domains };
+    for (const [id, dom] of Object.entries(prev.domains || {})) {
+      merged.domains[id] = next.domains[id] ? { ...next.domains[id], ...dom } : dom;
+    }
     merged.schemaVersion = SCHEMA_VERSION;
     return merged;
   }
@@ -307,6 +321,11 @@ export function exportJSON() {
 
 export function importJSON(text) {
   const parsed = JSON.parse(text);
+  if (!parsed || typeof parsed !== 'object' || !parsed.schemaVersion || typeof parsed.days !== 'object') {
+    throw new Error('Not a valid Life OS backup file.');
+  }
+  // Safety net: snapshot current state before replacing
+  try { localStorage.setItem(STORAGE_KEY + '.preimport', JSON.stringify(getState())); } catch {}
   const migrated = migrate(parsed);
   _state = migrated;
   save();
