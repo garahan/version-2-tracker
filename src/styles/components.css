@@ -1205,6 +1205,282 @@
 }
 .training-start-chip:active { transform: scale(0.95); }
 
+/* ============================================================
+   HYPERTROPHY SPLIT — today's prescribed workout
+   ============================================================ */
+.training-week-dots {
+  display: flex;
+  gap: var(--sp-1);
+  width: 100%;
+  max-width: 400px;
+  justify-content: space-between;
+  margin-bottom: var(--sp-2);
+}
+.training-week-dot {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: var(--c-bg-elev-2);
+  border: 2px solid transparent;
+  transition: transform var(--dur-fast);
+}
+.training-week-dot--today {
+  transform: scale(1.12);
+  border-color: var(--dot-color);
+}
+.training-week-dot--done {
+  opacity: 1;
+  box-shadow: 0 0 10px var(--dot-color);
+}
+
+/* Today's split card (big, prominent) */
+.training-split-card {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--sp-4);
+  background: var(--c-bg-elev-1);
+  border: 1px solid var(--c-border);
+  border-left: 4px solid var(--split-color);
+  border-radius: var(--r-lg);
+  margin-bottom: var(--sp-3);
+}
+.training-split-card--rest {
+  text-align: center;
+}
+.training-split-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.training-split-card-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+.training-split-card-body { flex: 1; min-width: 0; }
+.training-split-card-label {
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  color: var(--c-text-mute);
+  letter-spacing: var(--ls-xwide);
+  text-transform: uppercase;
+}
+.training-split-card-name {
+  font-size: var(--fs-page);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-tight);
+  margin-top: 2px;
+  line-height: 1.1;
+}
+.training-split-card-focus {
+  font-size: var(--fs-meta);
+  color: var(--c-text-soft);
+  margin-top: 3px;
+}
+.training-upper-badge {
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  border: 1px solid;
+  letter-spacing: var(--ls-wide);
+  flex-shrink: 0;
+}
+
+/* Exercise list (organized, scannable) */
+.training-split-exercises {
+  margin-top: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.training-split-ex {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--c-border);
+}
+.training-split-ex:last-child { border-bottom: none; }
+.training-split-ex-num {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: var(--fw-bold);
+  background: var(--split-color);
+  color: white;
+  border-radius: 50%;
+  opacity: 0.85;
+}
+.training-split-ex-visual {
+  flex-shrink: 0;
+  width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.training-split-ex-info { flex: 1; min-width: 0; }
+.training-split-ex-name {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.training-split-ex-meta {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  margin-top: 2px;
+}
+.training-split-ex-sets {
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  padding-left: var(--sp-2);
+}
+
+/* Stats footer */
+.training-split-card-stats {
+  display: flex;
+  gap: var(--sp-4);
+  justify-content: center;
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--c-border);
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+}
+.training-split-card-stats strong {
+  color: var(--c-text);
+  font-size: var(--fs-body);
+}
+
+/* Rest day tips */
+.training-rest-tips {
+  margin-top: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  text-align: left;
+  font-size: var(--fs-sub);
+}
+
+/* Weekly schedule grid */
+.training-week-grid {
+  width: 100%;
+  max-width: 400px;
+  margin-top: var(--sp-2);
+}
+.training-week-grid-label {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  margin-bottom: var(--sp-2);
+}
+.training-week-grid-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.training-week-cell {
+  padding: var(--sp-2) 2px;
+  background: var(--c-bg-elev-1);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  text-align: center;
+  position: relative;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.training-week-cell--today {
+  border: 2px solid var(--cell-color);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cell-color) 12%, var(--c-bg-elev-1)), var(--c-bg-elev-1));
+}
+.training-week-cell--done {
+  border-color: var(--cell-color);
+  background: color-mix(in srgb, var(--cell-color) 18%, var(--c-bg-elev-1));
+}
+.training-week-cell--missed {
+  opacity: 0.45;
+}
+.training-week-cell-day {
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+  color: var(--c-text-mute);
+  letter-spacing: var(--ls-wide);
+}
+.training-week-cell-icon { font-size: 14px; }
+.training-week-cell-name {
+  font-size: 8px;
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  letter-spacing: 0.2px;
+}
+.training-week-cell-check {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  font-size: 10px;
+  color: var(--cell-color);
+  font-weight: var(--fw-bold);
+}
+
+/* Program rules card */
+.training-program-rules {
+  width: 100%;
+  max-width: 400px;
+  margin-top: var(--sp-4);
+  padding: var(--sp-4);
+  background: var(--c-bg-elev-1);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+}
+.training-program-rules-title {
+  font-size: var(--fs-sub);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--sp-3);
+}
+.training-program-rules-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-3);
+}
+.training-rule {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.training-rule-icon { font-size: 20px; flex-shrink: 0; }
+.training-rule strong {
+  font-size: var(--fs-body);
+  display: block;
+  line-height: 1.1;
+}
+.training-program-rules-note {
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--c-border);
+  font-size: var(--fs-meta);
+  color: var(--c-text-soft);
+  line-height: 1.4;
+}
+.training-program-rules-note--goal {
+  color: var(--c-text);
+  font-weight: var(--fw-medium);
+}
+
 /* Top bar */
 .training-top-bar {
   width: 100%;

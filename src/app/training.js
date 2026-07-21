@@ -101,6 +101,197 @@ export const EXERCISES = {
     sets: 3, reps: 12,
     visual: 'legpress',
   },
+
+  // ---- Hypertrophy split (5-day program) ----
+  // Day 1: PUSH
+  db_lateral_raise: {
+    name: 'Seated DB Lateral Raise',
+    muscle: 'Shoulders',
+    sets: 4, reps: 12,
+    visual: 'lateral_raise',
+  },
+  incline_bench: {
+    name: 'Incline Barbell Press',
+    muscle: 'Chest',
+    sets: 3, reps: 8,
+    visual: 'incline_bench',
+  },
+  db_shoulder_press: {
+    name: 'Seated DB Shoulder Press',
+    muscle: 'Shoulders',
+    sets: 3, reps: 10,
+    visual: 'shoulder_press',
+  },
+  chest_press_machine: {
+    name: 'Seated Chest Machine Press',
+    muscle: 'Chest',
+    sets: 3, reps: 10,
+    visual: 'chest_press',
+  },
+  cable_flye: {
+    name: 'High-to-Low Cable Flye',
+    muscle: 'Chest',
+    sets: 3, reps: 12,
+    visual: 'cable_flye',
+  },
+  rope_tricep_ext: {
+    name: 'Overhead Rope Extensions',
+    muscle: 'Triceps',
+    sets: 3, reps: 12,
+    visual: 'rope_tricep',
+  },
+  weighted_dip: {
+    name: 'Weighted Dip',
+    muscle: 'Triceps',
+    sets: 3, reps: 8,
+    visual: 'dip',
+  },
+
+  // Day 2: PULL
+  chest_supported_row: {
+    name: 'Chest-Supported Machine Row',
+    muscle: 'Back',
+    sets: 3, reps: 10,
+    visual: 'chest_row',
+  },
+  lat_pulldown: {
+    name: 'Straight Bar Lat Pulldown',
+    muscle: 'Back',
+    sets: 3, reps: 10,
+    visual: 'lat_pulldown',
+  },
+  cable_row: {
+    name: 'Wide Grip Cable Row',
+    muscle: 'Back',
+    sets: 3, reps: 10,
+    visual: 'cable_row',
+  },
+  rear_delt_flye: {
+    name: 'Cable Rear Delt Flyes',
+    muscle: 'Shoulders',
+    sets: 3, reps: 15,
+    visual: 'rear_delt_flye',
+  },
+  hammer_curl: {
+    name: 'Dumbbell Hammer Curls',
+    muscle: 'Arms',
+    sets: 3, reps: 12,
+    visual: 'hammer_curl',
+  },
+  high_cable_curl: {
+    name: 'High Cable Curls',
+    muscle: 'Arms',
+    sets: 3, reps: 12,
+    visual: 'high_cable_curl',
+  },
+
+  // Day 3: LOWER
+  quad_extension: {
+    name: 'Quad Extension',
+    muscle: 'Legs',
+    sets: 3, reps: 12,
+    visual: 'quad_ext',
+  },
+  hack_squat: {
+    name: 'Hack Squat',
+    muscle: 'Legs',
+    sets: 3, reps: 10,
+    visual: 'hack_squat',
+  },
+  rdl: {
+    name: 'Barbell RDL',
+    muscle: 'Posterior Chain',
+    sets: 3, reps: 10,
+    visual: 'rdl',
+  },
+  hamstring_curl: {
+    name: 'Hamstring Curl',
+    muscle: 'Legs',
+    sets: 3, reps: 12,
+    visual: 'hamstring_curl',
+  },
+  walking_lunge: {
+    name: 'Walking Lunges',
+    muscle: 'Legs',
+    sets: 3, reps: 12,
+    visual: 'lunge',
+  },
+  calf_raise: {
+    name: 'Standing Calf Raises',
+    muscle: 'Legs',
+    sets: 4, reps: 15,
+    visual: 'calf_raise',
+  },
+
+  // Day 5: DELTS + ARMS
+  machine_lateral_raise: {
+    name: 'Seated Machine Lateral Raise',
+    muscle: 'Shoulders',
+    sets: 4, reps: 12,
+    visual: 'lateral_raise',
+  },
+  bb_shoulder_press: {
+    name: 'Seated Barbell Shoulder Press',
+    muscle: 'Shoulders',
+    sets: 3, reps: 8,
+    visual: 'shoulder_press',
+  },
+  chest_supported_lateral: {
+    name: 'Chest-Supported DB Lateral Raise',
+    muscle: 'Shoulders',
+    sets: 3, reps: 15,
+    visual: 'lateral_raise',
+  },
+  face_pull: {
+    name: 'Rope Face Pulls',
+    muscle: 'Shoulders',
+    sets: 3, reps: 15,
+    visual: 'face_pull',
+  },
+  ez_tricep_ext: {
+    name: 'EZ Bar Tricep Extensions',
+    muscle: 'Triceps',
+    sets: 3, reps: 10,
+    visual: 'ez_tricep',
+  },
+  incline_db_curl: {
+    name: 'Incline Dumbbell Curls',
+    muscle: 'Arms',
+    sets: 3, reps: 12,
+    visual: 'incline_curl',
+  },
+  skull_crusher: {
+    name: 'Dumbbell Skull Crusher',
+    muscle: 'Triceps',
+    sets: 3, reps: 12,
+    visual: 'skull_crusher',
+  },
+
+  // Day 6: CHEST + BACK
+  close_grip_pulldown: {
+    name: 'Close Grip Pulldown',
+    muscle: 'Back',
+    sets: 3, reps: 10,
+    visual: 'lat_pulldown',
+  },
+  smith_chest_press: {
+    name: 'Flat Smith Machine Chest Press',
+    muscle: 'Chest',
+    sets: 3, reps: 8,
+    visual: 'bench',
+  },
+  db_row: {
+    name: 'Single Arm Dumbbell Row',
+    muscle: 'Back',
+    sets: 3, reps: 10,
+    visual: 'db_row',
+  },
+  pec_dec_flye: {
+    name: 'Pec Dec Flye',
+    muscle: 'Chest',
+    sets: 3, reps: 12,
+    visual: 'cable_flye',
+  },
 };
 
 // ---- Muscle group colors ----
@@ -382,6 +573,489 @@ export const VISUALS = {
     svgEl('line', { x1: 52, y1: 15, x2: 52, y2: 42, stroke: 'currentColor', 'stroke-width': 4, 'stroke-linecap': 'round', opacity: 0.9 }),
     // Arrow (push direction)
     svgEl('path', { d: 'M60 28 h8 M65 25 l3 3 l-3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // ---- Hypertrophy split visuals ----
+
+  // LATERAL RAISE: person standing, arms raising out to sides
+  lateral_raise: [
+    // Head
+    svgEl('circle', { cx: 40, cy: 10, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 15, x2: 40, y2: 32, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs
+    svgEl('line', { x1: 40, y1: 32, x2: 34, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 40, y1: 32, x2: 46, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Arms raised out to sides (horizontal)
+    svgEl('line', { x1: 40, y1: 18, x2: 18, y2: 18, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 40, y1: 18, x2: 62, y2: 18, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Dumbbells
+    svgEl('rect', { x: 14, y: 15, width: 5, height: 7, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    svgEl('rect', { x: 61, y: 15, width: 5, height: 7, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    // Up arrows
+    svgEl('path', { d: 'M22 28 v-6 M19 25 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+    svgEl('path', { d: 'M58 28 v-6 M55 25 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // INCLINE BENCH: person on incline bench, pressing barbell up
+  incline_bench: [
+    // Incline bench (angled)
+    svgEl('line', { x1: 18, y1: 38, x2: 50, y2: 22, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    svgEl('line', { x1: 18, y1: 38, x2: 18, y2: 47, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    svgEl('line', { x1: 50, y1: 22, x2: 55, y2: 47, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    // Ground
+    svgEl('line', { x1: 5, y1: 48, x2: 75, y2: 48, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Head (at top of incline)
+    svgEl('circle', { cx: 50, cy: 18, r: 4, fill: 'currentColor', opacity: 0.95 }),
+    // Torso along incline
+    svgEl('line', { x1: 49, y1: 22, x2: 22, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Arms pressing up
+    svgEl('line', { x1: 32, y1: 28, x2: 32, y2: 12, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.8 }),
+    svgEl('line', { x1: 42, y1: 25, x2: 42, y2: 10, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Barbell above
+    svgEl('line', { x1: 24, y1: 8, x2: 50, y2: 8, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.95 }),
+    svgEl('circle', { cx: 24, cy: 8, r: 3, fill: 'currentColor', opacity: 0.8 }),
+    svgEl('circle', { cx: 50, cy: 8, r: 3, fill: 'currentColor', opacity: 0.8 }),
+    // Up arrow
+    svgEl('path', { d: 'M62 22 v-8 M59 17 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // SHOULDER PRESS: seated, pressing dumbbells overhead
+  shoulder_press: [
+    // Head
+    svgEl('circle', { cx: 40, cy: 14, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 19, x2: 40, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Seat
+    svgEl('line', { x1: 30, y1: 38, x2: 50, y2: 38, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    svgEl('line', { x1: 30, y1: 38, x2: 30, y2: 47, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    // Legs
+    svgEl('line', { x1: 40, y1: 36, x2: 32, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.6 }),
+    // Arms pressing up
+    svgEl('line', { x1: 40, y1: 22, x2: 28, y2: 8, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 40, y1: 22, x2: 52, y2: 8, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Dumbbells at top
+    svgEl('rect', { x: 24, y: 4, width: 6, height: 8, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    svgEl('rect', { x: 50, y: 4, width: 6, height: 8, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    // Up arrow
+    svgEl('path', { d: 'M64 22 v-8 M61 17 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // CHEST PRESS MACHINE: seated, pushing handles forward
+  chest_press: [
+    // Head
+    svgEl('circle', { cx: 18, cy: 16, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso (seated, leaning back)
+    svgEl('line', { x1: 20, y1: 20, x2: 26, y2: 34, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Seat back
+    svgEl('line', { x1: 14, y1: 12, x2: 24, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Seat
+    svgEl('line', { x1: 24, y1: 36, x2: 38, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Arms pushing forward
+    svgEl('line', { x1: 24, y1: 24, x2: 50, y2: 24, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 24, y1: 28, x2: 50, y2: 28, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Handles
+    svgEl('rect', { x: 50, y: 21, width: 4, height: 10, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    // Push arrow
+    svgEl('path', { d: 'M58 26 h8 M63 23 l3 3 l-3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // CABLE FLYE: person standing, arms sweeping in from high to low
+  cable_flye: [
+    // Cable towers (two vertical lines on sides)
+    svgEl('line', { x1: 8, y1: 4, x2: 8, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, opacity: 0.5 }),
+    svgEl('line', { x1: 72, y1: 4, x2: 72, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, opacity: 0.5 }),
+    // Pulleys (high)
+    svgEl('circle', { cx: 8, cy: 10, r: 2, fill: 'currentColor', opacity: 0.7 }),
+    svgEl('circle', { cx: 72, cy: 10, r: 2, fill: 'currentColor', opacity: 0.7 }),
+    // Cables (diagonal to hands)
+    svgEl('line', { x1: 8, y1: 10, x2: 32, y2: 30, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.5 }),
+    svgEl('line', { x1: 72, y1: 10, x2: 48, y2: 30, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.5 }),
+    // Head
+    svgEl('circle', { cx: 40, cy: 14, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 19, x2: 40, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs
+    svgEl('line', { x1: 40, y1: 36, x2: 34, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 40, y1: 36, x2: 46, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Arms sweeping in (meeting at chest)
+    svgEl('line', { x1: 40, y1: 22, x2: 32, y2: 30, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 40, y1: 22, x2: 48, y2: 30, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Inward arrow
+    svgEl('path', { d: 'M22 38 l6 0 M27 36 l1 2 l-1 2', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // ROPE TRICEP EXTENSION: overhead rope pushdown
+  rope_tricep: [
+    // Cable tower top
+    svgEl('line', { x1: 30, y1: 4, x2: 50, y2: 4, stroke: 'currentColor', 'stroke-width': 2.5, opacity: 0.5 }),
+    // Rope hanging down
+    svgEl('line', { x1: 40, y1: 4, x2: 40, y2: 20, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.5 }),
+    // Head
+    svgEl('circle', { cx: 40, cy: 14, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 19, x2: 40, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs
+    svgEl('line', { x1: 40, y1: 36, x2: 34, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 40, y1: 36, x2: 46, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Arms overhead then bent (triceps extension)
+    svgEl('line', { x1: 40, y1: 19, x2: 32, y2: 14, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 40, y1: 19, x2: 48, y2: 14, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 32, y1: 14, x2: 36, y2: 28, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 48, y1: 14, x2: 44, y2: 28, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Rope ends
+    svgEl('circle', { cx: 36, cy: 28, r: 2, fill: 'currentColor', opacity: 0.8 }),
+    svgEl('circle', { cx: 44, cy: 28, r: 2, fill: 'currentColor', opacity: 0.8 }),
+    // Down arrow
+    svgEl('path', { d: 'M60 24 v8 M57 29 l3 3 l3 -3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // CHEST-SUPPORTED ROW: lying prone on incline, pulling
+  chest_row: [
+    // Incline bench
+    svgEl('line', { x1: 16, y1: 38, x2: 50, y2: 22, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    svgEl('line', { x1: 16, y1: 38, x2: 16, y2: 47, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    svgEl('line', { x1: 50, y1: 22, x2: 55, y2: 47, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    // Ground
+    svgEl('line', { x1: 5, y1: 48, x2: 75, y2: 48, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Head (at top, prone)
+    svgEl('circle', { cx: 50, cy: 18, r: 4, fill: 'currentColor', opacity: 0.95 }),
+    // Torso along incline
+    svgEl('line', { x1: 49, y1: 22, x2: 22, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Arms pulling back (rowing)
+    svgEl('line', { x1: 35, y1: 28, x2: 24, y2: 22, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 40, y1: 30, x2: 30, y2: 26, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Dumbbell/handle
+    svgEl('rect', { x: 20, y: 19, width: 6, height: 5, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    // Pull arrow
+    svgEl('path', { d: 'M60 28 h-8 M55 25 l-3 3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // LAT PULLDOWN: seated, pulling bar down to chest
+  lat_pulldown: [
+    // Cable tower top
+    svgEl('line', { x1: 20, y1: 4, x2: 60, y2: 4, stroke: 'currentColor', 'stroke-width': 2.5, opacity: 0.5 }),
+    // Cable
+    svgEl('line', { x1: 40, y1: 4, x2: 40, y2: 18, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.5 }),
+    // Bar at chest level (pulled down)
+    svgEl('line', { x1: 24, y1: 18, x2: 56, y2: 18, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.95 }),
+    // Head
+    svgEl('circle', { cx: 40, cy: 14, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 19, x2: 40, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Seat
+    svgEl('line', { x1: 30, y1: 38, x2: 50, y2: 38, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Legs (thighs horizontal, calves down — seated position)
+    svgEl('line', { x1: 40, y1: 36, x2: 56, y2: 38, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 56, y1: 38, x2: 56, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Arms pulling bar down
+    svgEl('line', { x1: 40, y1: 19, x2: 28, y2: 18, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 40, y1: 19, x2: 52, y2: 18, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Down arrow
+    svgEl('path', { d: 'M68 22 v8 M65 27 l3 3 l3 -3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // CABLE ROW: seated, pulling handle
+  cable_row: [
+    // Floor/seat
+    svgEl('line', { x1: 5, y1: 48, x2: 75, y2: 48, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Seat
+    svgEl('line', { x1: 14, y1: 38, x2: 32, y2: 38, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Feet platform
+    svgEl('line', { x1: 56, y1: 38, x2: 56, y2: 30, stroke: 'currentColor', 'stroke-width': 4, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Head
+    svgEl('circle', { cx: 20, cy: 16, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso (slight forward lean)
+    svgEl('line', { x1: 22, y1: 20, x2: 28, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs (extended to platform)
+    svgEl('line', { x1: 28, y1: 36, x2: 54, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Arms pulling handle
+    svgEl('line', { x1: 26, y1: 26, x2: 44, y2: 30, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 26, y1: 30, x2: 44, y2: 34, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Handle
+    svgEl('rect', { x: 44, y: 28, width: 4, height: 8, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    // Cable to platform
+    svgEl('line', { x1: 48, y1: 32, x2: 56, y2: 34, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.5 }),
+    // Pull arrow
+    svgEl('path', { d: 'M62 26 h-8 M57 23 l-3 3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // REAR DELT FLYE: standing, arms back spreading
+  rear_delt_flye: [
+    // Head
+    svgEl('circle', { cx: 40, cy: 12, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 17, x2: 40, y2: 34, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs
+    svgEl('line', { x1: 40, y1: 34, x2: 34, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 40, y1: 34, x2: 46, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Arms back (extending behind, angled)
+    svgEl('line', { x1: 40, y1: 20, x2: 22, y2: 26, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 40, y1: 20, x2: 58, y2: 26, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Dumbbells
+    svgEl('rect', { x: 17, y: 23, width: 6, height: 7, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    svgEl('rect', { x: 57, y: 23, width: 6, height: 7, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    // Back arrows
+    svgEl('path', { d: 'M14 38 h-6 M11 35 l-3 3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+    svgEl('path', { d: 'M66 38 h6 M69 35 l3 3 l-3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // HAMMER CURL: arm with neutral-grip dumbbell
+  hammer_curl: [
+    // Shoulder/torso
+    svgEl('line', { x1: 15, y1: 15, x2: 15, y2: 40, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.6 }),
+    // Upper arm
+    svgEl('line', { x1: 15, y1: 18, x2: 15, y2: 32, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Forearm (curled up, neutral grip — vertical dumbbell)
+    svgEl('line', { x1: 15, y1: 32, x2: 32, y2: 22, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Dumbbell (vertical, hammer grip)
+    svgEl('rect', { x: 30, y: 14, width: 5, height: 12, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    // Bicep bulge
+    svgEl('circle', { cx: 20, cy: 28, r: 5, fill: 'currentColor', opacity: 0.3 }),
+    // Curl arrow
+    svgEl('path', { d: 'M44 35 Q34 40 24 35', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.3 }),
+    svgEl('path', { d: 'M26 34 l-2 1 l1 2', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.3 }),
+  ],
+
+  // HIGH CABLE CURL: standing, curling from high cable
+  high_cable_curl: [
+    // Cable tower top
+    svgEl('line', { x1: 28, y1: 4, x2: 52, y2: 4, stroke: 'currentColor', 'stroke-width': 2.5, opacity: 0.5 }),
+    // Two cables from sides
+    svgEl('line', { x1: 28, y1: 4, x2: 24, y2: 22, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.5 }),
+    svgEl('line', { x1: 52, y1: 4, x2: 56, y2: 22, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.5 }),
+    // Head
+    svgEl('circle', { cx: 40, cy: 14, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 19, x2: 40, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs
+    svgEl('line', { x1: 40, y1: 36, x2: 34, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 40, y1: 36, x2: 46, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Arms curled (forearms up)
+    svgEl('line', { x1: 40, y1: 22, x2: 24, y2: 22, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 40, y1: 22, x2: 56, y2: 22, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Handles
+    svgEl('rect', { x: 21, y: 19, width: 5, height: 7, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    svgEl('rect', { x: 54, y: 19, width: 5, height: 7, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    // Curl arrows
+    svgEl('path', { d: 'M22 36 v-8 M19 31 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // QUAD EXTENSION: seated on machine, extending legs
+  quad_ext: [
+    // Seat
+    svgEl('line', { x1: 14, y1: 28, x2: 30, y2: 28, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    svgEl('line', { x1: 14, y1: 12, x2: 14, y2: 28, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Head
+    svgEl('circle', { cx: 18, cy: 14, r: 4, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 19, y1: 18, x2: 22, y2: 27, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Thighs (horizontal)
+    svgEl('line', { x1: 22, y1: 27, x2: 44, y2: 27, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Calves (extended forward)
+    svgEl('line', { x1: 44, y1: 27, x2: 64, y2: 27, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Pad under ankle
+    svgEl('line', { x1: 62, y1: 24, x2: 68, y2: 24, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Ground
+    svgEl('line', { x1: 5, y1: 47, x2: 75, y2: 47, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Up/forward arrow
+    svgEl('path', { d: 'M58 38 h8 M63 35 l3 3 l-3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // HACK SQUAT: person on hack squat machine, shoulders under pads
+  hack_squat: [
+    // Machine frame (angled)
+    svgEl('line', { x1: 20, y1: 6, x2: 60, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, opacity: 0.4 }),
+    // Shoulder pads (top)
+    svgEl('line', { x1: 16, y1: 8, x2: 28, y2: 8, stroke: 'currentColor', 'stroke-width': 4, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Head
+    svgEl('circle', { cx: 38, cy: 14, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso (leaning back on sled)
+    svgEl('line', { x1: 38, y1: 19, x2: 42, y2: 32, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Thighs (bent)
+    svgEl('line', { x1: 42, y1: 32, x2: 32, y2: 38, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Calves
+    svgEl('line', { x1: 32, y1: 38, x2: 32, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Feet
+    svgEl('line', { x1: 30, y1: 46, x2: 38, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Ground
+    svgEl('line', { x1: 5, y1: 47, x2: 75, y2: 47, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Down arrow
+    svgEl('path', { d: 'M58 22 v8 M55 27 l3 3 l3 -3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // RDL: barbell Romanian deadlift — hips back, bar to mid-thigh
+  rdl: [
+    // Ground
+    svgEl('line', { x1: 5, y1: 47, x2: 75, y2: 47, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Head
+    svgEl('circle', { cx: 56, cy: 14, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso (hinged forward ~45°)
+    svgEl('line', { x1: 54, y1: 18, x2: 40, y2: 32, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Hips
+    svgEl('circle', { cx: 40, cy: 32, r: 3, fill: 'currentColor', opacity: 0.8 }),
+    // Legs (slight bend)
+    svgEl('line', { x1: 40, y1: 32, x2: 38, y2: 46, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Arms hanging straight down with bar
+    svgEl('line', { x1: 46, y1: 24, x2: 46, y2: 42, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Barbell at mid-thigh
+    svgEl('line', { x1: 38, y1: 40, x2: 54, y2: 40, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.95 }),
+    svgEl('circle', { cx: 38, cy: 40, r: 3, fill: 'currentColor', opacity: 0.8 }),
+    svgEl('circle', { cx: 54, cy: 40, r: 3, fill: 'currentColor', opacity: 0.8 }),
+    // Hinge arrow (hips back)
+    svgEl('path', { d: 'M22 30 h-8 M17 27 l-3 3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // HAMSTRING CURL: seated or lying, legs curling back
+  hamstring_curl: [
+    // Seat (lying prone bench)
+    svgEl('line', { x1: 10, y1: 24, x2: 50, y2: 24, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Head (prone)
+    svgEl('circle', { cx: 14, cy: 22, r: 4, fill: 'currentColor', opacity: 0.95 }),
+    // Torso on bench
+    svgEl('line', { x1: 18, y1: 24, x2: 44, y2: 24, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Thighs (horizontal off bench)
+    svgEl('line', { x1: 44, y1: 24, x2: 58, y2: 28, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Calves (curled back up)
+    svgEl('line', { x1: 58, y1: 28, x2: 56, y2: 14, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Pad
+    svgEl('circle', { cx: 56, cy: 14, r: 2, fill: 'currentColor', opacity: 0.8 }),
+    // Ground
+    svgEl('line', { x1: 5, y1: 47, x2: 75, y2: 47, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Curl arrow
+    svgEl('path', { d: 'M64 30 v-8 M61 25 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // CALF RAISE: person on toes, heels up
+  calf_raise: [
+    // Ground
+    svgEl('line', { x1: 5, y1: 47, x2: 75, y2: 47, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Head
+    svgEl('circle', { cx: 40, cy: 8, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 13, x2: 40, y2: 32, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs (straight)
+    svgEl('line', { x1: 40, y1: 32, x2: 40, y2: 42, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Feet (on toes, heels raised)
+    svgEl('line', { x1: 40, y1: 42, x2: 48, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Arms (holding weight at sides)
+    svgEl('line', { x1: 40, y1: 18, x2: 32, y2: 32, stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0.5 }),
+    svgEl('line', { x1: 40, y1: 18, x2: 48, y2: 32, stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0.5 }),
+    // Dumbbells
+    svgEl('rect', { x: 29, y: 30, width: 5, height: 6, rx: 1, fill: 'currentColor', opacity: 0.9 }),
+    svgEl('rect', { x: 46, y: 30, width: 5, height: 6, rx: 1, fill: 'currentColor', opacity: 0.9 }),
+    // Up arrow (heels rising)
+    svgEl('path', { d: 'M58 40 v-8 M55 35 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // FACE PULL: rope to face, pulling apart
+  face_pull: [
+    // Cable tower (high)
+    svgEl('line', { x1: 30, y1: 4, x2: 50, y2: 4, stroke: 'currentColor', 'stroke-width': 2.5, opacity: 0.5 }),
+    // Cable
+    svgEl('line', { x1: 40, y1: 4, x2: 40, y2: 16, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.5 }),
+    // Head
+    svgEl('circle', { cx: 40, cy: 18, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 23, x2: 40, y2: 38, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs
+    svgEl('line', { x1: 40, y1: 38, x2: 34, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 40, y1: 38, x2: 46, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Arms pulling rope to face, spreading out
+    svgEl('line', { x1: 40, y1: 20, x2: 24, y2: 18, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 40, y1: 20, x2: 56, y2: 18, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Rope ends
+    svgEl('circle', { cx: 24, cy: 18, r: 2, fill: 'currentColor', opacity: 0.8 }),
+    svgEl('circle', { cx: 56, cy: 18, r: 2, fill: 'currentColor', opacity: 0.8 }),
+    // Outward arrows
+    svgEl('path', { d: 'M18 26 h-6 M15 23 l-3 3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // EZ BAR TRICEP EXTENSION: lying or seated, EZ bar overhead
+  ez_tricep: [
+    // Head
+    svgEl('circle', { cx: 40, cy: 14, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso
+    svgEl('line', { x1: 40, y1: 19, x2: 40, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs
+    svgEl('line', { x1: 40, y1: 36, x2: 34, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    svgEl('line', { x1: 40, y1: 36, x2: 46, y2: 47, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Arms overhead
+    svgEl('line', { x1: 40, y1: 19, x2: 32, y2: 8, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 40, y1: 19, x2: 48, y2: 8, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // EZ bar (curved)
+    svgEl('path', { d: 'M22 8 Q40 4 58 8', stroke: 'currentColor', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round', opacity: 0.95 }),
+    // Plates
+    svgEl('circle', { cx: 22, cy: 8, r: 4, fill: 'currentColor', opacity: 0.7 }),
+    svgEl('circle', { cx: 58, cy: 8, r: 4, fill: 'currentColor', opacity: 0.7 }),
+    // Down arrow (lowering behind head)
+    svgEl('path', { d: 'M68 22 v8 M65 27 l3 3 l3 -3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // INCLINE DB CURL: lying back on incline, arms hanging
+  incline_curl: [
+    // Incline bench (reversed — head low)
+    svgEl('line', { x1: 18, y1: 22, x2: 50, y2: 38, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    svgEl('line', { x1: 18, y1: 22, x2: 18, y2: 47, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    svgEl('line', { x1: 50, y1: 38, x2: 55, y2: 47, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    // Ground
+    svgEl('line', { x1: 5, y1: 48, x2: 75, y2: 48, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Head (low end)
+    svgEl('circle', { cx: 20, cy: 18, r: 4, fill: 'currentColor', opacity: 0.95 }),
+    // Torso along incline
+    svgEl('line', { x1: 22, y1: 22, x2: 48, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Arms hanging down (full stretch)
+    svgEl('line', { x1: 30, y1: 26, x2: 26, y2: 42, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 38, y1: 30, x2: 34, y2: 44, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Dumbbells
+    svgEl('rect', { x: 23, y: 41, width: 5, height: 7, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    svgEl('rect', { x: 31, y: 43, width: 5, height: 7, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    // Curl arrow
+    svgEl('path', { d: 'M58 38 Q50 44 42 38', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.3 }),
+  ],
+
+  // SKULL CRUSHER: lying on bench, EZ bar over forehead
+  skull_crusher: [
+    // Bench
+    svgEl('line', { x1: 14, y1: 36, x2: 60, y2: 36, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.5 }),
+    svgEl('line', { x1: 18, y1: 36, x2: 18, y2: 47, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    svgEl('line', { x1: 56, y1: 36, x2: 56, y2: 47, stroke: 'currentColor', 'stroke-width': 2, opacity: 0.4 }),
+    // Ground
+    svgEl('line', { x1: 5, y1: 48, x2: 75, y2: 48, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Head on bench
+    svgEl('circle', { cx: 22, cy: 33, r: 4, fill: 'currentColor', opacity: 0.95 }),
+    // Body on bench
+    svgEl('line', { x1: 26, y1: 34, x2: 52, y2: 34, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    // Arms up holding bar over forehead
+    svgEl('line', { x1: 26, y1: 32, x2: 26, y2: 18, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    svgEl('line', { x1: 32, y1: 32, x2: 32, y2: 18, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // EZ bar at forehead level
+    svgEl('line', { x1: 18, y1: 18, x2: 40, y2: 18, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.95 }),
+    svgEl('circle', { cx: 18, cy: 18, r: 3, fill: 'currentColor', opacity: 0.7 }),
+    svgEl('circle', { cx: 40, cy: 18, r: 3, fill: 'currentColor', opacity: 0.7 }),
+    // Down arrow (lowering to forehead)
+    svgEl('path', { d: 'M52 22 v8 M49 27 l3 3 l3 -3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
+  ],
+
+  // DB ROW: bent over single arm row
+  db_row: [
+    // Ground
+    svgEl('line', { x1: 5, y1: 47, x2: 75, y2: 47, stroke: 'currentColor', 'stroke-width': 1.5, opacity: 0.2 }),
+    // Head
+    svgEl('circle', { cx: 50, cy: 12, r: 5, fill: 'currentColor', opacity: 0.95 }),
+    // Torso (hinged forward ~horizontal)
+    svgEl('line', { x1: 48, y1: 16, x2: 30, y2: 30, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.9 }),
+    // Legs (split stance)
+    svgEl('line', { x1: 30, y1: 30, x2: 22, y2: 46, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.8 }),
+    svgEl('line', { x1: 30, y1: 30, x2: 40, y2: 46, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.7 }),
+    // Supporting arm (on knee/bench)
+    svgEl('line', { x1: 32, y1: 22, x2: 22, y2: 32, stroke: 'currentColor', 'stroke-width': 2.5, 'stroke-linecap': 'round', opacity: 0.6 }),
+    // Rowing arm (pulling dumbbell up)
+    svgEl('line', { x1: 44, y1: 22, x2: 52, y2: 14, stroke: 'currentColor', 'stroke-width': 3, 'stroke-linecap': 'round', opacity: 0.95 }),
+    // Dumbbell
+    svgEl('rect', { x: 50, y: 10, width: 6, height: 8, rx: 1, fill: 'currentColor', opacity: 0.95 }),
+    // Up arrow
+    svgEl('path', { d: 'M62 24 v-8 M59 19 l3 -3 l3 3', stroke: 'currentColor', 'stroke-width': 1.5, fill: 'none', opacity: 0.35 }),
   ],
 };
 

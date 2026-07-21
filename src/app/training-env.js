@@ -16,44 +16,101 @@ import { getState, updateSilent } from './state.js';
 import { todayKey, daysAgoKey } from './util.js';
 import { EXERCISES, MUSCLE_COLORS, exerciseVisual, getTodayLog } from './training.js';
 
-// ---- Workout plans ----
-const PLANS = {
-  upper: {
-    name: 'Upper Body',
-    icon: '💪',
-    desc: 'Chest · Biceps · Triceps · Shoulders',
-    color: '#ef4444',
-    exercises: ['pushup', 'curl', 'dip', 'pike', 'bench', 'ohp'],
-  },
-  lower: {
-    name: 'Lower Body',
-    icon: '�',
-    desc: 'Quads · Hamstrings · Glutes',
-    color: '#22c55e',
-    exercises: ['squat', 'lunge', 'legpress', 'deadlift'],
-  },
-  pull: {
-    name: 'Pull Day',
-    icon: '🧗',
-    desc: 'Back · Biceps',
-    color: '#3b82f6',
-    exercises: ['pullup', 'row', 'curl', 'row_barbell', 'deadlift'],
-  },
-  core: {
-    name: 'Core & Cardio',
-    icon: '🎯',
-    desc: 'Abs · Stability · Zone 2',
-    color: '#f97316',
-    exercises: ['plank', 'lunge', 'squat', 'pushup'],
-  },
-  fullbody: {
-    name: 'Full Body',
-    icon: '⚡',
-    desc: 'Every muscle group',
-    color: '#a855f7',
-    exercises: ['pushup', 'squat', 'pullup', 'plank', 'lunge', 'pike'],
-  },
+// ============================================================
+// 14-16 Week Hypertrophy Split (5 sessions/wk, 60 min each)
+// Goal: visually big upper body (chest, biceps, shoulders, back)
+// Rules: progressive overload every set · small +200-300cal surplus
+// ============================================================
+
+const SPLIT_PROGRAM = {
+  name: 'Hypertrophy Split',
+  goal: 'Visually big upper body — chest, biceps, shoulders, back',
+  weeks: '14–16',
+  sessions: '5× / week',
+  duration: '60 min',
+  surplus: '+200–300 cal',
+  // 7-day rotation starting Monday. Days 4 & 7 are rest.
+  rotation: [
+    {
+      id: 'push', day: 1, name: 'PUSH', icon: '💥',
+      focus: 'Chest · Shoulders · Triceps',
+      color: '#ef4444',
+      upperBody: true,
+      exercises: ['db_lateral_raise', 'incline_bench', 'db_shoulder_press', 'chest_press_machine', 'cable_flye', 'rope_tricep_ext', 'weighted_dip'],
+    },
+    {
+      id: 'pull', day: 2, name: 'PULL', icon: '🧗',
+      focus: 'Back · Rear Delts · Biceps',
+      color: '#3b82f6',
+      upperBody: true,
+      exercises: ['chest_supported_row', 'lat_pulldown', 'cable_row', 'rear_delt_flye', 'hammer_curl', 'high_cable_curl'],
+    },
+    {
+      id: 'lower', day: 3, name: 'LOWER', icon: '🦵',
+      focus: 'Quads · Hamstrings · Glutes · Calves',
+      color: '#22c55e',
+      upperBody: false,
+      exercises: ['quad_extension', 'hack_squat', 'rdl', 'legpress', 'hamstring_curl', 'walking_lunge', 'calf_raise'],
+    },
+    {
+      id: 'rest1', day: 4, name: 'REST', icon: '😴',
+      focus: 'Recovery · Sleep · Walk',
+      color: '#64748b',
+      upperBody: false,
+      exercises: [],
+    },
+    {
+      id: 'delts_arms', day: 5, name: 'DELTS + ARMS', icon: '💪',
+      focus: 'Shoulders · Biceps · Triceps',
+      color: '#06b6d4',
+      upperBody: true,
+      exercises: ['machine_lateral_raise', 'bb_shoulder_press', 'chest_supported_lateral', 'face_pull', 'ez_tricep_ext', 'incline_db_curl', 'skull_crusher'],
+    },
+    {
+      id: 'chest_back', day: 6, name: 'CHEST + BACK', icon: '🏋️',
+      focus: 'Chest · Back (upper body volume)',
+      color: '#a855f7',
+      upperBody: true,
+      exercises: ['close_grip_pulldown', 'smith_chest_press', 'db_row', 'incline_bench', 'row_barbell', 'pec_dec_flye'],
+    },
+    {
+      id: 'rest2', day: 7, name: 'REST', icon: '😴',
+      focus: 'Recovery · Sleep · Walk',
+      color: '#64748b',
+      upperBody: false,
+      exercises: [],
+    },
+  ],
 };
+
+// Pick today's split by day of week (Mon=0 ... Sun=6)
+export function getTodaySplit() {
+  const idx = (new Date().getDay() + 6) % 7; // Mon=0
+  return SPLIT_PROGRAM.rotation[idx];
+}
+
+// Count completed sessions this week (Mon-Sun)
+function sessionsThisWeek(state) {
+  let n = 0;
+  const today = new Date();
+  const dayIdx = (today.getDay() + 6) % 7; // Mon=0
+  for (let i = 0; i <= dayIdx; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (dayIdx - i));
+    const key = d.toISOString().slice(0, 10);
+    if (state.trainingLog?.[key]?.completed) n++;
+  }
+  return n;
+}
+
+// Did you already log today's prescribed split?
+function didTodaySplit(state, split) {
+  const t = todayKey();
+  const log = state.trainingLog?.[t];
+  if (!log?.exercises?.length) return false;
+  const loggedIds = new Set(log.exercises.map(e => e.id));
+  return split.exercises.length > 0 && split.exercises.every(id => loggedIds.has(id));
+}
 
 // ---- State (module-level, NOT triggering re-renders) ----
 let _plan = null;
@@ -75,13 +132,15 @@ export function enterTraining() {
   renderStartScreen();
 }
 
-// ---- Start screen: two big options ----
+// ---- Start screen: today's prescribed split + weekly grid ----
 function renderStartScreen() {
   const s = getState();
   const t = todayKey();
-
-  // Determine which "next" training to suggest based on history
-  const nextPlan = suggestNextPlan(s);
+  const today = getTodaySplit();
+  const isRestDay = today.exercises.length === 0;
+  const alreadyDone = didTodaySplit(s, today);
+  const weekSessions = sessionsThisWeek(s);
+  const totalSets = isRestDay ? 0 : today.exercises.reduce((sum, exId) => sum + (EXERCISES[exId]?.sets || 3), 0);
 
   const host = ensureHost();
   clear(host);
@@ -90,58 +149,158 @@ function renderStartScreen() {
       el('button', { class: 'focus-mode-close', on: { click: exitTraining } }, ['✕']),
 
       el('div', { class: 'training-env-header' }, [
-        el('div', { class: 'focus-mode-label' }, ['Training Mode']),
-        el('div', { class: 'training-env-title' }, ['What do you want to train?']),
+        el('div', { class: 'focus-mode-label' }, ['Hypertrophy Split · ' + SPLIT_PROGRAM.weeks + ' wk']),
+        el('div', { class: 'training-env-title' }, ['Today: Day ' + today.day + ' · ' + today.name]),
       ]),
 
-      // Option 1: Next Training (auto-suggested)
-      el('button', {
-        class: 'training-start-card training-start-card--suggested',
-        on: { click: () => startPlan(nextPlan.id) }
+      // Weekly progress dots
+      el('div', { class: 'training-week-dots' }, SPLIT_PROGRAM.rotation.map((d, i) => {
+        const isToday = d.id === today.id;
+        // Check if this day was completed this week
+        const todayDate = new Date();
+        const dayIdx = (todayDate.getDay() + 6) % 7;
+        const dayDate = new Date(todayDate);
+        dayDate.setDate(todayDate.getDate() - (dayIdx - i));
+        const key = dayDate.toISOString().slice(0, 10);
+        const done = s.trainingLog?.[key]?.completed;
+        const isPast = i < dayIdx;
+        const isFuture = i > dayIdx;
+        return el('div', {
+          class: 'training-week-dot' + (isToday ? ' training-week-dot--today' : '') + (done ? ' training-week-dot--done' : ''),
+          style: { '--dot-color': d.color, background: done ? d.color : (isToday ? d.color + '22' : 'var(--c-bg-elev-2)'), borderColor: isToday ? d.color : 'transparent' },
+          title: 'Day ' + d.day + ': ' + d.name,
+        }, [d.icon]);
+      })),
+
+      // Today's split card (big, prominent)
+      !isRestDay && el('div', {
+        class: 'training-split-card',
+        style: { '--split-color': today.color, borderColor: today.color + '55', background: `linear-gradient(135deg, ${today.color}11, transparent)` },
       }, [
-        el('div', { class: 'training-start-card-top' }, [
-          el('div', { class: 'training-start-card-icon', style: { color: nextPlan.color } }, [nextPlan.icon]),
-          el('div', { class: 'training-start-card-body' }, [
-            el('div', { class: 'training-start-card-label' }, ['NEXT TRAINING']),
-            el('div', { class: 'training-start-card-name' }, [nextPlan.name]),
-            el('div', { class: 'training-start-card-desc' }, [nextPlan.desc]),
+        el('div', { class: 'training-split-card-head' }, [
+          el('div', { class: 'training-split-card-icon', style: { color: today.color } }, [today.icon]),
+          el('div', { class: 'training-split-card-body' }, [
+            el('div', { class: 'training-split-card-label' }, ['TODAY · DAY ' + today.day]),
+            el('div', { class: 'training-split-card-name' }, [today.name]),
+            el('div', { class: 'training-split-card-focus' }, [today.focus]),
+          ]),
+          today.upperBody && el('span', { class: 'training-upper-badge', style: { background: today.color + '22', color: today.color, borderColor: today.color + '55' } }, ['UPPER']),
+        ]),
+
+        // Exercise list with visuals (organized, scannable)
+        el('div', { class: 'training-split-exercises' }, today.exercises.map((exId, i) => {
+          const def = EXERCISES[exId];
+          if (!def) return null;
+          const muscleColor = MUSCLE_COLORS[def.muscle] || today.color;
+          return el('div', { class: 'training-split-ex' }, [
+            el('div', { class: 'training-split-ex-num', style: { color: today.color } }, [String(i + 1)]),
+            el('div', { class: 'training-split-ex-visual', style: { color: muscleColor } }, [exerciseVisual(def.visual, 44, muscleColor)]),
+            el('div', { class: 'training-split-ex-info' }, [
+              el('div', { class: 'training-split-ex-name' }, [def.name]),
+              el('div', { class: 'training-split-ex-meta' }, [
+                el('span', { style: { color: muscleColor } }, [def.muscle]),
+                ' · ' + def.sets + '×' + def.reps,
+              ]),
+            ]),
+            el('div', { class: 'training-split-ex-sets', style: { color: today.color } }, [def.sets + '×' + def.reps]),
+          ]);
+        }).filter(Boolean)),
+
+        // Stats footer
+        el('div', { class: 'training-split-card-stats' }, [
+          el('div', {}, [el('strong', {}, [String(today.exercises.length)]), ' exercises']),
+          el('div', {}, [el('strong', {}, [String(totalSets)]), ' sets']),
+          el('div', {}, [el('strong', {}, ['~60']), ' min']),
+        ]),
+
+        // Start button
+        el('button', {
+          class: 'training-big-btn',
+          style: { background: today.color, boxShadow: `0 4px 24px ${today.color}66`, marginTop: 'var(--sp-4)' },
+          on: { click: () => startSplit(today) }
+        }, [
+          el('div', { style: { fontSize: 'var(--fs-section)', fontWeight: 'var(--fw-bold)' } }, [alreadyDone ? '↻ Restart ' + today.name : '▶ Start ' + today.name]),
+          el('div', { style: { fontSize: 'var(--fs-meta)', opacity: 0.85 } }, [alreadyDone ? 'You already did this today' : `${today.exercises.length} exercises · ~60 min · progressive overload`]),
+        ]),
+      ]),
+
+      // Rest day card
+      isRestDay && el('div', {
+        class: 'training-split-card training-split-card--rest',
+        style: { '--split-color': today.color, borderColor: today.color + '55' },
+      }, [
+        el('div', { class: 'training-split-card-head' }, [
+          el('div', { class: 'training-split-card-icon', style: { color: today.color } }, [today.icon]),
+          el('div', { class: 'training-split-card-body' }, [
+            el('div', { class: 'training-split-card-label' }, ['TODAY · DAY ' + today.day]),
+            el('div', { class: 'training-split-card-name' }, [today.name]),
+            el('div', { class: 'training-split-card-focus' }, [today.focus]),
           ]),
         ]),
-        el('div', { class: 'training-start-card-meta' }, [
-          `${nextPlan.exercises.length} exercises · ${nextPlan.exercises.reduce((sum, exId) => sum + (EXERCISES[exId]?.sets || 3), 0)} sets · ~${nextPlan.exercises.length * 5} min`,
+        el('div', { class: 'training-rest-tips' }, [
+          el('div', {}, ['🛌 Sleep 8h — muscle grows during recovery']),
+          el('div', {}, ['🚶 Walk 20-30 min — blood flow aids repair']),
+          el('div', {}, ['💧 Hydrate · 🥩 Hit protein target']),
+          el('div', {}, ['🧘 Mobility / stretch 10 min']),
         ]),
-        el('div', { class: 'training-start-card-cta' }, ['Start now →']),
+        el('div', { class: 'text-mute text-meta', style: { marginTop: 'var(--sp-3)' } }, ['Tomorrow: ' + SPLIT_PROGRAM.rotation[(today.day) % 7].name]),
       ]),
 
-      // Option 2: Goal Training — Upper Body
-      el('button', {
-        class: 'training-start-card',
-        on: { click: () => startPlan('upper') }
-      }, [
-        el('div', { class: 'training-start-card-top' }, [
-          el('div', { class: 'training-start-card-icon', style: { color: PLANS.upper.color } }, [PLANS.upper.icon]),
-          el('div', { class: 'training-start-card-body' }, [
-            el('div', { class: 'training-start-card-label' }, ['GOAL TRAINING']),
-            el('div', { class: 'training-start-card-name' }, [PLANS.upper.name]),
-            el('div', { class: 'training-start-card-desc' }, [PLANS.upper.desc]),
-          ]),
+      // Weekly schedule grid (visual overview)
+      el('div', { class: 'training-week-grid' }, [
+        el('div', { class: 'training-week-grid-label' }, ['This week (' + weekSessions + '/5 sessions)']),
+        el('div', { class: 'training-week-grid-row' }, SPLIT_PROGRAM.rotation.map(d => {
+          const isToday = d.id === today.id;
+          const todayDate = new Date();
+          const dayIdx = (todayDate.getDay() + 6) % 7;
+          const i = d.day - 1;
+          const dayDate = new Date(todayDate);
+          dayDate.setDate(todayDate.getDate() - (dayIdx - i));
+          const key = dayDate.toISOString().slice(0, 10);
+          const done = s.trainingLog?.[key]?.completed;
+          const isPast = i < dayIdx;
+          return el('div', {
+            class: 'training-week-cell' + (isToday ? ' training-week-cell--today' : '') + (done ? ' training-week-cell--done' : '') + (isPast && !done && d.exercises.length ? ' training-week-cell--missed' : ''),
+            style: { '--cell-color': d.color },
+          }, [
+            el('div', { class: 'training-week-cell-day' }, ['D' + d.day]),
+            el('div', { class: 'training-week-cell-icon' }, [d.icon]),
+            el('div', { class: 'training-week-cell-name', style: { color: d.exercises.length ? d.color : 'var(--c-text-mute)' } }, [d.name.replace(' + ', '+')]),
+            done && el('div', { class: 'training-week-cell-check' }, ['✓']),
+          ]);
+        })),
+      ]),
+
+      // Program rules card
+      el('div', { class: 'training-program-rules' }, [
+        el('div', { class: 'training-program-rules-title' }, ['📋 Program Rules']),
+        el('div', { class: 'training-program-rules-grid' }, [
+          el('div', { class: 'training-rule' }, [el('span', { class: 'training-rule-icon' }, ['📅']), el('div', {}, [el('strong', {}, [SPLIT_PROGRAM.sessions]), el('div', { class: 'text-mute text-meta' }, ['sessions/wk'])])]),
+          el('div', { class: 'training-rule' }, [el('span', { class: 'training-rule-icon' }, ['⏱️']), el('div', {}, [el('strong', {}, [SPLIT_PROGRAM.duration]), el('div', { class: 'text-mute text-meta' }, ['per session'])])]),
+          el('div', { class: 'training-rule' }, [el('span', { class: 'training-rule-icon' }, ['🗓️']), el('div', {}, [el('strong', {}, [SPLIT_PROGRAM.weeks + ' wk']), el('div', { class: 'text-mute text-meta' }, ['commit, no changes'])])]),
+          el('div', { class: 'training-rule' }, [el('span', { class: 'training-rule-icon' }, ['🍽️']), el('div', {}, [el('strong', {}, [SPLIT_PROGRAM.surplus]), el('div', { class: 'text-mute text-meta' }, ['cal surplus'])])]),
         ]),
-        el('div', { class: 'training-start-card-meta' }, [
-          `${PLANS.upper.exercises.length} exercises · ${PLANS.upper.exercises.reduce((sum, exId) => sum + (EXERCISES[exId]?.sets || 3), 0)} sets`,
+        el('div', { class: 'training-program-rules-note' }, [
+          el('span', {}, ['📈 ']),
+          'Progressive overload every set — add weight or reps weekly. Log every session here to track it.',
+        ]),
+        el('div', { class: 'training-program-rules-note training-program-rules-note--goal' }, [
+          el('span', {}, ['🎯 ']),
+          'Goal: ' + SPLIT_PROGRAM.goal + '. 4 of 5 sessions target upper body.',
         ]),
       ]),
 
-      // Other options (small)
+      // Manual override: pick a different split
       el('div', { class: 'training-start-others' }, [
-        el('div', { class: 'training-start-others-label' }, ['Or pick:']),
-        el('div', { class: 'training-start-others-row' }, Object.entries(PLANS)
-          .filter(([id]) => id !== nextPlan.id && id !== 'upper')
-          .map(([id, plan]) =>
+        el('div', { class: 'training-start-others-label' }, ['Or jump to a different day:']),
+        el('div', { class: 'training-start-others-row' }, SPLIT_PROGRAM.rotation
+          .filter(d => d.id !== today.id && d.exercises.length > 0)
+          .map(d =>
             el('button', {
               class: 'training-start-chip',
-              style: { borderColor: plan.color, color: plan.color },
-              on: { click: () => startPlan(id) }
-            }, [`${plan.icon} ${plan.name}`])
+              style: { borderColor: d.color, color: d.color },
+              on: { click: () => startSplit(d) }
+            }, [d.icon + ' ' + d.name])
           )
         ),
       ]),
@@ -149,45 +308,9 @@ function renderStartScreen() {
   ]);
 }
 
-// ---- Suggest next plan based on training history ----
-function suggestNextPlan(state) {
-  // Check last 7 days of training
-  const recentMuscles = new Set();
-  for (let i = 0; i < 7; i++) {
-    const key = daysAgoKey(i);
-    const log = state.trainingLog?.[key];
-    if (log) {
-      for (const ex of log.exercises) {
-        const def = EXERCISES[ex.id];
-        if (def) recentMuscles.add(def.muscle);
-      }
-    }
-  }
-
-  // If rested too long (no workout in 3+ days), go full body
-  let hasRecent = false;
-  for (let i = 0; i < 3; i++) {
-    const key = daysAgoKey(i);
-    if (state.trainingLog?.[key]?.exercises?.length > 0) { hasRecent = true; break; }
-  }
-  if (!hasRecent) return { id: 'fullbody', ...PLANS.fullbody };
-
-  // Alternate: if did upper recently, suggest lower; if did lower, suggest upper
-  const didUpper = recentMuscles.has('Chest') || recentMuscles.has('Triceps') || recentMuscles.has('Shoulders');
-  const didLower = recentMuscles.has('Legs');
-  const didPull = recentMuscles.has('Back');
-
-  if (didUpper && !didLower) return { id: 'lower', ...PLANS.lower };
-  if (didLower && !didPull) return { id: 'pull', ...PLANS.pull };
-  if (didPull && !didUpper) return { id: 'upper', ...PLANS.upper };
-  if (didUpper && didLower && !didPull) return { id: 'pull', ...PLANS.pull };
-
-  return { id: 'fullbody', ...PLANS.fullbody };
-}
-
-// ---- Start a plan → enter exercise view ----
-function startPlan(planId) {
-  _plan = { id: planId, ...PLANS[planId] };
+// ---- Start a split → enter exercise view ----
+function startSplit(split) {
+  _plan = { ...split, name: split.name };
   _exIdx = 0;
   _setIdx = 0;
   renderExercise();
