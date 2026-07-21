@@ -2550,3 +2550,182 @@
   line-height: 1.1;
 }
 
+/* ============================================================
+   NIGHT ROUTINE — compact card on Today + full-screen mode
+   ============================================================ */
+
+/* Compact card on Today */
+.night-card .card-head { align-items: center; }
+.night-ring { display: block; }
+
+.night-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--c-bg-elev-2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: var(--sp-2);
+}
+.night-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease, background 0.3s ease;
+}
+
+.night-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+.night-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--sp-2) var(--sp-1);
+  background: var(--c-bg-elev-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: transform var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+  font-family: inherit;
+  text-align: center;
+}
+.night-chip:active { transform: scale(0.94); }
+.night-chip--done {
+  border-color: var(--c-healthy);
+  background: var(--c-healthy-soft);
+}
+.night-chip--done .night-chip-icon { color: var(--c-healthy); }
+.night-chip-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.night-chip-label {
+  font-size: 10px;
+  font-weight: var(--fw-semibold);
+  color: var(--c-text-soft);
+  line-height: 1.1;
+}
+
+/* Full-screen night routine */
+.night-host {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--c-bg);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.night-full {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--sp-4) var(--sp-4) calc(var(--sp-8) + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.night-top-bar {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+}
+.night-top-bar-title {
+  font-size: var(--fs-sub);
+  font-weight: var(--fw-semibold);
+  color: var(--c-text);
+}
+.night-top-bar-progress {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.night-ring-wrap {
+  position: relative;
+  margin: var(--sp-4) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.night-complete-label {
+  font-size: var(--fs-sub);
+  font-weight: var(--fw-semibold);
+  color: var(--c-healthy);
+}
+
+.night-steps {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.night-step {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--c-bg-elev-1);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: transform var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
+  width: 100%;
+  font-family: inherit;
+  text-align: left;
+}
+.night-step:active { transform: scale(0.98); }
+.night-step--done {
+  border-color: var(--c-healthy);
+  background: var(--c-healthy-soft);
+  opacity: 0.7;
+}
+.night-step--done .night-step-label {
+  text-decoration: line-through;
+  color: var(--c-text-mute);
+}
+.night-step--next {
+  border-color: var(--c-accent-text);
+  box-shadow: 0 0 0 2px var(--c-accent-text)22;
+}
+.night-step-check {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--c-bg-elev-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.night-step--done .night-step-check {
+  background: var(--c-healthy);
+  color: white;
+}
+.night-step-body { flex: 1; min-width: 0; }
+.night-step-label {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  color: var(--c-text);
+}
+.night-step-short {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  margin-top: 2px;
+}
+.night-step-time {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+

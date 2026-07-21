@@ -26,6 +26,7 @@ import { buildSuggestions, dismissSuggestion, acceptSuggestion, ensureCarryOver,
 import { importFromClipboard, payloadTemplate } from '../health-sync.js';
 import { buildDayPlan, fmtHour } from '../day-plan.js';
 import { homeWorkoutSection, isHomeExerciseTask, openHomeExerciseLogger } from '../home-workout.js';
+import { nightRoutineSection, enterNightRoutine } from '../night-routine.js';
 
 export function renderToday() {
   const s = getState();
@@ -89,6 +90,7 @@ export function renderToday() {
     kpiPanel(s),
     recallSection(s, t),
     commitmentSection(s, t),
+    nightRoutineSection(),
     reflectionCard(day, t),
     el('div', { style: { marginTop: 'var(--sp-6)' } }, [renderHeatmap(105)]),
   ]);
@@ -528,7 +530,7 @@ function financeCard(s) {
   ]);
 }
 
-// ---- Action buttons: Focus / Train / Home / Sync (primary actions up top) ----
+// ---- Action buttons: Focus / Train / Home / Night / Sync (primary actions up top) ----
 function actionButtons(s) {
   return el('div', { class: 'action-buttons-row', style: { marginTop: 'var(--sp-4)' } }, [
     el('button', {
@@ -556,6 +558,13 @@ function actionButtons(s) {
     }, [
       el('span', { class: 'action-btn-icon' }, ['🏠']),
       el('span', { class: 'action-btn-label' }, ['Home']),
+    ]),
+    el('button', {
+      class: 'action-btn action-btn--ghost',
+      on: { click: enterNightRoutine }
+    }, [
+      el('span', { class: 'action-btn-icon' }, ['🌙']),
+      el('span', { class: 'action-btn-label' }, ['Night']),
     ]),
     el('button', {
       class: 'action-btn action-btn--ghost action-btn--icon-only',

@@ -32,36 +32,66 @@ import { todayKey, daysAgoKey } from './util.js';
 import { dueToday } from './cadence.js';
 
 // ---- Science-backed default slots (fractional hours) ----
+// Ordered chronologically through the day. Timing is grounded in:
+//  · Circadian biology (Czeisler, Huberman) — light, cortisol, body temp
+//  · Glucose management — post-meal walks blunt glucose spikes
+//  · Sleep hygiene (AASM) — wind-down, dim light, no screens, no food
+//  · Memory consolidation — pre-sleep review benefits from sleep
 const SCIENCE_SLOTS = {
-  body_sun:      { h: 7.0,  why: 'Morning light anchors your circadian clock' },
-  body_weight:   { h: 7.15, why: 'Weigh at the same conditions: waking, fasted' },
-  psy_mindful:   { h: 7.3,  why: 'Meditation before inputs sets attentional tone' },
-  nutr_water:    { h: 7.5,  why: 'Rehydrate first — you lose ~0.5L overnight' },
-  body_mobility: { h: 7.75, why: 'Mobility when warm from the shower' },
-  know_review:   { h: 8.25, why: 'Recall works best fresh, before new input' },
-  att_deep:      { h: 9.0,  why: 'Alertness peaks 2–4h after waking — protect it' },
-  prod_commit:   { h: 10.0, why: 'Ship inside the deep work window' },
-  att_single:    { h: 11.0, why: 'One window, one task — ride the focus wave' },
-  nutr_protein:  { h: 12.5, why: 'Protein anchor at lunch' },
-  psy_mood:      { h: 13.0, why: 'Post-lunch check-in catches the afternoon dip' },
-  nutr_log:      { h: 13.2, why: 'Log while the meal is fresh in memory' },
-  bio_sync:      { h: 13.5, why: 'Admin belongs in the post-lunch dip' },
-  env_ws:        { h: 15.0, why: 'Reset the workspace in the low-focus window' },
-  env_inbox:     { h: 15.5, why: 'Batch shallow work in the dip' },
-  prod_review:   { h: 16.0, why: 'Review before the day\u2019s energy fades' },
-  proj_review:   { h: 16.0, why: 'Review before the day\u2019s energy fades' },
-  body_zone2:    { h: 16.5, why: 'Cardio in the late-afternoon performance peak' },
-  body_move:     { h: 17.0, why: 'Strength peaks with body temperature (16–18h)' },
-  body_strength: { h: 17.0, why: 'Strength peaks with body temperature (16–18h)' },
-  psy_journal:   { h: 18.0, why: 'Journal at the day\u2019s natural close' },
-  res_plan:      { h: 18.0, why: 'Plan the week while it\u2019s still visible' },
-  soc_reach:     { h: 18.5, why: 'People are reachable after work hours' },
-  att_audit:     { h: 18.5, why: 'Audit distractions while they\u2019re fresh' },
-  fam_conv:      { h: 19.5, why: 'Phone-free time after dinner' },
-  know_read:     { h: 20.5, why: 'Reading winds the mind down, screens up' },
-  know_capture:  { h: 21.0, why: 'Capture ideas right after reading' },
-  psy_note:      { h: 21.5, why: 'Reflection before bed consolidates the day' },
-  body_wind:     { h: 21.75, why: 'Dim light + no phone = deeper sleep' },
+  // === MORNING (wake – 9h) ===
+  body_sun:        { h: 7.0,  why: 'Morning light anchors your circadian clock' },
+  body_teeth_am:   { h: 7.05, why: 'Brush first thing — clears morning bacteria' },
+  body_weight:     { h: 7.15, why: 'Weigh at the same conditions: waking, fasted' },
+  psy_mindful:     { h: 7.3,  why: 'Meditation before inputs sets attentional tone' },
+  nutr_water:      { h: 7.5,  why: 'Rehydrate first — you lose ~0.5L overnight' },
+  body_skincare_am:{ h: 7.7,  why: 'Apply SPF before any sun exposure' },
+  body_mobility:   { h: 7.75, why: 'Mobility when warm from the shower' },
+  nutr_breakfast:  { h: 8.0,  why: 'Break the fast with protein to anchor blood sugar' },
+  know_review:     { h: 8.25, why: 'Recall works best fresh, before new input' },
+  att_deep:        { h: 9.0,  why: 'Alertness peaks 2–4h after waking — protect it' },
+  prod_commit:     { h: 10.0, why: 'Ship inside the deep work window' },
+  att_single:      { h: 11.0, why: 'One window, one task — ride the focus wave' },
+
+  // === MIDDAY (12 – 15h) ===
+  nutr_lunch:      { h: 12.5, why: 'Lunch at a consistent time stabilizes circadian rhythm' },
+  nutr_protein:    { h: 12.55,why: 'Check protein at the meal anchor' },
+  psy_mood:        { h: 13.0, why: 'Post-lunch check-in catches the afternoon dip' },
+  nutr_log:        { h: 13.2, why: 'Log while the meal is fresh in memory' },
+  body_walk_lunch: { h: 13.3, why: '10-min walk after lunch blunts the glucose spike by ~30%' },
+  bio_sync:        { h: 13.5, why: 'Admin belongs in the post-lunch dip' },
+  env_ws:          { h: 15.0, why: 'Reset the workspace in the low-focus window' },
+  env_inbox:       { h: 15.5, why: 'Batch shallow work in the dip' },
+
+  // === LATE AFTERNOON (15 – 18h) ===
+  prod_review:     { h: 16.0, why: 'Review before the day\u2019s energy fades' },
+  proj_review:     { h: 16.0, why: 'Review before the day\u2019s energy fades' },
+  body_zone2:      { h: 16.5, why: 'Cardio in the late-afternoon performance peak' },
+  body_move:       { h: 17.0, why: 'Strength peaks with body temperature (16–18h)' },
+  body_strength:   { h: 17.0, why: 'Strength peaks with body temperature (16–18h)' },
+
+  // === EVENING (18 – 21h) ===
+  psy_journal:     { h: 18.0, why: 'Journal at the day\u2019s natural close' },
+  res_plan:        { h: 18.0, why: 'Plan the week while it\u2019s still visible' },
+  soc_reach:       { h: 18.5, why: 'People are reachable after work hours' },
+  att_audit:       { h: 18.5, why: 'Audit distractions while they\u2019re fresh' },
+  nutr_dinner:     { h: 19.0, why: 'Dinner 3h before bed allows digestion before sleep' },
+  fam_conv:        { h: 19.5, why: 'Phone-free time after dinner' },
+  env_tomorrow:    { h: 20.0, why: 'Prep tomorrow after dinner — reduces morning friction' },
+  body_walk_pm:    { h: 20.2, why: 'Evening walk aids digestion + decompression' },
+  nutr_stop:       { h: 20.5, why: 'Stop eating 3h before bed — improves sleep quality' },
+  know_read:       { h: 20.5, why: 'Reading winds the mind down, screens up' },
+  know_capture:    { h: 21.0, why: 'Capture ideas right after reading' },
+
+  // === NIGHT ROUTINE (21 – 22h) — sequential, in order ===
+  body_wind:       { h: 21.25, why: 'Dim light + no phone = deeper sleep' },
+  env_phone:       { h: 21.3,  why: 'Phone in kitchen overnight — removes the temptation' },
+  body_skincare_pm:{ h: 21.4,  why: 'Night skincare before bed' },
+  body_teeth_pm:   { h: 21.5,  why: 'Brush + floss before bed — no food after' },
+  body_supp_pm:    { h: 21.55, why: 'Magnesium glycinate + glycine support sleep' },
+  psy_note:        { h: 21.6,  why: 'Reflection before bed consolidates the day' },
+  psy_gratitude:   { h: 21.7,  why: 'Gratitude practice improves sleep quality' },
+  body_stretch_pm: { h: 21.8,  why: 'Gentle stretch releases tension from the day' },
+  psy_breath:      { h: 21.9,  why: 'Box breathing 4-4-4-4 activates parasympathetic' },
 };
 
 // Heuristic fallback for unmapped actions

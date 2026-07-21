@@ -96,6 +96,18 @@ export const DEFAULT_DOMAINS = {
       act({ id: 'body_zone2', name: 'Zone 2 cardio', cadence: 'weekly', icon: '🚴', floor: '60 min', full: '180 min', estMins: 60, compoundScore: 8 }),
       act({ id: 'body_strength', name: 'Strength session', cadence: 'weekly', icon: '💪', floor: '1', full: '2', estMins: 60, compoundScore: 9 }),
       act({ id: 'body_weight', name: 'Weigh-in', cadence: 'weekly', icon: '⚖️', estMins: 1, compoundScore: 3 }),
+      // Hygiene & self-care (daily essentials)
+      act({ id: 'body_teeth_am', name: 'Brush teeth (AM)', cadence: 'daily', icon: '🪥', floor: 'Brush', full: 'Brush + floss', cue: 'After waking', response: 'Brush teeth', implementationIntention: 'If I wake up, then I will brush my teeth', estMins: 2, compoundScore: 4 }),
+      act({ id: 'body_teeth_pm', name: 'Brush teeth (PM)', cadence: 'daily', icon: '🪥', floor: 'Brush', full: 'Brush + floss', cue: 'Before bed', response: 'Brush + floss', implementationIntention: 'If I am getting ready for bed, then I will brush and floss', estMins: 3, compoundScore: 5 }),
+      act({ id: 'body_skincare_am', name: 'Skincare (AM)', cadence: 'daily', icon: '🧴', floor: 'Moisturizer', full: 'Cleanse + moisturize + SPF', cue: 'After morning shower', response: 'Apply skincare', implementationIntention: 'If I finish my morning shower, then I will apply skincare', estMins: 2, compoundScore: 4 }),
+      act({ id: 'body_skincare_pm', name: 'Skincare (PM)', cadence: 'daily', icon: '🧴', floor: 'Cleanse + moisturize', full: 'Full routine', cue: 'Before bed', response: 'Evening skincare', implementationIntention: 'If I am winding down, then I will do my evening skincare routine', estMins: 3, compoundScore: 4 }),
+      // Walks (glucose management + movement)
+      act({ id: 'body_walk_lunch', name: 'Post-meal walk', cadence: 'daily', icon: '🚶', floor: '5 min', full: '10-15 min', cue: 'After lunch', response: 'Walk outside', implementationIntention: 'If I finish lunch, then I will walk for 10 min', estMins: 10, compoundScore: 7 }),
+      act({ id: 'body_walk_pm', name: 'Evening walk', cadence: 'daily', icon: '🌆', floor: '10 min', full: '20-30 min', cue: 'After dinner', response: 'Walk to digest + decompress', implementationIntention: 'If I finish dinner, then I will take an evening walk', estMins: 15, compoundScore: 7 }),
+      // Evening stretch (separate from morning mobility — aids sleep)
+      act({ id: 'body_stretch_pm', name: 'Evening stretch', cadence: 'daily', icon: '🧘‍♂️', floor: '3 min', full: '10 min', cue: 'Before bed', response: 'Gentle stretch', implementationIntention: 'If I am getting ready for bed, then I will stretch for 5 min', estMins: 5, compoundScore: 6 }),
+      // Supplements
+      act({ id: 'body_supp_pm', name: 'Evening supplements', cadence: 'daily', icon: '💊', floor: 'Magnesium', full: 'Magnesium + glycine', cue: 'Before bed', response: 'Take supplements', implementationIntention: 'If I am doing my night routine, then I will take my evening supplements', estMins: 1, compoundScore: 5 }),
     ],
     trigger: 'Morning, post-work, evening',
     checklist: ['Lay out clothes night before', 'Phone in kitchen overnight', 'Water bottle filled'],
@@ -136,6 +148,12 @@ export const DEFAULT_DOMAINS = {
       act({ id: 'nutr_protein', name: 'Protein meal', cadence: 'daily', icon: '🥩', floor: '1 protein meal', full: '30g+ per meal', cue: 'Before each meal', response: 'Check protein first', implementationIntention: 'If I sit down to eat, then I will check protein first', estMins: 1, compoundScore: 8 }),
       act({ id: 'nutr_water', name: 'Water', cadence: 'daily', icon: '💧', floor: '2 L', full: '3 L', cue: 'After bathroom', response: 'Drink a glass', implementationIntention: 'If I return from the bathroom, then I will drink water', estMins: 1, compoundScore: 5 }),
       act({ id: 'nutr_log', name: 'Log meals', cadence: 'daily', icon: '📝', floor: '1 meal', full: 'All meals', cue: 'After eating', response: 'Log in Cronometer', implementationIntention: 'If I finish eating, then I will log the meal', estMins: 3, compoundScore: 6 }),
+      // Three distinct meals (anchors the day, ensures protein at each)
+      act({ id: 'nutr_breakfast', name: 'Breakfast', cadence: 'daily', icon: '🍳', floor: 'Protein + fat', full: '30g+ protein, whole foods', cue: 'After morning routine', response: 'Eat a protein-anchored breakfast', implementationIntention: 'If I finish my morning routine, then I will eat a protein-anchored breakfast', estMins: 15, compoundScore: 7 }),
+      act({ id: 'nutr_lunch', name: 'Lunch', cadence: 'daily', icon: '🥗', floor: 'Protein + veg', full: '30g+ protein + vegetables', cue: 'Midday', response: 'Eat a balanced lunch', implementationIntention: 'If it is midday, then I will eat a balanced lunch with protein and vegetables', estMins: 20, compoundScore: 7 }),
+      act({ id: 'nutr_dinner', name: 'Dinner', cadence: 'daily', icon: '🍽️', floor: 'Protein + veg', full: '30g+ protein + veg, lighter carbs', cue: 'Evening', response: 'Eat a lighter dinner', implementationIntention: 'If it is evening, then I will eat a lighter dinner with protein and vegetables', estMins: 25, compoundScore: 7 }),
+      // Stop eating window (sleep quality)
+      act({ id: 'nutr_stop', name: 'Stop eating 3h before bed', cadence: 'daily', icon: '🚫', floor: 'No food 2h before', full: 'No food 3h before bed', cue: 'After dinner', response: 'Kitchen closed', implementationIntention: 'If I finish dinner, then I will close the kitchen for the night', estMins: 1, compoundScore: 8 }),
     ],
     trigger: 'Each meal',
     checklist: ['30g protein per meal', 'Vegetables or fruit with lunch/dinner', 'No liquid calories'],
@@ -204,6 +222,10 @@ export const DEFAULT_DOMAINS = {
       act({ id: 'psy_note', name: 'Evening reflection', cadence: 'daily', icon: '📝', cue: 'Before bed', response: 'One win, one lesson', implementationIntention: 'If I get into bed, then I will write one win and one lesson', estMins: 3, compoundScore: 8 }),
       act({ id: 'psy_mindful', name: 'Mindful minutes', cadence: 'daily', icon: '🧘', floor: '3 min', full: '10 min', cue: 'After waking', response: 'Breathe / meditate', implementationIntention: 'If I wake up, then I will sit for mindful minutes', estMins: 10, compoundScore: 7 }),
       act({ id: 'psy_journal', name: 'Journal', cadence: 'weekly', icon: '📖', estMins: 15, compoundScore: 7 }),
+      // Gratitude (research-backed for wellbeing)
+      act({ id: 'psy_gratitude', name: 'Gratitude', cadence: 'daily', icon: '🙏', floor: '1 thing', full: '3 specific things', cue: 'Before bed', response: 'Write 1-3 things you are grateful for', implementationIntention: 'If I am doing my night routine, then I will write 3 things I am grateful for', estMins: 2, compoundScore: 7 }),
+      // Breathing / NSDR for sleep
+      act({ id: 'psy_breath', name: 'Box breathing / NSDR', cadence: 'daily', icon: '🌬️', floor: '2 min', full: '10 min NSDR', cue: 'In bed', response: 'Box breathing 4-4-4-4 or NSDR', implementationIntention: 'If I get into bed, then I will do box breathing or NSDR for 5 min', estMins: 5, compoundScore: 7 }),
     ],
     trigger: 'Morning, midday, evening',
     checklist: ['Name the emotion', 'Locate it in the body', 'Choose response, not reaction'],
@@ -272,6 +294,10 @@ export const DEFAULT_DOMAINS = {
       act({ id: 'env_inbox', name: 'Inbox Zero', cadence: 'weekly', icon: '📭', estMins: 20, compoundScore: 5 }),
       act({ id: 'env_notif', name: 'Notification audit', cadence: 'monthly', icon: '🔕', estMins: 15, compoundScore: 6 }),
       act({ id: 'env_unsub', name: 'Unsubscribe purge', cadence: 'quarterly', icon: '🗑️', estMins: 20, compoundScore: 4 }),
+      // Tomorrow prep (reduces morning friction, improves sleep)
+      act({ id: 'env_tomorrow', name: 'Prep for tomorrow', cadence: 'daily', icon: '🎒', floor: 'Lay out clothes', full: 'Clothes + lunch + coffee + bag', cue: 'After dinner', response: 'Prep clothes, lunch, coffee', implementationIntention: 'If I finish dinner, then I will prep everything I need for tomorrow morning', estMins: 5, compoundScore: 7 }),
+      // Phone in kitchen (sleep hygiene — separate from wind-down)
+      act({ id: 'env_phone', name: 'Phone in kitchen', cadence: 'daily', icon: '📵', floor: 'Phone out of bedroom', full: 'Phone charging in kitchen overnight', cue: 'At wind-down', response: 'Plug phone in kitchen', implementationIntention: 'If I start my wind-down, then I will plug my phone in the kitchen, not the bedroom', estMins: 1, compoundScore: 8 }),
     ],
     trigger: 'Sunday morning',
     checklist: ['Clear desk', 'Close unused tabs', 'Mute non-essential notifications'],
