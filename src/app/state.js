@@ -186,6 +186,13 @@ export function setDayAction(key, actionId, state) {
     const next = state != null ? state : cycleState(cur);
     if (next) day.actions[actionId] = next;
     else delete day.actions[actionId];
+    // Record completion time — feeds the day-plan personalization engine
+    if (next === 'full' || next === 'floor') {
+      const now = new Date();
+      (day.actionTimes ||= {})[actionId] = now.getHours() + now.getMinutes() / 60;
+    } else if (!next && day.actionTimes) {
+      delete day.actionTimes[actionId];
+    }
     recompute(st);
   });
 }

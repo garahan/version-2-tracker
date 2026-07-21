@@ -119,6 +119,53 @@
   padding: var(--sp-3);
 }
 
+/* Day-plan timeline */
+.plan-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--c-bg-elev-2);
+}
+.plan-row:last-child { border-bottom: none; }
+.plan-row--past { opacity: 0.55; }
+.plan-row-time {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  min-width: 42px;
+}
+.plan-row-icon { font-size: 16px; }
+.plan-row-body { flex: 1; min-width: 0; }
+.plan-row-name { font-size: var(--fs-sub); font-weight: var(--fw-medium); }
+.plan-row-why {
+  font-size: var(--fs-meta);
+  color: var(--c-text-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.plan-now {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 2px 0;
+}
+.plan-now-time {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-meta);
+  color: var(--c-accent-text);
+  min-width: 42px;
+  font-weight: var(--fw-semibold);
+}
+.plan-now-line { flex: 1; height: 1px; background: var(--c-accent); opacity: 0.6; }
+.plan-now-label {
+  font-size: var(--fs-meta);
+  color: var(--c-accent-text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 .card-head {
   display: flex;
   align-items: center;

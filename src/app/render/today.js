@@ -24,6 +24,7 @@ import { trainingLogSection } from '../training.js';
 import { enterTraining } from '../training-env.js';
 import { buildSuggestions, dismissSuggestion, acceptSuggestion, ensureCarryOver, addTask, toggleTask, deleteTask } from '../suggestions.js';
 import { importFromClipboard, payloadTemplate } from '../health-sync.js';
+import { buildDayPlan, fmtHour } from '../day-plan.js';
 
 export function renderToday() {
   const s = getState();
@@ -50,21 +51,24 @@ export function renderToday() {
     focusButton(),
     el('div', { class: 'section-head', style: { marginTop: 'var(--sp-8)' } }, [
       el('div', { class: 'section-title' }, ['Today']),
+      viewToggle(s),
       el('span', { class: 'text-mute text-meta' }, [`${prog.done}/${prog.due} done`]),
     ]),
     streakNudge(streak, prog),
-    ...Object.values(byDomain).map(({ domain, items }) =>
-      el('div', { class: 'card' }, [
-        el('div', { class: 'card-head' }, [
-          el('div', { class: 'card-icon' }, [domain.icon]),
-          el('div', {}, [
-            el('div', { class: 'card-title' }, [domain.name]),
-            el('div', { class: 'card-subtitle' }, [items.length === 1 ? '1 action' : `${items.length} actions`]),
+    ...((s.settings.todayView || 'plan') === 'plan'
+      ? [timelineSection(day, t)]
+      : Object.values(byDomain).map(({ domain, items }) =>
+        el('div', { class: 'card' }, [
+          el('div', { class: 'card-head' }, [
+            el('div', { class: 'card-icon' }, [domain.icon]),
+            el('div', {}, [
+              el('div', { class: 'card-title' }, [domain.name]),
+              el('div', { class: 'card-subtitle' }, [items.length === 1 ? '1 action' : `${items.length} actions`]),
+            ]),
           ]),
-        ]),
-        el('div', { class: 'list' }, items.map(a => actionRow(a, day, t))),
-      ])
-    ),
+          el('div', { class: 'list' }, items.map(a => actionRow(a, day, t))),
+        ])
+      )),
     trainingLogSection(s, t),
     recallSection(s, t),
     commitmentSection(s, t),
@@ -183,6 +187,96 @@ function openSyncSheet() {
   ]);
 
   sheet({ title: '⌚ Health & Calendar Sync', body });
+}
+
+// ---- Plan / Domains view toggle ----
+function viewToggle(s) {
+  const view = s.settings.todayView || 'plan';
+  const setView = (v) => {
+    updateSilent(st => { st.settings.todayView = v; });
+    window.__lifeosRerender && window.__lifeosRerender();
+  };
+  return el('div', { class: 'flex gap-1', style: { marginLeft: 'auto', marginRight: 'var(--sp-2)' } }, [
+    el('button', { class: `chip ${view === 'plan' ? 'chip--accent' : ''}`, on: { click: () => setView('plan') } }, ['🕐 Plan']),
+    el('button', { class: `chip ${view === 'domains' ? 'chip--accent' : ''}`, on: { click: () => setView('domains') } }, ['🗂 Domains']),
+  ]);
+}
+
+// ---- Timeline: everything due today, slotted by the day-plan engine ----
+function timelineSection(day, t) {
+  const plan = buildDayPlan();
+  if (!plan.length) {
+    return el('div', { class: 'card' }, [
+      el('div', { class: 'empty' }, [
+        el('div', { class: 'empty-icon' }, ['🌤']),
+        el('div', { class: 'empty-title' }, ['Nothing scheduled']),
+      ]),
+    ]);
+  }
+  const now = new Date();
+  const nowH = now.getHours() + now.getMinutes() / 60;
+  let nowMarkerPlaced = false;
+  const rows = [];
+  for (const entry of plan) {
+    if (!nowMarkerPlaced && entry.hour >= nowH) {
+      rows.push(el('div', { class: 'plan-now' }, [
+        el('span', { class: 'plan-now-time' }, [fmtHour(nowH)]),
+        el('span', { class: 'plan-now-line' }),
+        el('span', { class: 'plan-now-label' }, ['now']),
+      ]));
+      nowMarkerPlaced = true;
+    }
+    rows.push(planRow(entry, day, t, !nowMarkerPlaced));
+  }
+  return el('div', { class: 'card' }, [el('div', { class: 'list' }, rows)]);
+}
+
+function planRow(entry, day, t, isPast) {
+  const isDone = entry.type === 'action'
+    ? (entry.state === 'full' || entry.state === 'rest' || entry.state === 'floor')
+    : entry.type === 'task' ? !!entry.task?.done : false;
+
+  let check = null;
+  if (entry.type === 'action') {
+    check = toggle(entry.state, (e) => {
+      e.stopPropagation();
+      setDayAction(t, entry.action.id, null);
+      updateSilent(st => { autoDeriveKPIs(st); autoCalcRunway(st); });
+      const newSt = getState().days[t]?.actions[entry.action.id];
+      check.className = `check check--${newSt || ''}`;
+      check.textContent = newSt === 'full' ? '✓' : newSt === 'floor' ? '½' : newSt === 'rest' ? 'R' : '';
+      const done = newSt === 'full' || newSt === 'floor' || newSt === 'rest';
+      nameEl.style.color = done ? 'var(--c-healthy)' : '';
+      if (newSt === 'full' || newSt === 'rest') toast(`${entry.name} ✓`, { icon: entry.icon });
+    });
+  } else if (entry.type === 'task') {
+    check = toggle(entry.task.done ? 'done' : null, () => {
+      toggleTask(entry.task.id);
+      const nowDone = getState().days[t]?.tasks?.find(x => x.id === entry.task.id)?.done;
+      check.className = `check check--${nowDone ? 'done' : ''}`;
+      check.textContent = nowDone ? '✓' : '';
+      nameEl.style.textDecoration = nowDone ? 'line-through' : '';
+      nameEl.style.color = nowDone ? 'var(--c-text-mute)' : '';
+    });
+  }
+
+  const nameEl = el('div', { class: 'plan-row-name', style: {
+    color: isDone ? (entry.type === 'task' ? 'var(--c-text-mute)' : 'var(--c-healthy)') : '',
+    textDecoration: entry.type === 'task' && isDone ? 'line-through' : '',
+  } }, [entry.name]);
+
+  return el('div', { class: `plan-row ${isPast && !isDone ? 'plan-row--past' : ''}` }, [
+    el('div', { class: 'plan-row-time' }, [fmtHour(entry.hour)]),
+    el('span', { class: 'plan-row-icon' }, [entry.icon]),
+    el('div', { class: 'plan-row-body' }, [
+      nameEl,
+      (entry.why || entry.meta) && el('div', { class: 'plan-row-why' }, [
+        [entry.meta, isDone ? null : entry.why].filter(Boolean).join(' — '),
+      ]),
+      entry.floor && !isDone && el('div', { class: 'plan-row-why' }, ['Floor: ' + entry.floor]),
+    ]),
+    check,
+  ]);
 }
 
 // ---- Suggestions (personalized, max 3, dismissible) ----
