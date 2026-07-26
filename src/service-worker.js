@@ -3,7 +3,7 @@
 // Network-first for app code, cache-first for static assets.
 // ============================================================
 
-const CACHE = 'lifeos-v4.2';
+const CACHE = 'lifeos-v5';
 // Pre-cache EVERYTHING the app can lazily import, so offline works
 // even for tabs the user hasn't opened yet.
 const ASSETS = [
@@ -85,7 +85,8 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   
   // Network-first for ALL JS and CSS files (so updates are picked up immediately)
-  const isNetworkFirst = NETWORK_FIRST.some(path => url.pathname.endsWith(path)) ||
+  const isNetworkFirst = e.request.mode === 'navigate' ||
+    NETWORK_FIRST.some(path => url.pathname.endsWith(path)) ||
     url.pathname.endsWith('.js') ||
     url.pathname.endsWith('.css') ||
     url.pathname.endsWith('.mjs');

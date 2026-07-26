@@ -8,7 +8,7 @@ import { el, clear, mount, $ } from './dom.js';
 import { getState, applySettings, subscribe, update } from './state.js';
 import { todayKey } from './util.js';
 import { toast } from './ui.js';
-import { seedSampleData, runAutomation } from './automation.js';
+import { runAutomation } from './automation.js';
 import { maybeImportFromURL } from './health-sync.js';
 
 const TABS = [
@@ -48,11 +48,9 @@ export function boot() {
   if (!s.settings.onboarded) {
     import('./onboarding.js').then(m => m.renderOnboarding());
   }
-  // Run automation: seed data if empty, derive KPIs
+  // Never invent personal history or health/financial data.
   if (!s.settings.seeded) {
     update(st => {
-      const seeded = seedSampleData(st);
-      Object.assign(st, seeded);
       st.settings.seeded = true;
     });
   }

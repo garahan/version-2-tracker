@@ -71,8 +71,12 @@ export function svgEl(tag, attrs) {
 }
 
 // ---- Toggle (Apple-style cycle: empty → full → floor → rest) ----
-export function toggle(state, on) {
-  const t = el('button', { class: `check check--${state || ''}`, on: on ? { click: on } : {} });
+export function toggle(state, on, label = 'Change completion state') {
+  const t = el('button', {
+    class: `check check--${state || ''}`,
+    'aria-label': label,
+    on: on ? { click: on } : {},
+  });
   if (state === 'full' || state === 'done') t.textContent = '✓';
   else if (state === 'floor') t.textContent = '½';
   else if (state === 'rest') t.textContent = 'R';

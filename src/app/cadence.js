@@ -4,7 +4,22 @@
 // ============================================================
 
 import { allDomains } from './data/domains.js';
-import { todayKey, dateFromKey } from './util.js';
+import { getState } from './state.js';
+import { todayKey } from './util.js';
+
+export const DEFAULT_DAILY_ACTION_IDS = [
+  'body_sun',
+  'nutr_water',
+  'att_deep',
+  'body_move',
+  'body_walk_lunch',
+  'fam_conv',
+  'body_wind',
+  'psy_note',
+];
+
+export const MAX_DAILY_ACTIONS = 10;
+export const MAX_CADENCED_ACTIONS = 3;
 
 // ---- Is a cadence due on a given date? ----
 export function isDueOn(cadence, d = new Date()) {
@@ -25,16 +40,35 @@ export function isDueOn(cadence, d = new Date()) {
 
 // ---- All actions due today, with their domain ----
 export function dueToday(d = new Date()) {
-  const out = [];
-  const key = todayKey(d);
-  for (const domain of allDomains()) {
+  const state = getState();
+  const domains = Object.values(state.domains || {});
+  const source = domains.length ? domains : allDomains();
+  const configured = state.settings?.activeActionIds;
+  const activeIds = new Set(Array.isArray(configured) && configured.length
+    ? configured.slice(0, MAX_DAILY_ACTIONS)
+    : DEFAULT_DAILY_ACTION_IDS);
+  const daily = [];
+  const cadenced = [];
+  const seen = new Set();
+
+  for (const domain of source) {
     for (const action of domain.actions) {
-      if (isDueOn(action.cadence, d)) {
-        out.push({ domain, action });
+      if (seen.has(action.id) || !isDueOn(action.cadence, d)) continue;
+      seen.add(action.id);
+      const item = { domain, action };
+      if (action.cadence === 'daily') {
+        if (activeIds.has(action.id)) daily.push(item);
+      } else {
+        cadenced.push(item);
       }
     }
   }
-  return out;
+
+  cadenced.sort((a, b) =>
+    (b.action.compoundScore || 0) - (a.action.compoundScore || 0)
+    || (a.action.estMins || 0) - (b.action.estMins || 0)
+  );
+  return [...daily, ...cadenced.slice(0, MAX_CADENCED_ACTIONS)];
 }
 
 // ---- Today progress (state passed in to avoid circular dep) ----

@@ -1,0 +1,10 @@
+{
+  "name": "life-os",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "npm run check:syntax && npm test",
+    "check:syntax": "find src/app -name '*.js' -print0 | xargs -0 -n1 node --check",
+    "test": "node --test"
+  }
+}

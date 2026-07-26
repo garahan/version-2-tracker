@@ -9,7 +9,7 @@ import { clone, todayKey } from './util.js';
 import { DEFAULT_DOMAINS } from './data/domains.js';
 
 const STORAGE_KEY = 'lifeos.v3';
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 // ---- Default state ----
 export function defaultState() {
@@ -64,6 +64,7 @@ export function defaultState() {
       theme: 'midnight', accent: 'indigo',
       sync: 'none', gistId: '', gistToken: '',
       onboarded: false, seeded: false, haptics: true, sounds: false, notifications: false,
+      activeActionIds: null,
     },
   };
 }
@@ -80,6 +81,7 @@ export function blankDay() {
     dismissedSuggestions: [],
     carriedOver: false,
     shielded: false,
+    awardedPoints: 0,
   };
 }
 
@@ -217,8 +219,17 @@ function recompute(st) {
   const today = todayKey();
   const day = st.days[today];
   if (!day) return;
-  // Points: full=1, floor=0.5, rest=1, missed=0
-  // (computed on demand in analytics; version derived from totalPoints)
+  // Apply only the delta so repeated toggles cannot duplicate points and
+  // unrelated rewards (commitments, reviews) remain intact.
+  const nextPoints = Object.values(day.actions).reduce((sum, status) => {
+    if (status === 'full' || status === 'rest') return sum + 1;
+    if (status === 'floor') return sum + 0.5;
+    return sum;
+  }, 0);
+  const previousPoints = Number(day.awardedPoints) || 0;
+  st.totalPoints = Math.max(0, (Number(st.totalPoints) || 0) + nextPoints - previousPoints);
+  day.awardedPoints = nextPoints;
+  st.version = 1 + st.totalPoints / 400;
 }
 
 export function addPoints(n) {
@@ -318,7 +329,17 @@ function migrate(prev) {
     merged.schemaVersion = SCHEMA_VERSION;
     return merged;
   }
-  return prev;
+  const defaults = defaultState();
+  return {
+    ...defaults,
+    ...prev,
+    settings: { ...defaults.settings, ...(prev.settings || {}) },
+    identity: { ...defaults.identity, ...(prev.identity || {}) },
+    optionality: { ...defaults.optionality, ...(prev.optionality || {}) },
+    northStar: { ...defaults.northStar, ...(prev.northStar || {}) },
+    reviews: { ...defaults.reviews, ...(prev.reviews || {}) },
+    metrics: { ...defaults.metrics, ...(prev.metrics || {}) },
+  };
 }
 
 // ---- Export / Import (v3 §26) ----
