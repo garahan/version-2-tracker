@@ -1,7 +1,7 @@
 {
-  "name": "Life OS v3",
+  "name": "Life OS",
   "short_name": "Life OS",
-  "description": "Operating system for human optimization. Compounds every form of capital through better decisions, feedback loops, and leverage.",
+  "description": "A private, offline-ready daily operating system for focused action and reflection.",
   "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",

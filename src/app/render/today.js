@@ -127,7 +127,9 @@ function heroRing(s, prog) {
     ]),
     el('div', { class: 'ring-hero-center' }, [
       el('div', { class: 'ring-hero-version' }, [`v${s.version.toFixed(2)}`]),
-      el('div', { class: 'ring-hero-progress' }, [`${prog.done}/${prog.due} done`]),
+      el('div', { class: 'ring-hero-progress' }, [
+        `${prog.done}/${prog.due} · ${fmtNum(s.totalPoints || 0)} pts`,
+      ]),
     ]),
   ]);
 }
@@ -267,7 +269,8 @@ function planRow(entry, day, t, isPast) {
       const done = newSt === 'full' || newSt === 'floor' || newSt === 'rest';
       nameEl.style.color = done ? 'var(--c-healthy)' : '';
       if (newSt === 'full' || newSt === 'rest') toast(`${entry.name} ✓`, { icon: entry.icon });
-    });
+      window.__lifeosRerender && window.__lifeosRerender();
+    }, `Update ${entry.name}`);
   } else if (entry.type === 'task') {
     check = toggle(entry.task.done ? 'done' : null, () => {
       toggleTask(entry.task.id);
@@ -276,7 +279,7 @@ function planRow(entry, day, t, isPast) {
       check.textContent = nowDone ? '✓' : '';
       nameEl.style.textDecoration = nowDone ? 'line-through' : '';
       nameEl.style.color = nowDone ? 'var(--c-text-mute)' : '';
-    });
+    }, `Complete ${entry.task.text}`);
   }
 
   const nameEl = el('div', { class: 'plan-row-name', style: {
@@ -398,7 +401,7 @@ function todoRow(task) {
     check.textContent = nowDone ? '✓' : '';
     label.style.textDecoration = nowDone ? 'line-through' : '';
     label.style.color = nowDone ? 'var(--c-text-mute)' : '';
-  });
+  }, `Complete ${task.text}`);
   const label = el('div', { style: {
     flex: 1, fontSize: 'var(--fs-sub)',
     textDecoration: task.done ? 'line-through' : '',
@@ -439,7 +442,7 @@ function kpiPanel(s) {
   const hrv = last('hrv');
   const steps = last('steps');
   const deepWork = s.days[t]?.deepWorkMins || 0;
-  const runway = s.optionality?.runwayMonths || 0;
+  const runway = s.optionality?.runwayMonths;
   const mood = s.days[t]?.mood;
   const moodEmoji = mood === 1 ? '😞' : mood === 2 ? '😕' : mood === 3 ? '😐' : mood === 4 ? '🙂' : mood === 5 ? '😄' : '—';
   const stepsStr = steps != null ? fmtNum(steps) : '—';
@@ -454,7 +457,7 @@ function kpiPanel(s) {
     kpiCell('Deep', deepWork ? (deepWork / 60).toFixed(1) + 'h' : '—', null),
     kpiCell('Mood', moodEmoji, null),
     kpiCell('Steps', stepsStr, null),
-    kpiCell('Runway', runway + 'm', runway < 6 ? 'low' : null),
+    kpiCell('Runway', runway > 0 ? runway + 'm' : '—', runway > 0 && runway < 6 ? 'low' : null),
   ];
   const extras = [
     kpiCell('HRV', hrv != null ? String(hrv) : '—', null, 'ms'),
@@ -578,13 +581,12 @@ function actionButtons(s) {
 
 // ---- Streak nudge (loss aversion) ----
 function streakNudge(streak, prog) {
-  const remaining = prog.due - prog.done - prog.floor;
-  if (streak < 3 || remaining <= 0 || prog.due === 0) return null;
+  if (streak < 3 || prog.done + prog.floor > 0 || prog.due === 0) return null;
   return el('div', { class: 'card card--accent card--pad-sm mb-3', style: { marginTop: 'var(--sp-3)' } }, [
     el('div', { class: 'flex items-center gap-2' }, [
       el('span', {}, ['🔥']),
       el('div', { style: { flex: 1, fontSize: 'var(--fs-sub)' } }, [
-        `You're on a ${streak}-day streak. Complete ${remaining} more to keep it alive.`,
+        `Protect your ${streak}-day streak with one meaningful action. The floor version counts.`,
       ]),
     ]),
   ]);
@@ -621,7 +623,8 @@ function actionRow(action, day, t) {
       }
       toast(`${action.name} ✓`, { icon: action.icon });
     }
-  });
+    window.__lifeosRerender && window.__lifeosRerender();
+  }, `Update ${action.name}`);
   return el('div', { class: 'action-row' }, [
     el('div', { class: 'action-row-head' }, [
       toggleBtn,

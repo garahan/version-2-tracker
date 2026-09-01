@@ -2728,4 +2728,14 @@
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
+.onb-trust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+  color: var(--c-healthy);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-semibold);
+}
 

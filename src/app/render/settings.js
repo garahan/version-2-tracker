@@ -10,6 +10,8 @@ import { todayKey, fmtDate } from '../util.js';
 import { go } from '../main.js';
 import { isConfigured, createBackup, pushBackup, pullBackup, testToken } from '../gist-sync.js';
 import { isEncrypted, enableEncryption, disableEncryption } from '../crypto.js';
+import { allDomains } from '../data/domains.js';
+import { DEFAULT_DAILY_ACTION_IDS, MAX_DAILY_ACTIONS } from '../cadence.js';
 
 const THEMES = [
   { id: 'midnight', label: 'Midnight', desc: 'Dark, low-glare' },
@@ -72,6 +74,34 @@ export function renderSettings() {
       toggleRow('Haptics', 'haptics', s),
       toggleRow('Sounds', 'sounds', s),
       toggleRow('Notifications', 'notifications', s),
+    ]),
+
+    // Daily plan
+    el('div', { class: 'section-head', style: { marginTop: 'var(--sp-6)' } }, [
+      el('div', { class: 'section-title' }, ['Daily plan']),
+      el('span', { class: 'text-mute text-meta' }, [
+        `${activeActionIds(s).length}/${MAX_DAILY_ACTIONS}`,
+      ]),
+    ]),
+    el('div', { class: 'card' }, [
+      el('div', { class: 'text-mute text-meta', style: { marginBottom: 'var(--sp-3)', lineHeight: 1.5 } }, [
+        'Choose the actions that deserve space on Today. Keep the list small enough to finish.',
+      ]),
+      ...dailyActions().map(({ domain, action }) =>
+        el('div', { class: 'list-item' }, [
+          el('div', { class: 'list-item-body' }, [
+            el('div', { class: 'list-item-title' }, [`${action.icon || domain.icon} ${action.name}`]),
+            el('div', { class: 'list-item-sub' }, [
+              `${domain.name} · ${action.estMins || 5} min${action.floor ? ` · Floor: ${action.floor}` : ''}`,
+            ]),
+          ]),
+          planToggle(action.id, action.name, s),
+        ])
+      ),
+      el('button', {
+        class: 'btn btn--ghost btn--block mt-2',
+        on: { click: () => update(st => { st.settings.activeActionIds = [...DEFAULT_DAILY_ACTION_IDS]; }) },
+      }, ['Restore starter plan']),
     ]),
 
     // Data (v3 §26)
@@ -156,6 +186,43 @@ function toggleRow(label, key, s) {
 function setSetting(key, value) {
   update(st => { st.settings[key] = value; });
   applySettings();
+}
+
+function dailyActions() {
+  return allDomains().flatMap(domain =>
+    (domain.actions || [])
+      .filter(action => action.cadence === 'daily')
+      .map(action => ({ domain, action }))
+  );
+}
+
+function activeActionIds(s) {
+  const ids = s.settings.activeActionIds;
+  return Array.isArray(ids) && ids.length ? ids : DEFAULT_DAILY_ACTION_IDS;
+}
+
+function planToggle(actionId, actionName, s) {
+  const active = activeActionIds(s).includes(actionId);
+  return el('button', {
+    class: `btn ${active ? 'btn--primary' : 'btn--ghost'} btn--sm`,
+    'aria-label': `${active ? 'Remove' : 'Add'} ${actionName} ${active ? 'from' : 'to'} daily plan`,
+    on: { click: () => {
+      const current = [...activeActionIds(getState())];
+      if (active) {
+        if (current.length === 1) {
+          toast('Keep at least one daily action', { icon: '⚠️' });
+          return;
+        }
+        update(st => { st.settings.activeActionIds = current.filter(id => id !== actionId); });
+        return;
+      }
+      if (current.length >= MAX_DAILY_ACTIONS) {
+        toast(`Daily plan is limited to ${MAX_DAILY_ACTIONS} actions`, { icon: '⚠️' });
+        return;
+      }
+      update(st => { st.settings.activeActionIds = [...current, actionId]; });
+    } },
+  }, [active ? 'On' : 'Add']);
 }
 
 function doExport() {

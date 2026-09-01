@@ -208,8 +208,9 @@ export function buildDayPlan() {
 // ---- Format fractional hour → "HH:MM" ----
 export function fmtHour(h) {
   const clamped = Math.min(23.99, Math.max(0, h));
-  const hh = Math.floor(clamped);
-  const mm = Math.round((clamped - hh) / (1 / 60) / 5) * 5 % 60;
+  const totalMinutes = Math.min(1439, Math.round(clamped * 12) * 5);
+  const hh = Math.floor(totalMinutes / 60);
+  const mm = totalMinutes % 60;
   return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
 }
 
